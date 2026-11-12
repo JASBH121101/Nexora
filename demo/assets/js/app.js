@@ -1,9 +1,8 @@
 (() => {
   const demos = window.NEXORA_DEMOS || [];
   const $ = (selector) => document.querySelector(selector);
-  const make = (tag, className, text) => {
+  const make = (tag, text) => {
     const element = document.createElement(tag);
-    if (className) element.className = className;
     if (text !== undefined && text !== null) element.textContent = String(text);
     return element;
   };
@@ -53,7 +52,9 @@
     const labels = ["Todos", ...business.categories];
     const buttons = labels.map((label, index) => {
       const value = index === 0 ? "all" : label;
-      const button = make("button", "category-chip" + (activeCategory === value ? " is-active" : ""), label);
+      const button = make("button", label);
+      button.classList.add("category-chip");
+      if (activeCategory === value) button.classList.add("is-active");
       button.type = "button";
       button.dataset.category = value;
       return button;
@@ -62,8 +63,10 @@
   };
 
   const productCard = (product) => {
-    const article = make("article", "product-card");
-    const imageWrap = make("div", "product-image");
+    const article = make("article");
+    article.classList.add("product-card");
+    const imageWrap = make("div");
+    imageWrap.classList.add("product-image");
     const image = make("img");
     image.src = safeImageSource(product.image);
     image.alt = product.name || "Producto del catálogo";
@@ -71,21 +74,35 @@
     image.addEventListener("error", () => { image.src = "assets/img/product-placeholder.svg"; }, { once: true });
     imageWrap.append(image);
 
-    if (product.tag) imageWrap.append(make("span", "product-tag", product.tag));
-    const quickButton = make("button", "product-quick", "↗");
+    if (product.tag) {
+      const tag = make("span", product.tag);
+      tag.classList.add("product-tag");
+      imageWrap.append(tag);
+    }
+    const quickButton = make("button", "↗");
+    quickButton.classList.add("product-quick");
     quickButton.type = "button";
     quickButton.dataset.productId = product.id;
     quickButton.setAttribute("aria-label", "Ver detalles de " + product.name);
     imageWrap.append(quickButton);
 
-    const info = make("div", "product-info");
-    info.append(make("span", "product-category", product.category));
-    info.append(make("h3", "", product.name));
-    info.append(make("p", "product-detail", product.detail || "Consulta más información"));
-    const priceRow = make("div", "price-row");
-    priceRow.append(make("span", "product-price", NexoraStore.money(product.price)));
+    const info = make("div");
+    info.classList.add("product-info");
+    const category = make("span", product.category);
+    category.classList.add("product-category");
+    info.append(category);
+    info.append(make("h3", product.name));
+    const detail = make("p", product.detail || "Consulta más información");
+    detail.classList.add("product-detail");
+    info.append(detail);
+    const priceRow = make("div");
+    priceRow.classList.add("price-row");
+    const price = make("span", NexoraStore.money(product.price));
+    price.classList.add("product-price");
+    priceRow.append(price);
     if (Number(product.oldPrice) > Number(product.price)) {
-      const oldPrice = make("del", "old-price", NexoraStore.money(product.oldPrice));
+      const oldPrice = make("del", NexoraStore.money(product.oldPrice));
+      oldPrice.classList.add("old-price");
       priceRow.append(oldPrice);
     }
     info.append(priceRow);
@@ -114,7 +131,7 @@
     searchInput.value = "";
     $("#business-kicker").textContent = settings.name.toUpperCase() + " · " + business.tagline;
     const headline = $("#hero-title");
-    const secondLine = make("span", "", business.headline[1]);
+    const secondLine = make("span", business.headline[1]);
     headline.replaceChildren(document.createTextNode(business.headline[0]), document.createElement("br"), secondLine);
     $("#hero-description").textContent = business.description;
     $("#hero-image").src = safeImageSource(business.heroImage);
@@ -140,12 +157,16 @@
     $("#dialog-description").textContent = product.description || "Consulta con el negocio para conocer más detalles.";
     const attributeList = $("#dialog-attributes");
     attributeList.replaceChildren();
-    if (product.detail) attributeList.append(make("span", "attribute-pill", product.detail));
+    if (product.detail) {
+      const attribute = make("span", product.detail);
+      attribute.classList.add("attribute-pill");
+      attributeList.append(attribute);
+    }
 
     const price = $("#dialog-price");
     price.replaceChildren(document.createTextNode(NexoraStore.money(product.price)));
     if (Number(product.oldPrice) > Number(product.price)) {
-      const oldPrice = make("del", "", NexoraStore.money(product.oldPrice));
+      const oldPrice = make("del", NexoraStore.money(product.oldPrice));
       price.append(oldPrice);
     }
     setWhatsAppLink($("#dialog-whatsapp"), "Hola, me interesa " + product.name + " (" + NexoraStore.money(product.price) + "). ¿Me pueden brindar más información?");
