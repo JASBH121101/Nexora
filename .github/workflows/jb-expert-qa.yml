@@ -3,8 +3,44 @@ name: JB Expert QA — NEXORA
 on:
   push:
     branches: [main]
+    paths:
+      - "app/**"
+      - "bootstrap/**"
+      - "config/**"
+      - "database/**"
+      - "public/**"
+      - "resources/**"
+      - "routes/**"
+      - "tests/**"
+      - ".github/workflows/jb-expert-qa.yml"
+      - "composer.json"
+      - "composer.lock"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.*"
+      - "phpunit.xml*"
+      - "pint.json"
+      - "jb-expert-qa.config.json"
   pull_request:
     branches: [main]
+    paths:
+      - "app/**"
+      - "bootstrap/**"
+      - "config/**"
+      - "database/**"
+      - "public/**"
+      - "resources/**"
+      - "routes/**"
+      - "tests/**"
+      - ".github/workflows/jb-expert-qa.yml"
+      - "composer.json"
+      - "composer.lock"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.*"
+      - "phpunit.xml*"
+      - "pint.json"
+      - "jb-expert-qa.config.json"
   workflow_dispatch:
 
 permissions:
