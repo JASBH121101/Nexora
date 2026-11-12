@@ -57,7 +57,10 @@ jobs:
         shell: bash
         run: |
           if [[ -f .artifacts/jb-expert-qa-report.md ]]; then
+            echo "----- JB EXPERT QA REPORT -----"
+            cat .artifacts/jb-expert-qa-report.md
             cat .artifacts/jb-expert-qa-report.md >> "$GITHUB_STEP_SUMMARY"
           else
+            echo "JB Expert QA did not produce a report. Review the failed installation or audit step."
             echo "JB Expert QA did not produce a report. Review the failed installation or audit step." >> "$GITHUB_STEP_SUMMARY"
           fi
