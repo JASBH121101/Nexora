@@ -1,6 +1,20 @@
 (() => {
   const demos = window.NEXORA_DEMOS || [];
   const $ = (selector) => document.querySelector(selector);
+  const make = (tag, text) => {
+    const element = document.createElement(tag);
+    if (text !== undefined && text !== null) element.textContent = String(text);
+    return element;
+  };
+  const safeImageSource = (value) => {
+    try {
+      const url = new URL(String(value), window.location.href);
+      if (url.protocol === "https:" || url.protocol === "http:") return url.href;
+    } catch {
+      // Invalid image URLs use the local fallback below.
+    }
+    return "assets/img/product-placeholder.svg";
+  };
   const businessSelect = $("#admin-business-select");
   const productRows = $("#admin-product-rows");
   const dialog = $("#product-form-dialog");
@@ -26,21 +40,6 @@
     render();
     return true;
   };
-  const safeImageSource = (value) => {
-    try {
-      const url = new URL(String(value), window.location.href);
-      if (url.protocol === "https:" || url.protocol === "http:") return url.href;
-    } catch {
-      // Invalid image URLs use the local fallback below.
-    }
-    return "assets/img/product-placeholder.svg";
-  };
-  const make = (tag, className, text) => {
-    const element = document.createElement(tag);
-    if (className) element.className = className;
-    if (text !== undefined && text !== null) element.textContent = String(text);
-    return element;
-  };
   const render = () => {
     const categories = new Set(products.map((item) => item.category).filter(Boolean));
     $("#stat-products").textContent = String(products.length);
@@ -51,30 +50,36 @@
     const rows = products.map((product) => {
       const row = make("tr");
       const productCell = make("td");
-      const productWrap = make("div", "table-product");
+      const productWrap = make("div");
+      productWrap.classList.add("table-product");
       const image = make("img");
       image.src = safeImageSource(product.image);
       image.alt = "";
       image.loading = "lazy";
       image.addEventListener("error", () => { image.src = "assets/img/product-placeholder.svg"; }, { once: true });
       const productText = make("span");
-      productText.append(make("strong", "", product.name), make("small", "", product.detail || "Sin detalle"));
+      productText.append(make("strong", product.name), make("small", product.detail || "Sin detalle"));
       productWrap.append(image, productText);
       productCell.append(productWrap);
 
-      const categoryCell = make("td", "", product.category);
+      const categoryCell = make("td", product.category);
       const priceCell = make("td");
-      priceCell.append(make("strong", "", NexoraStore.money(product.price)));
+      priceCell.append(make("strong", NexoraStore.money(product.price)));
       const stateCell = make("td");
-      stateCell.append(make("span", "state-pill", "Publicado"));
+      const state = make("span", "Publicado");
+      state.classList.add("state-pill");
+      stateCell.append(state);
 
       const actionsCell = make("td");
-      const actions = make("div", "row-actions");
-      const edit = make("button", "row-action", "✎");
+      const actions = make("div");
+      actions.classList.add("row-actions");
+      const edit = make("button", "✎");
+      edit.classList.add("row-action");
       edit.type = "button";
       edit.dataset.edit = product.id;
       edit.setAttribute("aria-label", "Editar " + product.name);
-      const remove = make("button", "row-action is-danger", "×");
+      const remove = make("button", "×");
+      remove.classList.add("row-action", "is-danger");
       remove.type = "button";
       remove.dataset.delete = product.id;
       remove.setAttribute("aria-label", "Eliminar " + product.name);
