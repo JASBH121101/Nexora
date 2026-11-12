@@ -1,133 +1,106 @@
-# NEXORA — Arquitectura inicial
+# NEXORA — Arquitectura del catálogo digital
 
-**Estado:** propuesta técnica para la demostración MVP.  
-**Principio:** monolito modular, simple de instalar en un VPS y fácil de mantener.
+**Producto:** página web de catálogo con panel administrativo.  
+**Modelo:** un código fuente reutilizable y una instalación independiente por negocio.
 
-## 1. Objetivo
+## 1. Propósito y límites
 
-Construir una plataforma de catálogo digital reutilizable para negocios de distintos sectores. La misma base de código debe poder configurarse con identidad visual, datos de contacto, categorías y productos diferentes, sin modificar el código por cada negocio.
+NEXORA permite a un negocio mostrar sus productos en una página pública y administrarlos desde un panel privado. Debe ser sencillo de instalar, operar y mantener.
 
-La demostración se limita a mostrar y administrar productos. No es una tienda en línea ni un ERP.
+No es un ERP, no procesa pedidos ni pagos y no es un SaaS centralizado multiempresa. Cada cliente recibe una instalación separada. El código se reutiliza, pero los datos, fotografías y configuración no se comparten entre clientes.
 
-## 2. Stack previsto
+## 2. Arquitectura técnica
 
-- Laravel como aplicación backend y capa de presentación.
-- PHP en una versión compatible con la versión estable de Laravel seleccionada al iniciar el proyecto.
-- MySQL/MariaDB.
-- Blade para vistas del servidor; HTML, CSS y JavaScript para interacción.
-- GitHub para control de versiones y CI.
-- JB Expert QA como herramienta externa de análisis estático durante el desarrollo.
+Aplicación monolítica Laravel en el VPS de cada cliente:
+- Laravel/PHP para rutas, autenticación, validación y lógica.
+- Blade para las páginas públicas y administrativas.
+- HTML, CSS y JavaScript para la interfaz.
+- MariaDB Community o MySQL Community en el VPS.
+- Sistema de archivos local para fotografías.
+- GitHub para versionado y CI.
 
-No se añade Docker, servicios de pago ni dependencias comerciales en esta fase.
+No se introducen microservicios, multi-tenancy, marketplace de módulos, cuentas centrales de propietarios ni servicios de pago en esta fase.
 
-## 3. Estilo arquitectónico
+## 3. Flujo de instalación
 
-Monolito modular dentro de una sola aplicación Laravel. Los límites de dominio se mantienen claros, sin introducir microservicios ni una infraestructura multi-tenant que todavía no ha sido aprobada.
+1. El cliente contrata su dominio y VPS.
+2. Recibe el ZIP y la guía de instalación.
+3. Configura las credenciales de base de datos y ejecuta las migraciones.
+4. Durante el primer acceso controlado crea la cuenta del propietario y registra el nombre comercial.
+5. El propietario configura el negocio, WhatsApp, categorías y productos.
+6. El sitio público queda disponible en el dominio del negocio.
 
-Módulos propuestos:
+El asistente de instalación debe permitir crear el primer propietario de forma segura y quedar bloqueado al concluir. No habrá registro público abierto.
 
-| Módulo | Responsabilidad |
+## 4. Secciones funcionales
+
+| Sección | Función |
 |---|---|
-| Business Profile | Nombre comercial, logo, colores, WhatsApp y contacto |
-| Catalog | Productos, categorías, estado y destacados |
-| Product Attributes | Campos adicionales simples para adaptar fichas a distintos rubros |
-| Media | Carga, validación, redimensionado, compresión y formatos de imagen |
-| Admin | Autenticación y operaciones administrativas |
-| Public Catalog | Presentación pública, búsqueda y filtros básicos |
+| Resumen | Cantidad de productos, categorías y productos publicados |
+| Productos | Crear, editar, publicar, ocultar y eliminar productos |
+| Categorías | Crear, editar, ordenar y eliminar categorías |
+| Fotografías | Cargar, reemplazar, ordenar y eliminar imágenes |
+| Configuración | Nombre, logotipo, descripción, colores básicos, moneda y WhatsApp |
+| Cuenta | Inicio y cierre de sesión del propietario |
 
-## 4. Modelo de datos inicial
+Estas secciones son partes de un panel sencillo; no son módulos ERP que el cliente active o contrate.
 
-Entidades previstas para el MVP:
+## 5. Modelo de datos inicial
 
-- `business_settings`: identidad y datos de contacto de la instalación.
-- `users`: usuarios autorizados para administrar el catálogo.
-- `categories`: categorías y orden de presentación.
-- `products`: nombre, descripción, precio opcional, estado y categoría.
-- `product_images`: rutas, orden y metadatos de las fotografías.
-- `product_attributes`: atributos adicionales configurables, asociados a productos.
+Mantener el esquema reducido:
+- `users`: propietario de la instalación.
+- `business_settings`: identidad y contacto del negocio.
+- `categories`: categorías del catálogo.
+- `products`: nombre, descripción, categoría, precio opcional, estado, destacado y detalle adicional opcional.
+- `product_images`: ruta, texto alternativo y orden de las fotografías.
 
-La forma definitiva de guardar atributos flexibles se validará antes de crear migraciones. No se incorporará inventario, pedidos, pagos ni contabilidad.
+No crear tablas de inventario, almacenes, movimientos, pedidos, pagos, compras, proveedores, facturación, contabilidad ni nómina.
 
-## 5. Separación de responsabilidades
+No crear todavía un constructor avanzado de atributos dinámicos. Para diferencias entre rubros se podrá usar un campo de detalle adicional libre, por ejemplo talla, color, kilometraje o almacenamiento. Un editor de atributos configurable solo se considerará si el cliente lo pide expresamente.
 
-- Los controladores HTTP validan solicitudes y delegan operaciones.
-- Los modelos representan datos y relaciones.
-- Las reglas de validación se centralizan en Form Requests.
-- La lógica de carga y optimización se aísla en servicios de Media.
-- Las vistas públicas no muestran funciones administrativas.
-- El panel requiere autenticación; las operaciones de escritura requieren autorización del servidor.
+## 6. Seguridad
 
-No confiar en ocultar botones como mecanismo de seguridad.
+- Toda ruta administrativa requiere autenticación.
+- Las operaciones de escritura requieren validación y autorización en el servidor.
+- La primera cuenta de propietario se crea durante la instalación, no mediante registro público.
+- Las contraseñas se guardan usando el hashing seguro del framework.
+- Las sesiones y cookies se configuran con atributos seguros en producción.
+- La carga de imágenes valida MIME real, extensión, tamaño y dimensiones.
+- Los archivos utilizan nombres generados por el sistema.
+- Ocultar un botón en el frontend nunca sustituye la autorización del backend.
 
-## 6. Imágenes
+La demo frontend no ofrece seguridad y no debe utilizarse para administrar datos reales.
 
-El flujo debe validar tipo MIME real, extensión permitida, tamaño y dimensiones. Las imágenes aceptadas se redimensionarán y comprimirán; WebP será el formato de salida preferido cuando la biblioteca y el entorno lo permitan. Se conservará una estrategia de nombres aleatorios y rutas no ejecutables. Los límites concretos de tamaño se fijarán en configuración.
+## 7. Fotografías
 
-No almacenar imágenes binarias directamente en MySQL. Guardar archivos en el almacenamiento configurado y metadatos/rutas en la base de datos.
+Las imágenes se almacenan como archivos en el almacenamiento local configurado por Laravel; la base de datos guarda sus rutas y metadatos. No se guardan imágenes binarias como BLOB en MariaDB/MySQL.
 
-## 7. WhatsApp
+El flujo validará formato, MIME real, tamaño y dimensiones; redimensionará y comprimirá las imágenes. WebP será preferido si el entorno lo soporta. No se requiere R2, S3 ni otro almacenamiento externo para el funcionamiento básico.
 
-Generar enlaces `wa.me` a partir del número configurado por el administrador. El mensaje por producto puede incluir nombre y precio cuando exista. El número y contenido se validan en servidor; no se procesa ninguna compra dentro de NEXORA.
+## 8. WhatsApp
 
-## 8. Despliegue y configuración
+El propietario configura un número con código de país y un mensaje general. Cada producto podrá generar un enlace `https://wa.me/` con un texto precargado que incluya el nombre y, si está configurado, el precio del producto.
 
-La aplicación está pensada para ejecutarse en un VPS con PHP, Composer, servidor web y MySQL/MariaDB. Cloudflare puede utilizarse posteriormente como DNS/proxy/SSL delante del VPS, pero no reemplaza el runtime PHP de Laravel.
+NEXORA no procesa compras, pagos ni pedidos. La conversación y cierre de venta suceden fuera del sistema.
 
-El modelo comercial y de instalación (una instalación independiente por negocio frente a una plataforma central multi-tenant) sigue pendiente de confirmación del cliente. No implementar aislamiento multi-tenant hasta que esa decisión sea explícita.
+## 9. Despliegue y entrega
 
-## 9. Calidad y seguridad
+Requisitos previstos: PHP compatible con la versión de Laravel seleccionada, Composer, MariaDB/MySQL, servidor web, HTTPS y extensiones PHP necesarias.
 
-JB Expert QA se ejecutará en GitHub Actions como herramienta de desarrollo, no como dependencia de producción. La auditoría estática no ejecuta la aplicación ni sustituye las pruebas funcionales, revisión manual o pruebas de seguridad. Las consultas de advisories y funciones de IA permanecerán desactivadas por defecto.
+La versión definitiva de PHP, Laravel y extensiones se fijará después de conocer el entorno VPS del cliente. La entrega incluirá ZIP, `.env.example`, migraciones, instrucciones y procedimiento de actualización. Nunca incluirá credenciales ni secretos.
 
-Las pruebas de aplicación se incorporarán junto con cada módulo. Las credenciales y configuraciones locales nunca se guardan en el repositorio público.
+El cliente contrata y mantiene el VPS, dominio y cualquier servicio externo opcional.
 
-## 10. Estructura prevista
+## 10. Calidad
 
-```text
-app/
-  Http/
-    Controllers/
-    Requests/
-  Models/
-  Services/
-    Media/
-bootstrap/
-config/
-database/
-  migrations/
-  seeders/
-public/
-resources/
-  css/
-  js/
-  views/
-    admin/
-    catalog/
-routes/
-  web.php
-tests/
-  Feature/
-  Unit/
-docs/
-.github/
-  workflows/
-```
+JB Expert QA se ejecuta en CI como herramienta de desarrollo; no forma parte del producto instalado por el cliente. La auditoría estática no sustituye pruebas funcionales ni revisión visual real.
 
-Esta estructura es una guía inicial; se generará el esqueleto real con Composer/Laravel en el entorno de desarrollo para evitar inventar archivos de framework manualmente.
+Antes de entregar se probarán página pública, responsive, autenticación, CRUD, gestión de categorías, carga y eliminación de fotografías, enlaces de WhatsApp y protección de rutas.
 
-## 11. Demostración frontend existente
+## 11. Demo actual
 
-La carpeta `demo/` contiene una implementación demostrativa independiente en HTML, CSS y JavaScript. Su propósito es validar la presentación, navegación y experiencia de catálogo antes de conectar Laravel.
+`demo/` es una muestra independiente en HTML/CSS/JS. Incluye tres rubros ficticios para mostrar la reutilización del diseño, búsqueda, filtros, fichas, WhatsApp y un panel de prueba que guarda cambios en `localStorage`.
 
-Incluye tres perfiles de negocio ficticios, filtros y búsqueda, fichas de producto, consultas por WhatsApp y un panel de administración de muestra. Los cambios del panel se guardan únicamente en `localStorage` del navegador.
+La selección de rubro es únicamente un recurso de demostración. En producción cada despliegue corresponde a un único negocio y lee su propia identidad y catálogo desde su base de datos.
 
-Esta capa no proporciona autenticación, autorización, persistencia central ni aislamiento de datos. No debe utilizarse para operar un negocio real. Cuando se construya Laravel, se trasladarán los componentes visuales a Blade y las operaciones a endpoints protegidos del backend.
-
-## 12. Decisiones pendientes antes del primer módulo
-
-1. Confirmar con el cliente el modelo de instalación y comercialización.
-2. Confirmar versión PHP disponible en el VPS y requisitos del hosting.
-3. Definir límites para imágenes y campos adicionales de productos.
-4. Confirmar si la demostración tendrá un único administrador o varios usuarios.
-
-Hasta validar esos puntos, mantener el alcance reducido y no añadir infraestructura que genere costos.
+La demo no tiene autenticación real, API, base de datos ni almacenamiento seguro de fotografías.
