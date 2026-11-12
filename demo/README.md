@@ -1,27 +1,29 @@
-# NEXORA — Demostración HTML/CSS/JS
+# NEXORA — Demostración del catálogo digital
 
-Esta carpeta contiene una muestra independiente para validar la experiencia pública del catálogo y una vista administrativa básica.
+Esta carpeta contiene una muestra HTML/CSS/JS para validar el catálogo público y el panel administrativo antes de implementar el backend Laravel.
 
-## Abrir la demo
+## Qué demuestra
 
-Abre `index.html` en un navegador moderno o sirve la carpeta `demo/` con cualquier servidor estático local. No necesita npm, Node, Composer, Laravel ni base de datos para esta demostración.
+- Página pública adaptable a móvil y escritorio.
+- Tres perfiles ficticios para mostrar cómo se configura el diseño según el rubro.
+- Búsqueda y filtros por categoría.
+- Fichas con fotografía, nombre, descripción, precio y detalle.
+- Enlaces directos de consulta a WhatsApp.
+- Panel de prueba para crear, editar y eliminar productos.
+- Configuración de nombre comercial, número y mensaje de contacto.
 
-## Funciones disponibles
+## Cómo funciona
 
-- Cambiar entre tres rubros ficticios: moda, vehículos y tecnología.
-- Buscar productos y filtrar por categoría.
-- Abrir fichas con descripción, atributos y precio.
-- Generar enlaces de consulta a WhatsApp con datos de muestra.
-- Abrir `admin.html` para agregar, editar y eliminar productos.
-- Cambiar el nombre, número y mensaje del negocio en la vista administrativa.
-- Compartir cambios entre ambas pantallas mediante `localStorage` del navegador.
+Abre `index.html` en un navegador moderno o sirve la carpeta `demo/` con un servidor estático. No requiere npm, Node, Composer, Laravel ni una base de datos.
 
-## Limitaciones de seguridad
+El panel guarda cambios en `localStorage` del navegador. No hay sincronización entre dispositivos ni usuarios.
 
-Esta demo es solo frontend. No existe autenticación real, autorización de servidor, API, persistencia central ni aislamiento entre usuarios. Cualquier visitante puede inspeccionar el código y modificar el estado local del navegador. No usar para administrar negocios reales ni cargar información privada.
+## Limitaciones
 
-Los números de WhatsApp, productos, precios y textos son ficticios. Sustituir los datos de demostración solo en un entorno local de prueba.
+Esta demo no tiene inicio de sesión real, autorización en servidor, API, base de datos ni almacenamiento seguro de fotografías. Cualquier persona con acceso al navegador puede inspeccionar o modificar los datos locales. No usar para un negocio real ni guardar información privada.
 
-## Relación con Laravel
+Los productos, imágenes, números y mensajes son ilustrativos. La selección de varios rubros existe solamente para mostrar la flexibilidad visual; el producto instalado en producción tendrá un solo negocio por instalación.
 
-La demo valida estructura, navegación, componentes visuales y flujo de interacción. La implementación real se trasladará a Laravel con validación y autorización en servidor, base de datos MySQL/MariaDB y almacenamiento seguro de imágenes. No se deben convertir datos de `localStorage` en fuente de verdad de producción.
+## Producto de producción
+
+El backend real se construirá con Laravel y MariaDB/MySQL. Incluirá autenticación del propietario, operaciones CRUD protegidas, validación, carga segura de fotografías y persistencia del catálogo en la base de datos. Esta demo es una referencia visual y de interacción, no el sistema de producción.
