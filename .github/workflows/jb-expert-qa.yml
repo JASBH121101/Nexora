@@ -2,8 +2,9 @@ name: JB Expert QA — NEXORA
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'feature/**']
     paths:
+      - "demo/**"
       - "app/**"
       - "bootstrap/**"
       - "config/**"
@@ -22,8 +23,9 @@ on:
       - "pint.json"
       - "jb-expert-qa.config.json"
   pull_request:
-    branches: [main]
+    branches: [main, 'feature/**']
     paths:
+      - "demo/**"
       - "app/**"
       - "bootstrap/**"
       - "config/**"
