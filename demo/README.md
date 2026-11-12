@@ -4,7 +4,7 @@ Esta carpeta contiene una muestra independiente para validar la experiencia púb
 
 ## Abrir la demo
 
-Abre `index.html` en un navegador moderno o sirve la carpeta `demo/` con cualquier servidor estático local. No necesita npm, Node, Composer, Laravel ni base de datos para esta demostración.
+Abre `index.html` en un navegador moderno o sirve la carpeta `demo/` con cualquier servidor estático local. No necesita npm, Node, Composer, WordPress ni base de datos para esta demostración.
 
 ## Funciones disponibles
 
@@ -13,15 +13,15 @@ Abre `index.html` en un navegador moderno o sirve la carpeta `demo/` con cualqui
 - Abrir fichas con descripción, atributos y precio.
 - Generar enlaces de consulta a WhatsApp con datos de muestra.
 - Abrir `admin.html` para agregar, editar y eliminar productos.
-- Cambiar el nombre, número y mensaje del negocio en la vista administrativa.
-- Compartir cambios entre ambas pantallas mediante `localStorage` del navegador.
+- Cambiar nombre, número y mensaje del negocio.
+- Compartir cambios entre las pantallas mediante `localStorage` del mismo navegador.
 
-## Limitaciones de seguridad
+## Limitaciones
 
-Esta demo es solo frontend. No existe autenticación real, autorización de servidor, API, persistencia central ni aislamiento entre usuarios. Cualquier visitante puede inspeccionar el código y modificar el estado local del navegador. No usar para administrar negocios reales ni cargar información privada.
+Es solo un prototipo frontend. No existe autenticación real, autorización de servidor, API, persistencia central ni aislamiento entre usuarios. Cualquier visitante puede inspeccionar el código y modificar el estado local. No debe utilizarse para administrar un negocio real ni cargar información privada.
 
-Los números de WhatsApp, productos, precios y textos son ficticios. Sustituir los datos de demostración solo en un entorno local de prueba.
+Los números de WhatsApp, productos, precios y textos son ficticios.
 
-## Relación con Laravel
+## Relación con la aplicación WordPress
 
-La demo valida estructura, navegación, componentes visuales y flujo de interacción. La implementación real se trasladará a Laravel con validación y autorización en servidor, base de datos MySQL/MariaDB y almacenamiento seguro de imágenes. No se deben convertir datos de `localStorage` en fuente de verdad de producción.
+Esta demo valida estructura, navegación, componentes visuales y flujos. La implementación de producción utilizará WordPress, el plugin propio Nexora Catalog Core, el tema Nexora Catalog Theme y MySQL/MariaDB. Los datos se leerán y escribirán en el servidor mediante APIs de WordPress. El almacenamiento local del navegador no será fuente de verdad de producción.
