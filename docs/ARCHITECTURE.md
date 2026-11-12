@@ -115,7 +115,15 @@ docs/
 
 Esta estructura es una guía inicial; se generará el esqueleto real con Composer/Laravel en el entorno de desarrollo para evitar inventar archivos de framework manualmente.
 
-## 11. Decisiones pendientes antes del primer módulo
+## 11. Demostración frontend existente
+
+La carpeta `demo/` contiene una implementación demostrativa independiente en HTML, CSS y JavaScript. Su propósito es validar la presentación, navegación y experiencia de catálogo antes de conectar Laravel.
+
+Incluye tres perfiles de negocio ficticios, filtros y búsqueda, fichas de producto, consultas por WhatsApp y un panel de administración de muestra. Los cambios del panel se guardan únicamente en `localStorage` del navegador.
+
+Esta capa no proporciona autenticación, autorización, persistencia central ni aislamiento de datos. No debe utilizarse para operar un negocio real. Cuando se construya Laravel, se trasladarán los componentes visuales a Blade y las operaciones a endpoints protegidos del backend.
+
+## 12. Decisiones pendientes antes del primer módulo
 
 1. Confirmar con el cliente el modelo de instalación y comercialización.
 2. Confirmar versión PHP disponible en el VPS y requisitos del hosting.
