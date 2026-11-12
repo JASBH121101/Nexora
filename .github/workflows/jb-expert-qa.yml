@@ -79,6 +79,9 @@ jobs:
           node-version: 22
           package-manager-cache: false
 
+      - name: Run demo unit tests
+        run: node --test demo/tests/*.test.js
+
       - name: Install JB Expert QA dependencies
         shell: bash
         run: |
