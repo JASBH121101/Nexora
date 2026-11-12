@@ -1,0 +1,63 @@
+name: JB Expert QA — NEXORA
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nexora-jb-expert-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-project-audit:
+    name: Static project audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout NEXORA
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+
+      - name: Checkout JB Expert QA (pinned revision)
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          repository: JASBH121101/JB-Expert-QA
+          ref: 88a4566ad0436c1683e2a67d148c42d32705bf89
+          path: tools/jb-expert-qa
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Install JB Expert QA dependencies
+        working-directory: tools/jb-expert-qa
+        run: npm install --ignore-scripts --no-audit --no-fund --workspaces=false --package-lock=false
+
+      - name: Audit NEXORA source
+        working-directory: tools/jb-expert-qa
+        run: >-
+          npm run audit:project --
+          ../..
+          --config=../../jb-expert-qa.config.json
+          --format=markdown
+          --output=../../.artifacts/jb-expert-qa-report.md
+
+      - name: Add audit report to job summary
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f .artifacts/jb-expert-qa-report.md ]]; then
+            cat .artifacts/jb-expert-qa-report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "JB Expert QA did not produce a report. Review the failed installation or audit step." >> "$GITHUB_STEP_SUMMARY"
+          fi
