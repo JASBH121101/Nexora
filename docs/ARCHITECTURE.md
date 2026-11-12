@@ -1,133 +1,227 @@
-# NEXORA — Arquitectura inicial
+# NEXORA — Arquitectura de producto
 
-**Estado:** propuesta técnica para la demostración MVP.  
-**Principio:** monolito modular, simple de instalar en un VPS y fácil de mantener.
+**Versión:** 1.0 · **Estado:** arquitectura base del MVP · **Fecha:** 2026-11-12  
+**Plataforma elegida:** WordPress + plugin y tema propios  
+**Despliegue:** una instalación independiente por negocio en su VPS
 
-## 1. Objetivo
+## 1. Propósito y límites
 
-Construir una plataforma de catálogo digital reutilizable para negocios de distintos sectores. La misma base de código debe poder configurarse con identidad visual, datos de contacto, categorías y productos diferentes, sin modificar el código por cada negocio.
+NEXORA es un producto reutilizable de catálogo digital. El mismo código se configura para sectores distintos —moda, tecnología, vehículos, repuestos y otros— sin crear una versión diferente del software por cliente.
 
-La demostración se limita a mostrar y administrar productos. No es una tienda en línea ni un ERP.
+El MVP publica y administra productos. No es tienda transaccional, ERP ni plataforma multi-tenant centralizada.
 
-## 2. Stack previsto
+Principios:
+1. Reutilizar el mismo código y configurar cada negocio.
+2. Aislar clientes mediante instalaciones independientes.
+3. Separar lógica de producto y presentación visual.
+4. Priorizar APIs nativas de WordPress.
+5. Entregar plugin y tema instalables en ZIP, sin Docker.
+6. No añadir servicios o licencias de pago sin aprobación.
+7. No considerar el prototipo HTML como sistema productivo.
 
-- Laravel como aplicación backend y capa de presentación.
-- PHP en una versión compatible con la versión estable de Laravel seleccionada al iniciar el proyecto.
-- MySQL/MariaDB.
-- Blade para vistas del servidor; HTML, CSS y JavaScript para interacción.
-- GitHub para control de versiones y CI.
-- JB Expert QA como herramienta externa de análisis estático durante el desarrollo.
+## 2. Stack
 
-No se añade Docker, servicios de pago ni dependencias comerciales en esta fase.
+| Capa | Tecnología | Responsabilidad |
+|---|---|---|
+| CMS/runtime | WordPress | Administración, sesiones, usuarios y medios |
+| Backend | PHP + APIs WordPress | Validación, reglas y persistencia |
+| Núcleo propio | Nexora Catalog Core | Productos, categorías, perfil, permisos y medios |
+| Tema propio | Nexora Catalog Theme | Catálogo público responsive |
+| Datos | MySQL o MariaDB | Persistencia de WordPress |
+| Interfaz | PHP templates, HTML, CSS, JS | Renderizado y comportamiento |
+| Archivos | Sistema de archivos VPS | Medios y archivos de aplicación |
+| CI/QA | GitHub Actions + JB Expert QA | Validaciones del repositorio |
 
-## 3. Estilo arquitectónico
+No fijar una versión concreta de PHP o WordPress hasta verificar la compatibilidad del VPS y las versiones soportadas al iniciar el build.
 
-Monolito modular dentro de una sola aplicación Laravel. Los límites de dominio se mantienen claros, sin introducir microservicios ni una infraestructura multi-tenant que todavía no ha sido aprobada.
+### Justificación
 
-Módulos propuestos:
+WordPress se selecciona para el MVP porque proporciona administración, usuarios, biblioteca multimedia, taxonomías y APIs de persistencia. Nexora añadirá su propia lógica y diseño; no será una configuración genérica de plugins de terceros.
 
-| Módulo | Responsabilidad |
-|---|---|
-| Business Profile | Nombre comercial, logo, colores, WhatsApp y contacto |
-| Catalog | Productos, categorías, estado y destacados |
-| Product Attributes | Campos adicionales simples para adaptar fichas a distintos rubros |
-| Media | Carga, validación, redimensionado, compresión y formatos de imagen |
-| Admin | Autenticación y operaciones administrativas |
-| Public Catalog | Presentación pública, búsqueda y filtros básicos |
+La demo actual sigue siendo HTML/CSS/JS estático. Se utiliza para validar la experiencia antes de migrarla al tema WordPress.
 
-## 4. Modelo de datos inicial
-
-Entidades previstas para el MVP:
-
-- `business_settings`: identidad y datos de contacto de la instalación.
-- `users`: usuarios autorizados para administrar el catálogo.
-- `categories`: categorías y orden de presentación.
-- `products`: nombre, descripción, precio opcional, estado y categoría.
-- `product_images`: rutas, orden y metadatos de las fotografías.
-- `product_attributes`: atributos adicionales configurables, asociados a productos.
-
-La forma definitiva de guardar atributos flexibles se validará antes de crear migraciones. No se incorporará inventario, pedidos, pagos ni contabilidad.
-
-## 5. Separación de responsabilidades
-
-- Los controladores HTTP validan solicitudes y delegan operaciones.
-- Los modelos representan datos y relaciones.
-- Las reglas de validación se centralizan en Form Requests.
-- La lógica de carga y optimización se aísla en servicios de Media.
-- Las vistas públicas no muestran funciones administrativas.
-- El panel requiere autenticación; las operaciones de escritura requieren autorización del servidor.
-
-No confiar en ocultar botones como mecanismo de seguridad.
-
-## 6. Imágenes
-
-El flujo debe validar tipo MIME real, extensión permitida, tamaño y dimensiones. Las imágenes aceptadas se redimensionarán y comprimirán; WebP será el formato de salida preferido cuando la biblioteca y el entorno lo permitan. Se conservará una estrategia de nombres aleatorios y rutas no ejecutables. Los límites concretos de tamaño se fijarán en configuración.
-
-No almacenar imágenes binarias directamente en MySQL. Guardar archivos en el almacenamiento configurado y metadatos/rutas en la base de datos.
-
-## 7. WhatsApp
-
-Generar enlaces `wa.me` a partir del número configurado por el administrador. El mensaje por producto puede incluir nombre y precio cuando exista. El número y contenido se validan en servidor; no se procesa ninguna compra dentro de NEXORA.
-
-## 8. Despliegue y configuración
-
-La aplicación está pensada para ejecutarse en un VPS con PHP, Composer, servidor web y MySQL/MariaDB. Cloudflare puede utilizarse posteriormente como DNS/proxy/SSL delante del VPS, pero no reemplaza el runtime PHP de Laravel.
-
-El modelo comercial y de instalación (una instalación independiente por negocio frente a una plataforma central multi-tenant) sigue pendiente de confirmación del cliente. No implementar aislamiento multi-tenant hasta que esa decisión sea explícita.
-
-## 9. Calidad y seguridad
-
-JB Expert QA se ejecutará en GitHub Actions como herramienta de desarrollo, no como dependencia de producción. La auditoría estática no ejecuta la aplicación ni sustituye las pruebas funcionales, revisión manual o pruebas de seguridad. Las consultas de advisories y funciones de IA permanecerán desactivadas por defecto.
-
-Las pruebas de aplicación se incorporarán junto con cada módulo. Las credenciales y configuraciones locales nunca se guardan en el repositorio público.
-
-## 10. Estructura prevista
+## 3. Topología de instalación
 
 ```text
-app/
-  Http/
-    Controllers/
-    Requests/
-  Models/
-  Services/
-    Media/
-bootstrap/
-config/
-database/
-  migrations/
-  seeders/
-public/
-resources/
-  css/
-  js/
-  views/
-    admin/
-    catalog/
-routes/
-  web.php
-tests/
-  Feature/
-  Unit/
-docs/
-.github/
-  workflows/
+Cliente A / dominio A                Cliente B / dominio B
+          |                                     |
+        HTTPS                                 HTTPS
+          |                                     |
+        VPS A                                 VPS B
+          |                                     |
+      WordPress                             WordPress
+          |                                     |
+ Nexora Core + Theme                  Nexora Core + Theme
+          |                                     |
+        MySQL A                               MySQL B
+          |                                     |
+     uploads A                              uploads B
 ```
 
-Esta estructura es una guía inicial; se generará el esqueleto real con Composer/Laravel en el entorno de desarrollo para evitar inventar archivos de framework manualmente.
+Cada instalación tiene dominio, archivos, base de datos, credenciales y respaldos propios. No existe una base de datos compartida entre negocios.
 
-## 11. Demostración frontend existente
+Fuera del MVP: multi-tenancy en una sola instalación, panel SaaS central, licencias centralizadas, facturación recurrente y sincronización de catálogos.
 
-La carpeta `demo/` contiene una implementación demostrativa independiente en HTML, CSS y JavaScript. Su propósito es validar la presentación, navegación y experiencia de catálogo antes de conectar Laravel.
+## 4. Componentes
 
-Incluye tres perfiles de negocio ficticios, filtros y búsqueda, fichas de producto, consultas por WhatsApp y un panel de administración de muestra. Los cambios del panel se guardan únicamente en `localStorage` del navegador.
+### 4.1 Nexora Catalog Core — plugin
 
-Esta capa no proporciona autenticación, autorización, persistencia central ni aislamiento de datos. No debe utilizarse para operar un negocio real. Cuando se construya Laravel, se trasladarán los componentes visuales a Blade y las operaciones a endpoints protegidos del backend.
+Es dueño de la lógica y los datos del catálogo:
+- Registrar el tipo de contenido `nexora_product` y taxonomía `nexora_category`.
+- Definir precio, precio anterior opcional, SKU opcional, atributos sencillos y galería.
+- Gestionar perfil del negocio: nombre, logo, colores, contacto, WhatsApp y moneda.
+- Crear el rol de encargado y capacidades mínimas.
+- Proporcionar pantallas administrativas específicas.
+- Validar, sanitizar y guardar mediante APIs WordPress.
+- Gestionar imágenes por la biblioteca multimedia.
+- Generar enlaces WhatsApp.
+- Versionar las opciones para permitir actualizaciones.
 
-## 12. Decisiones pendientes antes del primer módulo
+El plugin no debe contener estilos exclusivos de una plantilla.
 
-1. Confirmar con el cliente el modelo de instalación y comercialización.
-2. Confirmar versión PHP disponible en el VPS y requisitos del hosting.
-3. Definir límites para imágenes y campos adicionales de productos.
-4. Confirmar si la demostración tendrá un único administrador o varios usuarios.
+### 4.2 Nexora Catalog Theme — tema
 
-Hasta validar esos puntos, mantener el alcance reducido y no añadir infraestructura que genere costos.
+Se encarga de:
+- Encabezado y navegación.
+- Identidad visual y presentación del negocio.
+- Catálogo, cuadrícula y filtros.
+- Búsqueda básica.
+- Ficha de producto y galería.
+- Precio, atributos y consultas WhatsApp.
+- Información de contacto y pie de página.
+- Estados vacíos y responsive.
+
+No crea productos, administra usuarios, valida permisos ni guarda datos comerciales.
+
+### 4.3 WordPress Core
+
+Se reutilizan usuarios, sesiones, roles/capacidades, CPT, taxonomías, medios, opciones, metadatos, nonces y enrutamiento. No se modifica el núcleo.
+
+## 5. Módulos funcionales
+
+| Módulo | Función | Componente |
+|---|---|---|
+| Business Profile | Identidad, logo, colores, contacto, moneda | Plugin |
+| Catalog | Alta, edición, borrador, publicación y eliminación | Plugin |
+| Categories | Crear, editar y ordenar | Plugin |
+| Product Attributes | Pares etiqueta/valor por rubro | Plugin |
+| Media Gallery | Carga, orden y eliminación de imágenes | Plugin + WordPress |
+| Admin | Panel, roles y permisos | Plugin + WordPress |
+| Public Catalog | Listado, detalle, búsqueda y filtros | Tema |
+| Contact | Enlaces WhatsApp por negocio/producto | Plugin + Tema |
+
+## 6. Persistencia y modelo de datos
+
+El MVP reutiliza las tablas nativas de WordPress; no crea tablas SQL propias salvo evidencia de necesidad:
+
+- Productos: `wp_posts`, tipo `nexora_product`.
+- Categorías: tablas de términos y relaciones, taxonomía `nexora_category`.
+- Campos propios: `wp_postmeta`, claves `_nexora_*`.
+- Perfil del negocio: `wp_options`, opción `nexora_business_profile`.
+- Usuarios/roles: `wp_users` y `wp_usermeta`.
+- Imágenes: adjuntos y archivos en `wp-content/uploads/`.
+
+Los nombres reales de tablas dependen del prefijo configurado por WordPress. Ver [DATA-MODEL.md](./DATA-MODEL.md).
+
+## 7. Rutas conceptuales
+
+| Ruta | Uso |
+|---|---|
+| `/` | Inicio y productos destacados |
+| `/catalogo/` | Listado |
+| `/producto/{slug}/` | Ficha individual |
+| `/categoria/{slug}/` | Productos de una categoría |
+| `/wp-admin/` | Administración protegida |
+| menú Nexora en wp-admin | Perfil, configuración y accesos |
+
+Los slugs definitivos se registrarán en el plugin y se comprobarán al guardar enlaces permanentes. Las páginas públicas no exponen controles de edición.
+
+## 8. Flujos de datos
+
+### Publicar producto
+
+1. Usuario inicia sesión.
+2. Backend verifica capacidad de gestión.
+3. Formulario incluye nonce válido.
+4. Servidor valida y sanitiza los campos.
+5. Imágenes se procesan mediante APIs de medios WordPress.
+6. Producto y metadatos se guardan mediante APIs nativas.
+7. El tema consulta solo productos publicados.
+
+### Consultar por WhatsApp
+
+1. Visitante abre la ficha.
+2. El tema muestra datos públicos del producto.
+3. El enlace se genera con el número normalizado del negocio.
+4. El mensaje puede incluir nombre y precio.
+5. La conversación continúa en WhatsApp.
+
+No se crea pedido, pago o compra dentro de Nexora.
+
+## 9. Imágenes
+
+Usar la biblioteca multimedia; validar MIME real, extensión, tamaño y dimensiones; permitir solo formatos raster aprobados; generar tamaños adecuados para tarjeta y detalle; preferir WebP si el servidor lo soporta; mantener referencias por ID de adjunto; no guardar binarios en MySQL; no permitir SVG ni archivos activos en cargas del catálogo.
+
+La operación de carga debe verificar autorización, nonce y permisos del usuario.
+
+## 10. Diseño, accesibilidad y rendimiento
+
+Diseño mobile-first. La cuadrícula debe adaptarse a móviles, tabletas y escritorio. Contemplar áreas táctiles cómodas, contraste, foco visible, navegación por teclado, etiquetas accesibles, estados de carga/error y carga diferida de imágenes. No depender de hover para revelar controles esenciales.
+
+Limitar resultados por página, optimizar tamaños de imagen y evitar dependencias JS innecesarias.
+
+## 11. Seguridad
+
+Todas las operaciones de escritura deben comprobar sesión, capacidad, nonce, validar entrada y escapar salida según el contexto. No confiar en ocultar botones. Proteger carga de archivos, credenciales, actualizaciones y respaldos. Ver [SECURITY.md](./SECURITY.md).
+
+## 12. Despliegue y entrega
+
+WordPress se ejecuta en el VPS. GitHub Pages solo aloja la demo estática; no ejecuta PHP.
+
+La entrega contiene ZIP del plugin, ZIP del tema, guía de instalación, notas de versión y hashes SHA-256. El paquete exterior se extrae para obtener los ZIP instalables por separado. Ver [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+## 13. Calidad
+
+Incluir pruebas unitarias y de integración para CPT, taxonomía, metadatos, roles y medios; pruebas funcionales de CRUD; pruebas de autorización; validación de archivos; responsive; PHP lint; estándares de WordPress; CI y revisión manual. JB Expert QA es complementario, no reemplaza pruebas funcionales ni revisión de seguridad.
+
+La CI existente cubre la demo JavaScript. Se ampliará al plugin/tema cuando exista código PHP real.
+
+## 14. Estructura objetivo del repositorio
+
+```text
+Nexora/
+├── .github/workflows/
+├── demo/
+│   ├── index.html
+│   ├── admin.html
+│   ├── assets/
+│   └── tests/
+├── plugin/nexora-catalog-core/
+│   ├── nexora-catalog-core.php
+│   ├── includes/{content,admin,settings,media,security,support}/
+│   ├── assets/
+│   ├── languages/
+│   └── tests/
+├── theme/nexora-catalog-theme/
+│   ├── style.css
+│   ├── functions.php
+│   ├── templates/
+│   ├── template-parts/
+│   ├── assets/
+│   └── languages/
+├── docs/
+└── README.md
+```
+
+Esta es la estructura objetivo, no una afirmación de que el plugin/tema ya estén implementados.
+
+## 15. Decisiones invariables para el MVP
+
+- WordPress como runtime, salvo decisión explícita posterior.
+- Plugin de lógica y tema visual separados.
+- Una instalación por cliente.
+- Sin WooCommerce para la primera etapa.
+- Sin binarios en base de datos.
+- Sin modificaciones a WordPress Core.
+- Sin PHP en GitHub Pages.
+- Sin servicios de pago o infraestructura adicional sin aprobación.
