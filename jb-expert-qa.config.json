@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "profile": "nexora-laravel-mvp",
+  "profile": "nexora-digital-catalog-v1",
   "weights": {
     "code-quality": 25,
     "security": 40,
