@@ -27,9 +27,15 @@ Carrito de compras, pasarelas de pago, procesamiento de pedidos, inventario avan
 
 Las versiones concretas del framework y runtime se fijarán durante el bootstrap técnico, después de validar compatibilidad con el VPS objetivo.
 
-## Estado
+## Estado actual
 
-En preparación: arquitectura, entorno de desarrollo y control de calidad. No hay todavía un sistema desplegado ni datos reales de clientes.
+- Demostración frontend en `demo/` construida con HTML, CSS y JavaScript.
+- Tres rubros ficticios de muestra: moda, vehículos y tecnología.
+- Catálogo con búsqueda, filtros, fichas de producto y enlaces de consulta por WhatsApp.
+- Panel de prueba con operaciones CRUD en el almacenamiento local del navegador.
+- Pruebas automáticas y análisis estático mediante JB Expert QA en GitHub Actions.
+
+La demostración no es todavía la aplicación Laravel de producción. No tiene autenticación real, API, base de datos ni persistencia compartida. La arquitectura backend y su integración se desarrollarán después de validar la muestra.
 
 ## Seguridad del repositorio
 
