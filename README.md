@@ -2,35 +2,56 @@
 
 **Sistema de catálogo digital configurable para distintos giros de negocio.**
 
-NEXORA es una base de software reutilizable para publicar catálogos de productos y administrarlos desde un panel sencillo. La primera entrega será una demostración funcional y acotada; no pretende ser un ERP ni una tienda en línea.
+NEXORA es una base de software reutilizable para que un negocio publique y administre sus productos desde un panel protegido. Cada cliente tendrá una instalación independiente; la misma base de código se configura con la identidad, productos y datos de contacto de cada negocio.
 
-## Alcance inicial de la demostración
+## Estado del proyecto
 
-- Catálogo público adaptable a móviles, tabletas y escritorio.
-- Panel administrativo protegido.
-- Gestión básica de productos y categorías.
-- Fotografías de productos y galería básica.
-- Datos de contacto y enlace directo a WhatsApp.
-- Personalización visual básica del negocio.
-- Optimización de imágenes como parte del flujo de carga.
+- **Prototipo visual:** disponible en `demo/` con HTML, CSS y JavaScript.
+- **Arquitectura objetivo:** WordPress + plugin propio Nexora Catalog Core + tema propio Nexora Catalog Theme + MySQL/MariaDB.
+- **Backend de producción:** todavía no implementado. El prototipo no tiene autenticación real ni persistencia compartida.
+- **Entrega prevista:** paquete comprimido con plugin y tema instalables en WordPress en el VPS del cliente.
+- **Despliegue:** VPS del cliente; sin Docker ni servicios de pago añadidos en esta etapa.
 
-## Fuera de alcance en esta etapa
+## Ver la demostración
 
-Carrito de compras, pasarelas de pago, procesamiento de pedidos, inventario avanzado, facturación, contabilidad, nómina y funciones ERP.
+- [Abrir catálogo demo](./demo/)
+- [Abrir panel demo](./demo/admin.html)
 
-## Tecnología prevista
+El panel demo guarda los cambios únicamente en `localStorage` del navegador. No es seguro para operar un negocio real y los datos no se comparten entre dispositivos o usuarios.
 
-- Backend: Laravel / PHP.
+## Alcance del MVP
+
+- Catálogo público responsive.
+- Productos, categorías, precios opcionales y atributos sencillos.
+- Una o varias fotografías por producto.
+- Búsqueda y filtros básicos.
+- Perfil del negocio: nombre, logotipo, colores, contacto y WhatsApp.
+- Panel de administración con permisos restringidos.
+- Consulta directa por WhatsApp desde el catálogo y cada producto.
+
+## Fuera de alcance
+
+Carrito, checkout, pasarelas de pago, procesamiento de pedidos, inventario avanzado, facturación, contabilidad, nómina y funciones ERP.
+
+## Arquitectura técnica
+
+- Plataforma: WordPress.
+- Backend y vistas: PHP y APIs nativas de WordPress.
 - Base de datos: MySQL o MariaDB.
-- Interfaz: Blade, HTML, CSS y JavaScript.
-- Control de calidad: JB Expert QA durante desarrollo y CI.
+- Lógica: plugin propio `nexora-catalog-core`.
+- Interfaz pública: tema propio `nexora-catalog-theme`.
+- Frontend: HTML, CSS, JavaScript y plantillas PHP.
+- CI: GitHub Actions.
+- QA: JB Expert QA, pruebas funcionales y revisión manual.
 
-Las versiones concretas del framework y runtime se fijarán durante el bootstrap técnico, después de validar compatibilidad con el VPS objetivo.
+La arquitectura, modelo de datos, seguridad, despliegue y hoja de ruta están documentados en `docs/`.
 
-## Estado
+## Instalación por cliente
 
-En preparación: arquitectura, entorno de desarrollo y control de calidad. No hay todavía un sistema desplegado ni datos reales de clientes.
+Cada negocio tendrá su propia instalación WordPress, base de datos, archivos, dominio y credenciales. No se mezclan clientes en una base de datos compartida. SaaS multi-tenant centralizado queda fuera del MVP.
+
+El paquete exterior contendrá los ZIP del plugin y del tema, documentación, notas de versión y hashes de integridad. El WordPress del cliente debe estar instalado previamente en su VPS.
 
 ## Seguridad del repositorio
 
-Este repositorio es público. No subir archivos `.env`, contraseñas, tokens, claves privadas, respaldos de bases de datos ni fotografías o datos personales de clientes. El código de demostración debe usar información ficticia.
+No subir archivos `.env`, contraseñas, tokens, claves privadas, respaldos de bases de datos ni fotografías o datos personales de clientes. La demo debe utilizar exclusivamente datos ficticios.
