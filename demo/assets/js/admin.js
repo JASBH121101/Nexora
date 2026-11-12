@@ -26,28 +26,64 @@
     render();
     return true;
   };
+  const safeImageSource = (value) => {
+    try {
+      const url = new URL(String(value), window.location.href);
+      if (url.protocol === "https:" || url.protocol === "http:") return url.href;
+    } catch {
+      // Invalid image URLs use the local fallback below.
+    }
+    return "assets/img/product-placeholder.svg";
+  };
+  const make = (tag, className, text) => {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    if (text !== undefined && text !== null) element.textContent = String(text);
+    return element;
+  };
   const render = () => {
     const categories = new Set(products.map((item) => item.category).filter(Boolean));
     $("#stat-products").textContent = String(products.length);
     $("#stat-categories").textContent = String(categories.size);
     $("#stat-featured").textContent = String(products.filter((item) => item.featured).length);
     $("#admin-empty").hidden = products.length > 0;
-    productRows.innerHTML = products.map((product) => (
-      "<tr>" +
-      '<td><div class="table-product"><img src="' + NexoraStore.escapeHTML(product.image) + '" alt="" loading="lazy">' +
-      "<span><strong>" + NexoraStore.escapeHTML(product.name) + "</strong><small>" + NexoraStore.escapeHTML(product.detail || "Sin detalle") + "</small></span></div></td>" +
-      "<td>" + NexoraStore.escapeHTML(product.category) + "</td>" +
-      "<td><strong>" + NexoraStore.money(product.price) + "</strong></td>" +
-      '<td><span class="state-pill">Publicado</span></td>' +
-      '<td><div class="row-actions"><button class="row-action" type="button" data-edit="' +
-      NexoraStore.escapeHTML(product.id) + '" aria-label="Editar ' + NexoraStore.escapeHTML(product.name) + '">✎</button>' +
-      '<button class="row-action is-danger" type="button" data-delete="' +
-      NexoraStore.escapeHTML(product.id) + '" aria-label="Eliminar ' + NexoraStore.escapeHTML(product.name) + '">×</button></div></td>' +
-      "</tr>"
-    )).join("");
-    productRows.querySelectorAll("img").forEach((image) => image.addEventListener("error", () => {
-      image.src = "assets/img/product-placeholder.svg";
-    }, { once: true }));
+
+    const rows = products.map((product) => {
+      const row = make("tr");
+      const productCell = make("td");
+      const productWrap = make("div", "table-product");
+      const image = make("img");
+      image.src = safeImageSource(product.image);
+      image.alt = "";
+      image.loading = "lazy";
+      image.addEventListener("error", () => { image.src = "assets/img/product-placeholder.svg"; }, { once: true });
+      const productText = make("span");
+      productText.append(make("strong", "", product.name), make("small", "", product.detail || "Sin detalle"));
+      productWrap.append(image, productText);
+      productCell.append(productWrap);
+
+      const categoryCell = make("td", "", product.category);
+      const priceCell = make("td");
+      priceCell.append(make("strong", "", NexoraStore.money(product.price)));
+      const stateCell = make("td");
+      stateCell.append(make("span", "state-pill", "Publicado"));
+
+      const actionsCell = make("td");
+      const actions = make("div", "row-actions");
+      const edit = make("button", "row-action", "✎");
+      edit.type = "button";
+      edit.dataset.edit = product.id;
+      edit.setAttribute("aria-label", "Editar " + product.name);
+      const remove = make("button", "row-action is-danger", "×");
+      remove.type = "button";
+      remove.dataset.delete = product.id;
+      remove.setAttribute("aria-label", "Eliminar " + product.name);
+      actions.append(edit, remove);
+      actionsCell.append(actions);
+      row.append(productCell, categoryCell, priceCell, stateCell, actionsCell);
+      return row;
+    });
+    productRows.replaceChildren(...rows);
   };
   const loadSettings = () => {
     const settings = NexoraStore.getSettings(business);
