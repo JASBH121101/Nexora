@@ -4,7 +4,7 @@
 
 @section('content')
     <section class="panel">
-        <p class="muted" style="margin:0;font-size:12px;font-weight:800;letter-spacing:.12em">NEXORA SETUP ENGINE</p>
+        <p class="muted" style="margin:0;font-size:12px;font-weight:800;letter-spacing:.12em">{{ __('setup.engine_label') }}</p>
         <h1>{{ __('setup.heading') }}</h1>
         @if ($installationMode === 'demo')
             <div class="note" role="status" style="margin-top:12px;border:1px solid #e7d7a8;background:#fff8e6;color:#775b17;font-weight:700">
