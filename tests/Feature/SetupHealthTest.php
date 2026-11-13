@@ -123,13 +123,49 @@ class SetupHealthTest extends TestCase
         $this->actingAs($intruder)->get('/admin')->assertForbidden();
     }
 
+    public function test_login_help_request_is_available_without_authentication(): void
+    {
+        $response = $this->post('/admin/login/help', [
+            'username' => 'empleado01',
+            'reason' => 'forgot_password',
+            'details' => 'No recuerdo la contraseña.',
+        ]);
+
+        $response->assertRedirect(route('admin.login'))
+            ->assertSessionHas('status');
+        $this->assertDatabaseHas('login_help_requests', [
+            'username' => 'empleado01',
+            'reason' => 'forgot_password',
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_owner_can_create_employee_with_temporary_password_required_to_change(): void
+    {
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $response = $this->post('/admin/employees', [
+            'name' => 'Empleado de prueba',
+            'username' => 'empleado01',
+            'email' => 'employee@example.com',
+        ]);
+
+        $response->assertRedirect();
+        $credentials = $response->getSession()->get('employee_credentials_once');
+        $this->assertNotEmpty($credentials['password'] ?? null);
+        $employee = User::query()->where('username', 'empleado01')->firstOrFail();
+        $this->assertSame('employee', $employee->role);
+        $this->assertTrue($employee->must_change_password);
+        $this->assertTrue(Hash::check($credentials['password'], $employee->password));
+    }
+
     public function test_owner_can_log_in_again_after_logout(): void
     {
         $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
         $this->post('/admin/logout')->assertRedirect(route('admin.login'));
 
         $this->post('/admin/login', [
-            'email' => 'owner@example.com',
+            'username' => 'jaredadmin',
             'password' => 'Strong-Password-2026!',
         ])->assertRedirect(route('admin.home'));
 
@@ -142,6 +178,7 @@ class SetupHealthTest extends TestCase
             'business_name' => 'Tienda de prueba',
             'business_type' => 'automotive',
             'owner_name' => 'Propietario de prueba',
+            'owner_username' => 'jaredadmin',
             'owner_email' => 'owner@example.com',
             'owner_password' => 'Strong-Password-2026!',
             'owner_password_confirmation' => 'Strong-Password-2026!',

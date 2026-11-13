@@ -60,7 +60,11 @@
                     <label>Nombre del propietario
                         <input name="owner_name" maxlength="100" required value="{{ old('owner_name') }}" autocomplete="name">
                     </label>
-                    <label>Correo del propietario
+                    <label>Nombre de usuario
+                        <input name="owner_username" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]+" required value="{{ old('owner_username') }}" autocomplete="username">
+                    </label>
+                    <label>Correo del propietario (para recuperación)
+
                         <input name="owner_email" type="email" maxlength="255" required value="{{ old('owner_email') }}" autocomplete="email">
                     </label>
                     <div class="field-grid">
