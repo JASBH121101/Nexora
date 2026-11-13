@@ -57,7 +57,7 @@
                 <div class="contact-actions">
                     @foreach ($contacts as $contact)
                         <a href="https://wa.me/{{ preg_replace('/\D+/', '', $contact->phone) }}" target="_blank" rel="noopener noreferrer">
-                            Consultar por WhatsApp · {{ $contact->phone }}
+                            Consultar por WhatsApp · {{ $contact->formatted_phone }}
                         </a>
                     @endforeach
                 </div>
