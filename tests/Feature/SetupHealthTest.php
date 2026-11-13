@@ -78,6 +78,37 @@ class SetupHealthTest extends TestCase
         $this->assertDatabaseCount('catalog_groups', 0);
     }
 
+    public function test_setup_suggests_local_primary_currency_for_the_detected_country(): void
+    {
+        $this->withHeader('Accept-Language', 'es-NI,es;q=0.9')
+            ->get('/setup')
+            ->assertOk()
+            ->assertSee('data-selected-country="NI"', false)
+            ->assertSee('data-selected-currency="NIO"', false)
+            ->assertSee('NIO', false)
+            ->assertSee('"NI":"NIO"', false);
+    }
+
+    public function test_setup_persists_primary_and_additional_currencies_and_business_hours(): void
+    {
+        $payload = $this->validSetupPayload();
+        $payload['country_code'] = 'NI';
+        $payload['primary_currency'] = 'NIO';
+        $payload['additional_currencies'] = ['USD', 'EUR'];
+        $payload['business_hours'] = [
+            ['day' => 'monday', 'open' => '08:00', 'close' => '17:00'],
+            ['day' => 'saturday', 'open' => '09:00', 'close' => '13:00'],
+        ];
+
+        $this->post('/setup', $payload)->assertRedirect(route('admin.home'));
+
+        $settings = InstallationSettings::query()->findOrFail(1);
+
+        $this->assertSame('NIO', data_get($settings->configuration, 'pricing.primaryCurrency'));
+        $this->assertSame(['NIO', 'USD', 'EUR'], data_get($settings->configuration, 'pricing.enabledCurrencies'));
+        $this->assertSame($payload['business_hours'], data_get($settings->configuration, 'operation.hours'));
+    }
+
     public function test_setup_persists_selected_country_and_language_with_installation_settings(): void
     {
         $payload = $this->validSetupPayload();
