@@ -1,7 +1,7 @@
 (() => {
   const demos = window.NEXORA_DEMOS || [];
   const $ = (selector) => document.querySelector(selector);
-  const $ = (selector, root = document) => [...root.querySelectorAll(selector)];
+  const queryAll = (selector, root = document) => Array.from(root.querySelectorAll(selector));
   const make = (tag, text) => {
     const element = document.createElement(tag);
     if (text !== undefined && text !== null) element.textContent = String(text);
