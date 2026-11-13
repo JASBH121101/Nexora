@@ -6,6 +6,7 @@ const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const html = read("../setup.html");
 const js = read("../assets/js/setup.js");
 const css = read("../assets/css/setup.css");
+const scripts = [js, read("../assets/js/admin.js"), read("../assets/js/app.js")];
 const scope = read("../../docs/PRODUCT-SCOPE.md");
 const adminHtml = read("../admin.html");
 const adminJs = read("../assets/js/admin.js");
@@ -108,4 +109,10 @@ test("the public product detail renders only fields marked as public", () => {
 test("the admin dynamic field grid collapses safely on narrow screens", () => {
   assert.match(adminCss, /\.dynamic-product-group\s*\{[^}]*grid-template-columns:repeat\(2/);
   assert.match(adminCss, /@media\(max-width:430px\)\s*\{\s*\.dynamic-product-group\s*\{\s*grid-template-columns:1fr/);
+});
+
+test("all demo JavaScript bundles parse without syntax errors", () => {
+  for (const source of scripts) {
+    assert.doesNotThrow(() => new Function(source));
+  }
 });
