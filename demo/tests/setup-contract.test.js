@@ -105,6 +105,17 @@ test("product photo controls follow the optional-photo setting", () => {
   assert.match(publicCss, /\.dialog-media\[hidden\]/);
 });
 
+test("product prices support the configured primary and additional currencies", () => {
+  assert.ok(adminHtml.includes('id="product-prices"'));
+  assert.ok(adminJs.includes("enabledCurrencies()"));
+  assert.ok(adminJs.includes("collectProductPrices()"));
+  assert.ok(adminJs.includes("prices,"));
+  assert.ok(publicJs.includes("productPrice(product)"));
+  assert.ok(publicJs.includes('primaryCurrency()'));
+  assert.ok(read("../assets/js/store.js").includes('money = (amount, currency = "USD")'));
+  assert.ok(read("../index.html").includes('id="results-currency"'));
+});
+
 test("the configured setup profile drives the public site and hides the sector demo switcher", () => {
   assert.ok(publicJs.includes('id: "studio-config"'));
   assert.ok(publicJs.includes("studioConfig.identity?.description"));

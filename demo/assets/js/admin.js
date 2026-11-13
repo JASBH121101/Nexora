@@ -22,6 +22,7 @@
   const form = $("#product-form");
   const toast = $("#admin-toast");
   const dynamicFields = $("#dynamic-product-fields");
+  const priceFields = $("#product-prices");
   const photoField = $("#product-image-field");
   const STUDIO_KEY = "nexora-studio:v1";
   const readStudioConfig = () => {
@@ -33,6 +34,47 @@
   const studioConfig = readStudioConfig();
   const photoUploadsEnabled = () => studioConfig ? Boolean(studioConfig.catalog.photosEnabled) : true;
   const schemaGroups = () => studioConfig?.catalog?.groups || [];
+  const primaryCurrency = () => studioConfig?.pricing?.primaryCurrency || "USD";
+  const enabledCurrencies = () => {
+    const listed = Array.isArray(studioConfig?.pricing?.enabledCurrencies)
+      ? studioConfig.pricing.enabledCurrencies.filter((code) => /^[A-Z]{3}$/.test(String(code)))
+      : ["USD"];
+    const currencies = [...new Set([primaryCurrency(), ...listed])];
+    return currencies.length ? currencies : ["USD"];
+  };
+  const productPrice = (product, currency = primaryCurrency()) => {
+    if (product?.prices && Object.prototype.hasOwnProperty.call(product.prices, currency)) return product.prices[currency];
+    return currency === "USD" ? product?.price : null;
+  };
+  const renderProductPrices = (product = null) => {
+    const savedPrices = product?.prices || {};
+    priceFields.replaceChildren(...enabledCurrencies().map((currency) => {
+      const label = make("label", "Precio (" + currency + ")");
+      const input = document.createElement("input");
+      input.type = "number";
+      input.min = "0";
+      input.step = "0.01";
+      input.inputMode = "decimal";
+      input.dataset.productPrice = currency;
+      const saved = Object.prototype.hasOwnProperty.call(savedPrices, currency)
+        ? savedPrices[currency]
+        : (currency === primaryCurrency() && product ? product.price : "");
+      input.value = saved === null || saved === undefined ? "" : String(saved);
+      label.append(input);
+      return label;
+    }));
+  };
+  const collectProductPrices = () => {
+    const prices = {};
+    for (const input of queryAll("[data-product-price]", priceFields)) {
+      const raw = input.value.trim();
+      if (!raw) continue;
+      const amount = Number(raw);
+      if (!Number.isFinite(amount) || amount < 0) return null;
+      prices[input.dataset.productPrice] = amount;
+    }
+    return prices;
+  };
   const studioTypeLabels = {
     perfumery: "Perfumería",
     fashion: "Ropa y calzado",
@@ -98,7 +140,10 @@
 
       const categoryCell = make("td", product.category);
       const priceCell = make("td");
-      priceCell.append(make("strong", NexoraStore.money(product.price)));
+      const currentPrice = productPrice(product);
+      priceCell.append(make("strong", currentPrice === null || currentPrice === undefined || currentPrice === ""
+        ? "Consultar"
+        : NexoraStore.money(currentPrice, primaryCurrency())));
       const stateCell = make("td");
       const state = make("span", "Publicado");
       state.classList.add("state-pill");
@@ -211,6 +256,7 @@
     $("#product-id").value = "";
     $("#product-form-title").textContent = "Nuevo producto";
     renderDynamicFields();
+    renderProductPrices();
     setPhotoFieldVisibility();
   };
   const openCreate = () => {
@@ -227,8 +273,8 @@
     $("#product-id").value = product.id;
     $("#product-name").value = product.name;
     $("#product-category").value = product.category;
-    $("#product-price").value = product.price;
-    $("#product-old-price").value = product.oldPrice || "";
+    renderProductPrices(product);
+    $("#product-old-price").value = product.oldPrice ?? "";
     $("#product-description").value = product.description;
     $("#product-image").value = product.image || "";
     $("#product-featured").checked = Boolean(product.featured);
@@ -262,11 +308,20 @@
     event.preventDefault();
     const id = $("#product-id").value || ("demo-" + Date.now().toString(36));
     const attributes = collectDynamicValues();
+    const prices = collectProductPrices();
+    if (prices === null) {
+      showToast("Revisa los importes: cada moneda debe tener un número válido igual o mayor que cero.");
+      return;
+    }
+    const primaryPrice = Object.prototype.hasOwnProperty.call(prices, primaryCurrency())
+      ? prices[primaryCurrency()]
+      : null;
     const product = {
       id,
       name: $("#product-name").value.trim(),
       category: $("#product-category").value.trim(),
-      price: Number($("#product-price").value),
+      price: primaryPrice,
+      prices,
       oldPrice: $("#product-old-price").value ? Number($("#product-old-price").value) : null,
       description: $("#product-description").value.trim(),
       image: photoUploadsEnabled() ? $("#product-image").value.trim() : (products.find((item) => item.id === id)?.image || ""),
@@ -278,11 +333,11 @@
       tag: "Demo",
       featured: $("#product-featured").checked
     };
-    if (!product.name || !product.category || !Number.isFinite(product.price) || product.price < 0 || !product.description) {
+    if (!product.name || !product.category || !product.description) {
       showToast("Revisa los campos obligatorios.");
       return;
     }
-    if (product.oldPrice !== null && (!Number.isFinite(product.oldPrice) || product.oldPrice < product.price)) {
+    if (product.oldPrice !== null && (!Number.isFinite(product.oldPrice) || product.price === null || product.oldPrice <= product.price)) {
       showToast("El precio anterior debe ser mayor que el precio actual.");
       return;
     }

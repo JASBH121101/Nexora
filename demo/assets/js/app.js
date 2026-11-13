@@ -59,6 +59,13 @@
   if (studioMode && businessSelect) businessSelect.closest("label")?.setAttribute("hidden", "");
   let settings = business ? NexoraStore.getSettings(business) : {};
   let products = business ? NexoraStore.getProducts(business) : [];
+  const primaryCurrency = () => studioConfig?.pricing?.primaryCurrency || "USD";
+  const productPrice = (product) => {
+    if (product?.prices && Object.prototype.hasOwnProperty.call(product.prices, primaryCurrency())) {
+      return product.prices[primaryCurrency()];
+    }
+    return primaryCurrency() === "USD" ? product?.price : null;
+  };
   let activeCategory = "all";
   let searchTerm = "";
   let toastTimer;
@@ -136,11 +143,12 @@
     info.append(detail);
     const priceRow = make("div");
     priceRow.classList.add("price-row");
-    const price = make("span", NexoraStore.money(product.price));
+    const amount = productPrice(product);
+    const price = make("span", amount === null || amount === undefined || amount === "" ? "Consultar precio" : NexoraStore.money(amount, primaryCurrency()));
     price.classList.add("product-price");
     priceRow.append(price);
-    if (Number(product.oldPrice) > Number(product.price)) {
-      const oldPrice = make("del", NexoraStore.money(product.oldPrice));
+    if (amount !== null && amount !== undefined && Number(product.oldPrice) > Number(amount)) {
+      const oldPrice = make("del", NexoraStore.money(product.oldPrice, primaryCurrency()));
       oldPrice.classList.add("old-price");
       priceRow.append(oldPrice);
     }
@@ -160,6 +168,7 @@
     productGrid.replaceChildren(...matches.map(productCard));
     emptyState.hidden = matches.length > 0;
     $("#results-count").textContent = matches.length + (matches.length === 1 ? " producto" : " productos");
+    $("#results-currency").textContent = (studioMode ? "Precios en " : "Precios de muestra · ") + primaryCurrency();
   };
 
   const renderBusiness = () => {
@@ -268,12 +277,17 @@
     }
 
     const price = $("#dialog-price");
-    price.replaceChildren(document.createTextNode(NexoraStore.money(product.price)));
-    if (Number(product.oldPrice) > Number(product.price)) {
-      const oldPrice = make("del", NexoraStore.money(product.oldPrice));
+    const amount = productPrice(product);
+    const priceText = amount === null || amount === undefined || amount === ""
+      ? "Consultar precio"
+      : NexoraStore.money(amount, primaryCurrency());
+    price.replaceChildren(document.createTextNode(priceText));
+    if (amount !== null && amount !== undefined && Number(product.oldPrice) > Number(amount)) {
+      const oldPrice = make("del", NexoraStore.money(product.oldPrice, primaryCurrency()));
       price.append(oldPrice);
     }
-    setWhatsAppLink($("#dialog-whatsapp"), "Hola, me interesa " + product.name + " (" + NexoraStore.money(product.price) + "). ¿Me pueden brindar más información?");
+    const inquiry = "Hola, me interesa " + product.name + (amount === null || amount === undefined || amount === "" ? "" : " (" + priceText + ")") + ". ¿Me pueden brindar más información?";
+    setWhatsAppLink($("#dialog-whatsapp"), inquiry);
     dialog.showModal();
   };
 

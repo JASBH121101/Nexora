@@ -74,8 +74,9 @@
       <div class="dialog-form-heading"><div><p class="eyebrow">GESTIÓN DE CATÁLOGO</p><h2 id="product-form-title">Nuevo producto</h2></div><button class="dialog-close" id="product-form-close" type="button" aria-label="Cerrar">×</button></div>
       <input id="product-id" type="hidden">
       <label>Nombre del producto<input id="product-name" maxlength="90" required></label>
-      <div class="form-two-col"><label>Categoría<input id="product-category" maxlength="45" required></label><label>Precio (USD)<input id="product-price" type="number" min="0" step="0.01" required></label></div>
-      <label>Precio anterior (opcional)<input id="product-old-price" type="number" min="0" step="0.01"></label>
+      <label>Categoría<input id="product-category" maxlength="45" required></label>
+      <div id="product-prices" class="product-prices" aria-label="Precios por moneda"></div>
+      <label>Precio anterior en la moneda principal (opcional)<input id="product-old-price" type="number" min="0" step="0.01"></label>
       <label>Descripción<textarea id="product-description" rows="3" maxlength="500" required></textarea></label>
       <div id="dynamic-product-fields" class="dynamic-product-fields"></div>
       <label id="product-image-field">Fotografía del producto (URL de muestra)<input id="product-image" type="url" placeholder="https://..."></label>
