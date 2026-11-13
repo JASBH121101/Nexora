@@ -245,7 +245,9 @@ class SetupHealthTest extends TestCase
 
         $this->actingAs($employee)->get('/__test/permission-check')->assertOk();
 
-        $this->post(route('admin.employees.permissions', $employee), [
+        $owner = User::query()->where('username', 'jaredadmin')->firstOrFail();
+
+        $this->actingAs($owner)->post(route('admin.employees.permissions', $employee), [
             'permissions' => ['owner.all'],
         ])->assertSessionHasErrors('permissions.0');
 
