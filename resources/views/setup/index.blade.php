@@ -691,7 +691,7 @@
             const fieldsSection = document.createElement('section');
             fieldsSection.className = 'template-summary__section';
             const groupTitle = document.createElement('strong');
-            groupTitle.textContent = 'Campos iniciales · ' + group.name;
+            groupTitle.textContent = 'Campos iniciales · ' + group.category + ' · ' + group.name;
             const fields = document.createElement('p');
             fields.className = 'template-summary__fields';
             fields.textContent = group.fields.join(' · ') || 'Sin campos iniciales';
