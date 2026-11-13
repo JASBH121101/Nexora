@@ -85,6 +85,9 @@ test("the admin product form consumes the selected dynamic template", () => {
   assert.ok(adminJs.includes('localStorage.getItem(STUDIO_KEY)'));
   assert.ok(adminJs.includes("renderDynamicFields(product.attributes || {})"));
   assert.ok(adminJs.includes("collectDynamicValues()"));
+  assert.ok(adminJs.includes('const queryAll = (selector, root = document) => Array.from(root.querySelectorAll(selector))'));
+  assert.ok(adminJs.includes('queryAll("[data-custom-field]", dynamicFields)'));
+  assert.doesNotMatch(adminJs, /const \$ = \(selector, root = document\)/);
   assert.ok(adminJs.includes("attributes,"));
 });
 
