@@ -1,0 +1,88 @@
+name: NEXORA Laravel CI
+
+on:
+  push:
+    branches: [main, 'feature/**']
+    paths:
+      - "app/**"
+      - "bootstrap/**"
+      - "config/**"
+      - "database/**"
+      - "public/**"
+      - "resources/**"
+      - "routes/**"
+      - "tests/**"
+      - ".env.example"
+      - "artisan"
+      - "composer.json"
+      - "composer.lock"
+      - "phpunit.xml"
+      - ".github/workflows/laravel-ci.yml"
+  pull_request:
+    branches: [main, 'feature/**']
+    paths:
+      - "app/**"
+      - "bootstrap/**"
+      - "config/**"
+      - "database/**"
+      - "public/**"
+      - "resources/**"
+      - "routes/**"
+      - "tests/**"
+      - ".env.example"
+      - "artisan"
+      - "composer.json"
+      - "composer.lock"
+      - "phpunit.xml"
+      - ".github/workflows/laravel-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nexora-laravel-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  laravel:
+    name: Laravel 13 · PHP 8.3
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout NEXORA
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: true
+
+      - name: Set up PHP 8.3
+        uses: shivammathur/setup-php@0f7f1d08e3e32076e51cae65eb0b0c871405b16e
+        with:
+          php-version: '8.3'
+          extensions: bcmath, curl, dom, fileinfo, intl, mbstring, openssl, pdo_mysql, pdo_sqlite, xml, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Resolve locked Composer dependencies
+        run: |
+          if [ -f composer.lock ]; then
+            composer install --no-interaction --prefer-dist --no-progress
+          else
+            composer update --no-interaction --prefer-dist --no-progress
+          fi
+
+      - name: Save Composer lockfile on the feature branch
+        if: github.event_name == 'push' && github.ref != 'refs/heads/main' && !hashFiles('composer.lock')
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add composer.lock
+          git commit -m "build: lock Laravel dependencies"
+          git push
+
+      - name: Verify Laravel coding style
+        run: composer lint
+
+      - name: Run Laravel feature tests
+        run: composer test
