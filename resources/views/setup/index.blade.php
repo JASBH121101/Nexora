@@ -518,16 +518,39 @@
         if (index === 4) renderReview();
     };
 
+    const validationMessage = (field) => {
+        if (field.validity.valueMissing) return copy.validation.required;
+        if (field.validity.typeMismatch && field.type === 'email') return copy.validation.email;
+        if (field.validity.tooShort) return copy.validation.min_length.replace(':min', String(field.minLength));
+        if (field.validity.tooLong) return copy.validation.max_length.replace(':max', String(field.maxLength));
+        if (field.validity.patternMismatch) return copy.validation.pattern;
+
+        return copy.validation.invalid;
+    };
+
     const validateStep = () => {
         for (const field of steps[current].querySelectorAll('input,select,textarea')) {
             if (field.type === 'hidden' || field.disabled) continue;
+            field.setCustomValidity('');
+
             if (!field.checkValidity()) {
+                field.setCustomValidity(validationMessage(field));
                 field.reportValidity();
                 return false;
             }
         }
+
         return true;
     };
+
+    const clearCustomValidation = (event) => {
+        if (event.target && typeof event.target.setCustomValidity === 'function') {
+            event.target.setCustomValidity('');
+        }
+    };
+
+    form.addEventListener('input', clearCustomValidation);
+    form.addEventListener('change', clearCustomValidation);
 
     const defaultPhoneCallingCode = () => countryDialingCodes[countrySelect.value] || '';
 
