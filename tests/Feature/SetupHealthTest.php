@@ -60,6 +60,10 @@ class SetupHealthTest extends TestCase
             ->assertOk()
             ->assertSee('value="en" selected', false)
             ->assertSee('data-selected-country="US"', false)
+            ->assertSee('const countryDialingCodes =', false)
+            ->assertSee('"NI":"+505"', false)
+            ->assertSee('Código de país', false)
+            ->assertSee('Número móvil', false)
             ->assertSee('country_code', false)
             ->assertSee('const countryCodes =', false);
     }
@@ -76,6 +80,31 @@ class SetupHealthTest extends TestCase
         $this->assertDatabaseCount('business_currencies', 0);
         $this->assertDatabaseCount('catalog_categories', 0);
         $this->assertDatabaseCount('catalog_groups', 0);
+    }
+
+    public function test_setup_normalizes_split_phone_fields_to_international_e164_format(): void
+    {
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $contact = \\App\\Models\\BusinessContact::query()->firstOrFail();
+
+        $this->assertSame('+50588881234', $contact->phone);
+        $this->assertSame('+505 8888-1234', $contact->formatted_phone);
+    }
+
+    public function test_owner_can_override_the_suggested_calling_code_for_a_contact(): void
+    {
+        $payload = $this->validSetupPayload();
+        $payload['phones'] = [
+            ['country_calling_code' => '+1', 'number' => '202 555 0123', 'show_public' => '1'],
+        ];
+
+        $this->post('/setup', $payload)->assertRedirect(route('admin.home'));
+
+        $contact = \\App\\Models\\BusinessContact::query()->firstOrFail();
+
+        $this->assertSame('+12025550123', $contact->phone);
+        $this->assertSame('+1 202 555 0123', $contact->formatted_phone);
     }
 
     public function test_setup_suggests_local_primary_currency_for_the_detected_country(): void
@@ -807,7 +836,7 @@ class SetupHealthTest extends TestCase
             'primary_currency' => 'USD',
             'additional_currencies' => ['NIO'],
             'phones' => [
-                ['number' => '+50588881234', 'show_public' => '1'],
+                ['country_calling_code' => '+505', 'number' => '8888-1234', 'show_public' => '1'],
             ],
             'primary_phone' => '0',
             'photos_enabled' => '1',
