@@ -7,6 +7,11 @@ const html = read("../setup.html");
 const js = read("../assets/js/setup.js");
 const css = read("../assets/css/setup.css");
 const scope = read("../../docs/PRODUCT-SCOPE.md");
+const adminHtml = read("../admin.html");
+const adminJs = read("../assets/js/admin.js");
+const publicJs = read("../assets/js/app.js");
+const adminCss = read("../assets/css/admin.css");
+const publicCss = read("../assets/css/styles.css");
 
 test("setup wizard exposes the four guided stages", () => {
   for (const step of [1, 2, 3, 4]) {
@@ -73,4 +78,30 @@ test("the product scope keeps dynamic definitions in application data rather tha
   assert.match(scope, /nunca crean tablas SQL arbitrarias/i);
   assert.match(scope, /product_field_definitions/);
   assert.match(scope, /product_field_values/);
+});
+
+test("the admin product form consumes the selected dynamic template", () => {
+  assert.ok(adminHtml.includes('id="dynamic-product-fields"'));
+  assert.ok(adminJs.includes('localStorage.getItem(STUDIO_KEY)'));
+  assert.ok(adminJs.includes("renderDynamicFields(product.attributes || {})"));
+  assert.ok(adminJs.includes("collectDynamicValues()"));
+  assert.ok(adminJs.includes("attributes,"));
+});
+
+test("product photo controls follow the optional-photo setting", () => {
+  assert.ok(adminJs.includes("photoField.hidden = !photoUploadsEnabled()"));
+  assert.ok(adminJs.includes('if (!photoUploadsEnabled()) $("#product-image").value = ""'));
+  assert.ok(publicJs.includes("media.hidden = !(photosEnabled && product.image)"));
+  assert.match(publicCss, /\.dialog-media\[hidden\]/);
+});
+
+test("the public product detail renders only fields marked as public", () => {
+  assert.ok(publicJs.includes("field.showPublic"));
+  assert.ok(publicJs.includes("product.attributes[field.id]"));
+  assert.match(publicCss, /\.attribute-group/);
+});
+
+test("the admin dynamic field grid collapses safely on narrow screens", () => {
+  assert.match(adminCss, /\.dynamic-product-group\s*\{[^}]*grid-template-columns:repeat\(2/);
+  assert.match(adminCss, /@media\(max-width:430px\)\s*\{\s*\.dynamic-product-group\s*\{\s*grid-template-columns:1fr/);
 });
