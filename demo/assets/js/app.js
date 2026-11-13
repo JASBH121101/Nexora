@@ -1,5 +1,13 @@
 (() => {
   const demos = window.NEXORA_DEMOS || [];
+  const readStudioConfig = () => {
+    try {
+      const value = JSON.parse(localStorage.getItem("nexora-studio:v1") || "null");
+      return value && value.schemaVersion === 1 && value.catalog ? value : null;
+    } catch { return null; }
+  };
+  const studioConfig = readStudioConfig();
+  const photosEnabled = studioConfig ? Boolean(studioConfig.catalog.photosEnabled) : true;
   const $ = (selector) => document.querySelector(selector);
   const make = (tag, text) => {
     const element = document.createElement(tag);
@@ -67,12 +75,17 @@
     article.classList.add("product-card");
     const imageWrap = make("div");
     imageWrap.classList.add("product-image");
-    const image = make("img");
-    image.src = safeImageSource(product.image);
-    image.alt = product.name || "Producto del catálogo";
-    image.loading = "lazy";
-    image.addEventListener("error", () => { image.src = "assets/img/product-placeholder.svg"; }, { once: true });
-    imageWrap.append(image);
+    if (photosEnabled && product.image) {
+      const image = make("img");
+      image.src = safeImageSource(product.image);
+      image.alt = product.name || "Producto del catálogo";
+      image.loading = "lazy";
+      image.addEventListener("error", () => { image.src = "assets/img/product-placeholder.svg"; }, { once: true });
+      imageWrap.append(image);
+    } else {
+      imageWrap.classList.add("is-no-photo");
+      imageWrap.append(make("span", "Sin fotografía"));
+    }
 
     if (product.tag) {
       const tag = make("span", product.tag);
@@ -149,15 +162,39 @@
     const product = products.find((item) => item.id === id);
     if (!product) return;
     const image = $("#dialog-image");
-    image.src = safeImageSource(product.image);
-    image.alt = product.name;
-    image.onerror = () => { image.src = "assets/img/product-placeholder.svg"; };
+    const media = image.closest(".dialog-media");
+    media.hidden = !(photosEnabled && product.image);
+    if (photosEnabled && product.image) {
+      image.src = safeImageSource(product.image);
+      image.alt = product.name;
+      image.onerror = () => { image.src = "assets/img/product-placeholder.svg"; };
+    }
     $("#dialog-category").textContent = product.category;
     $("#dialog-title").textContent = product.name;
     $("#dialog-description").textContent = product.description || "Consulta con el negocio para conocer más detalles.";
     const attributeList = $("#dialog-attributes");
     attributeList.replaceChildren();
-    if (product.detail) {
+    const definitions = (studioConfig?.catalog?.groups || []);
+    definitions.forEach((group) => {
+      const entries = (group.fields || []).filter((field) => field.showPublic && Object.prototype.hasOwnProperty.call(product.attributes || {}, field.id));
+      if (!entries.length) return;
+      const block = make("section");
+      block.className = "attribute-group";
+      block.append(make("h4", group.name));
+      entries.forEach((field) => {
+        const value = product.attributes[field.id];
+        if (value === "" || value === null || value === undefined || value === false || (Array.isArray(value) && !value.length)) return;
+        const line = make("div");
+        line.className = "attribute-line";
+        const label = make("span", field.label);
+        const rendered = Array.isArray(value) ? value.join(", ") : String(value);
+        const valueNode = make("strong", field.type === "number" && field.unit ? rendered + " " + field.unit : rendered);
+        line.append(label, valueNode);
+        block.append(line);
+      });
+      if (block.querySelector(".attribute-line")) attributeList.append(block);
+    });
+    if (!attributeList.childElementCount && product.detail) {
       const attribute = make("span", product.detail);
       attribute.classList.add("attribute-pill");
       attributeList.append(attribute);
