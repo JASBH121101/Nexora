@@ -18,6 +18,7 @@ use App\Modules\Setup\Services\TemplateCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -39,6 +40,22 @@ final class SetupController
             return redirect()->route(Auth::check() ? 'admin.home' : 'admin.login');
         }
 
+        $locale = $request->query('locale');
+
+        if (! is_string($locale) || ! array_key_exists($locale, LanguageCatalog::all())) {
+            $locale = $request->getPreferredLanguage(array_keys(LanguageCatalog::all())) ?? 'es';
+        }
+
+        App::setLocale($locale);
+
+        $requestedCountryCode = strtoupper((string) $request->query('country_code', ''));
+        $defaultCountryCode = in_array($requestedCountryCode, CountryCatalog::codes(), true)
+            ? $requestedCountryCode
+            : $this->detectCountryCode($request);
+
+        $locale = strtolower(trim((string) $request->input('locale', 'es')));
+        App::setLocale(array_key_exists($locale, LanguageCatalog::all()) ? $locale : 'es');
+
         $checks = $requirements->checks();
 
         return view('setup.index', [
@@ -48,20 +65,22 @@ final class SetupController
             ),
             'schemaReady' => $installation->hasSchema(),
             'databaseConnected' => (bool) (collect($checks)->firstWhere('key', 'database')['passed'] ?? false),
-            'templates' => $templates->all(),
-            'templatePreviews' => $templates->previews(),
+            'templates' => $templates->all($locale),
+            'templatePreviews' => $templates->previews($locale),
             'currencies' => CurrencyCatalog::codes(),
             'countryCurrencies' => CountryCurrencyCatalog::all(),
             'countryDialingCodes' => CountryDialingCodeCatalog::all(),
-            'defaultPrimaryCurrency' => CountryCurrencyCatalog::forCountry($this->detectCountryCode($request)) ?? 'USD',
+            'defaultPrimaryCurrency' => CountryCurrencyCatalog::forCountry($defaultCountryCode) ?? 'USD',
             'countryCodes' => CountryCatalog::codes(),
             'languages' => LanguageCatalog::all(),
-            'defaultLocale' => $request->getPreferredLanguage(array_keys(LanguageCatalog::all())) ?? 'es',
-            'defaultCountryCode' => $this->detectCountryCode($request),
+            'defaultLocale' => $locale,
+            'installationMode' => config('nexora.installation_mode', 'production'),
+            'defaultCountryCode' => $defaultCountryCode,
         ]);
     }
 
     public function prepareDatabase(
+        Request $request,
         InstallationState $installation,
         DatabaseInstaller $databaseInstaller,
     ): RedirectResponse {
@@ -79,13 +98,13 @@ final class SetupController
             report($exception);
 
             return back()->withErrors([
-                'database' => 'No se pudo conectar o preparar la base de datos. Revisa DATABASE_URL o DB_URL y los permisos del usuario de PostgreSQL.',
+                'database' => __('setup.database_error'),
             ]);
         }
 
-        return redirect()->route('setup.show')->with(
+        return redirect()->route('setup.show', $this->setupRouteParameters($request))->with(
             'status',
-            'La estructura de la base de datos de NEXORA quedó preparada. Ya puedes continuar con el asistente.',
+            __('setup.database_prepared'),
         );
     }
 
@@ -99,9 +118,9 @@ final class SetupController
         // keep the prepared schema so the installer can be tested again safely.
         $request->session()->forget(['_old_input', 'errors']);
 
-        return redirect()->route('setup.show')->with(
+        return redirect()->route('setup.show', $this->setupRouteParameters($request))->with(
             'status',
-            'Prueba cancelada. No se creó el propietario, el negocio ni las categorías. La estructura vacía de tablas se conserva para continuar probando.',
+            __('setup.cancelled'),
         );
     }
 
@@ -124,7 +143,7 @@ final class SetupController
             )
         ) {
             throw ValidationException::withMessages([
-                'setup' => 'El entorno todavía no cumple todos los requisitos de instalación.',
+                'setup' => __('setup.setup_environment_error'),
             ]);
         }
 
@@ -203,7 +222,7 @@ final class SetupController
 
             if (strlen($nationalNumber) < 6 || strlen($internationalNumber) > 15) {
                 throw ValidationException::withMessages([
-                    "phones.{$index}.number" => 'El número debe tener entre 6 y 15 dígitos internacionales contando el código del país.',
+                    "phones.{$index}.number" => __('setup.phone_length_error'),
                 ]);
             }
 
@@ -236,7 +255,7 @@ final class SetupController
             ): User {
                 if (User::query()->exists() || InstallationSettings::query()->exists()) {
                     throw ValidationException::withMessages([
-                        'setup' => 'Esta instalación ya tiene un propietario o un proceso iniciado.',
+                        'setup' => __('setup.setup_already_started'),
                     ]);
                 }
 
@@ -283,6 +302,9 @@ final class SetupController
                         'hours' => array_values($validated['business_hours'] ?? []),
                     ],
                     'template' => $validated['business_type'],
+                    'environment' => [
+                        'mode' => config('nexora.installation_mode', 'production') === 'demo' ? 'demo' : 'production',
+                    ],
                     'templateVersion' => $templates->version(),
                     'website' => [
                         'editorMode' => 'basic',
@@ -322,7 +344,7 @@ final class SetupController
                     ]);
                 }
 
-                $templates->seed($validated['business_type']);
+                $templates->seed($validated['business_type'], $validated['locale']);
 
                 return $owner;
             });
@@ -339,21 +361,32 @@ final class SetupController
 
         $mediaMessage = $this->ensurePublicStorageLink();
 
-        $verificationMessage = 'Configura SMTP para recibir el enlace de verificación del correo.';
+        $verificationMessage = __('setup.verification_smtp_missing');
 
         if (config('mail.default') === 'smtp' && filled(config('mail.mailers.smtp.host'))) {
             try {
                 $owner->sendEmailVerificationNotification();
-                $verificationMessage = 'Se envió un enlace de verificación al correo del propietario.';
+                $verificationMessage = __('setup.verification_sent');
             } catch (Throwable) {
-                $verificationMessage = 'El catálogo se creó, pero falló el envío. Revisa SMTP y solicita un nuevo enlace desde el panel.';
+                $verificationMessage = __('setup.verification_failed');
             }
         }
 
         return redirect()->route('admin.home')
-            ->with('status', 'NEXORA quedó configurado y la cuenta propietaria fue creada.')
+            ->with('status', __('setup.created'))
             ->with('verification_message', $verificationMessage)
             ->with('media_message', $mediaMessage);
+    }
+
+    private function setupRouteParameters(Request $request): array
+    {
+        $locale = $request->input('locale', $request->query('locale', app()->getLocale()));
+        $countryCode = $request->input('country_code', $request->query('country_code'));
+
+        return array_filter([
+            'locale' => is_string($locale) ? $locale : app()->getLocale(),
+            'country_code' => is_string($countryCode) ? $countryCode : null,
+        ], static fn ($value): bool => filled($value));
     }
 
     private function detectCountryCode(Request $request): string
