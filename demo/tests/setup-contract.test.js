@@ -48,12 +48,15 @@ test("custom field definitions support groups, order, types and public visibilit
 });
 
 test("measurement units are separated by dimension", () => {
-  for (const dimension of ["mass", "volume", "length", "count", "digital", "area"]) {
+  for (const dimension of ["mass", "volume", "displacement", "length", "count", "digital", "area"]) {
     assert.ok(js.includes(dimension + ":["), "missing unit dimension " + dimension);
   }
   assert.ok(js.includes("unitsFor(f.unitGroup)"));
   assert.ok(js.includes('field("Memoria RAM","number",{unitGroup:"digital",unit:"GB"})'));
-  assert.ok(js.includes('field("Cilindraje","number",{unitGroup:"volume",unit:"cc"})'));
+  assert.ok(js.includes('field("Cilindraje","number",{unitGroup:"displacement",unit:"cc"})'));
+  assert.ok(js.includes('displacement:["cc"]'));
+  assert.match(js, /volume:\\["L","ml","gal","fl oz"\\]/);
+  assert.ok(html.includes('<option value="displacement">Cilindraje de motor</option>'));
 });
 
 test("photographs are optional and appear in the preview only when enabled", () => {

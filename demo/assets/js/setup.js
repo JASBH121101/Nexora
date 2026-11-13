@@ -10,7 +10,7 @@
     {code:"GTQ",name:"Quetzal guatemalteco"},{code:"PAB",name:"Balboa panameño"},{code:"COP",name:"Peso colombiano"},
     {code:"BRL",name:"Real brasileño"}
   ];
-  const UNITS = {mass:["kg","g","lb","oz"],volume:["L","ml","cc","gal","fl oz"],length:["m","cm","mm","in","ft"],count:["unidad","pieza","par","paquete","caja","docena"],digital:["MB","GB","TB"],area:["m²","ft²"]};
+  const UNITS = {mass:["kg","g","lb","oz"],volume:["L","ml","gal","fl oz"],displacement:["cc"],length:["m","cm","mm","in","ft"],count:["unidad","pieza","par","paquete","caja","docena"],digital:["MB","GB","TB"],area:["m²","ft²"]};
   const TYPES = {text:"Texto",number:"Número",select:"Lista de opciones",multiselect:"Selección múltiple",boolean:"Sí / No",date:"Fecha",textarea:"Texto largo"};
   const makeId = (prefix) => prefix + "-" + Math.random().toString(36).slice(2,9);
   const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -30,7 +30,7 @@
       group("Características",[field("Tipo de equipo"),field("Peso","number",{unitGroup:"mass",unit:"kg"}),field("Material"),field("Resistencia","select",{options:["Ligera","Media","Alta","Ajustable"]})])]},
     automotive:{name:"Repuestos y vehículos",description:"Marca, compatibilidad, año y especificaciones.",groups:[
       group("Identificación",[field("Marca"),field("Modelo compatible"),field("Año","number"),field("Código de pieza")]),
-      group("Detalles técnicos",[field("Cilindraje","number",{unitGroup:"volume",unit:"cc"}),field("Estado","select",{options:["Nuevo","Usado","Reconstruido"]})])]},
+      group("Detalles técnicos",[field("Cilindraje","number",{unitGroup:"displacement",unit:"cc"}),field("Estado","select",{options:["Nuevo","Usado","Reconstruido"]})])]},
     grocery:{name:"Alimentos y abarrotes",description:"Contenido, peso, volumen y presentación.",groups:[
       group("Producto",[field("Marca"),field("Contenido","number",{unitGroup:"mass",unit:"g"}),field("Presentación","select",{options:["Individual","Paquete","Caja","A granel"]}),field("Fecha de vencimiento","date")])]},
     other:{name:"Plantilla personalizada",description:"Comienza con una estructura sencilla y agrega los campos que necesites.",groups:[group("Información adicional",[])]}
@@ -180,7 +180,7 @@
         if(f.type==="number"){
           const units=document.createElement("div");units.className="schema-unit";
           const groupSelect=document.createElement("select");groupSelect.dataset.fieldProp="unitGroup";groupSelect.dataset.fieldId=f.id;groupSelect.setAttribute("aria-label","Magnitud");
-          groupSelect.innerHTML='<option value="">Sin unidad</option><option value="mass">Masa</option><option value="volume">Volumen</option><option value="length">Longitud</option><option value="count">Cantidad</option><option value="digital">Capacidad digital</option><option value="area">Área</option>';groupSelect.value=f.unitGroup||"";units.append(groupSelect);
+          groupSelect.innerHTML='<option value="">Sin unidad</option><option value="mass">Masa</option><option value="volume">Volumen</option><option value="displacement">Cilindraje de motor</option><option value="length">Longitud</option><option value="count">Cantidad</option><option value="digital">Capacidad digital</option><option value="area">Área</option>';groupSelect.value=f.unitGroup||"";units.append(groupSelect);
           if(f.unitGroup){const unit=document.createElement("select");unit.dataset.fieldProp="unit";unit.dataset.fieldId=f.id;unit.setAttribute("aria-label","Unidad");unit.innerHTML='<option value="">Seleccionar unidad…</option>'+unitsFor(f.unitGroup).map((u)=>'<option value="'+esc(u)+'" '+(u===f.unit?"selected":"")+'>'+esc(u)+"</option>").join("");units.append(unit);}
           row.append(units);
         }
