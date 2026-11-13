@@ -147,3 +147,43 @@ Los campos dinámicos se modelan como metadatos/valores; nunca crean tablas SQL 
 ## 11. Estado de implementación
 
 La carpeta `demo/` contiene un prototipo interactivo HTML/CSS/JS. El asistente y el constructor de fichas guardan datos únicamente en `localStorage`. No implementa autenticación, autorización, verificación de correo, persistencia SQL ni almacenamiento seguro de imágenes. El backend Laravel de producción está pendiente.
+
+
+## 12. Personalización y publicación de la página web
+
+La página pública se genera automáticamente desde NEXORA Site Engine. No requiere que el propietario edite código ni que el desarrollador intervenga para publicar productos o realizar cambios visuales admitidos.
+
+### Nivel 1 — Personalización guiada (incluido en la primera versión)
+- Elegir plantilla y variantes visuales disponibles.
+- Configurar logotipo, colores, tipografías predefinidas y presentación comercial.
+- Mostrar u ocultar secciones predeterminadas.
+- Ajustar encabezado, distribución del catálogo, tarjetas y contactos.
+- Previsualizar la página en tamaños de escritorio y móvil.
+- Guardar como borrador y publicar explícitamente.
+
+### Nivel 2 — Constructor visual avanzado (alcance progresivo)
+- Agregar, quitar y reordenar secciones desde una biblioteca de componentes aprobados.
+- Elegir variantes y ajustar opciones controladas de contenido, alineación y espaciado.
+- Previsualizar antes de publicar.
+- No permite insertar código HTML, JavaScript o CSS arbitrario ni crear diseños sin límites. Se utilizarán componentes permitidos y configuraciones validadas para mantener seguridad, accesibilidad y compatibilidad responsive.
+
+### Publicación y dominio
+- La página pública utiliza los productos publicados y los campos autorizados para exposición pública.
+- Los cambios visuales pueden permanecer en borrador hasta que el propietario los publique.
+- Cada instalación puede usar un dominio propio contratado por el cliente.
+- El cliente configura el DNS para apuntar al VPS. El instalador debe comprobar dominio y entorno; la automatización de HTTPS dependerá de los permisos y capacidades del VPS. Se documentará ACME/Let's Encrypt y renovación de certificados.
+- HTTPS requiere DNS correcto, conectividad y certificado TLS válido; escribir un dominio en el asistente no activa por sí solo la protección.
+
+### Separación y privacidad
+El panel administrativo es privado y requiere autenticación. El sitio público solo expone datos publicados y expresamente marcados como visibles. Exportaciones PDF y reportes administrativos se descargan desde el panel y no se publican automáticamente.
+
+## 13. Criterios de aceptación del Site Engine
+1. Una instalación genera su página pública a partir de su propia configuración, sin intervención del desarrollador.
+2. La personalización guiada permite cambiar identidad visual y secciones predeterminadas.
+3. El constructor avanzado permite reordenar y configurar únicamente componentes permitidos.
+4. Los cambios pueden previsualizarse y guardarse como borrador antes de publicarse.
+5. Productos no publicados y campos privados nunca aparecen en rutas públicas.
+6. El diseño se adapta a móvil, tableta y escritorio.
+7. No se ejecuta código arbitrario proporcionado desde el editor.
+8. La página puede asociarse a un dominio propio cuando el VPS y DNS estén configurados.
+9. La configuración de HTTPS se valida y documenta; no se declara activo sin comprobar un certificado válido.
