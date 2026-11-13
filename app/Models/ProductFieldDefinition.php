@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -29,6 +30,30 @@ class ProductFieldDefinition extends Model
     {
         return $this->belongsTo(CatalogGroup::class, 'group_id');
     }
+
+    public function scopeAvailableForCategory(Builder $query, ?int $categoryId): Builder
+    {
+        return $query->whereHas('group', static function (Builder $group) use ($categoryId): void {
+            $group->where(function (Builder $scope) use ($categoryId): void {
+                $scope->whereNull('category_id');
+
+                if ($categoryId !== null) {
+                    $scope->orWhere('category_id', $categoryId);
+                }
+            });
+        });
+    }
+
+    public function scopeAvailableForCurrentProductCategory(Builder $query): Builder
+    {
+        return $query->whereHas('group', static function (Builder $group): void {
+            $group->where(function (Builder $scope): void {
+                $scope->whereNull('catalog_groups.category_id')
+                    ->orWhereColumn('catalog_groups.category_id', 'products.category_id');
+            });
+        });
+    }
+
 
     public function values(): HasMany
     {
