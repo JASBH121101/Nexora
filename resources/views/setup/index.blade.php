@@ -41,7 +41,7 @@
                 <div class="note">
                     {{ __('setup.database_ready') }}
                 </div>
-                <form method="POST" action="{{ route('setup.prepare-database') }}">
+                <form method="POST" action="{{ route('setup.prepare-database', ['locale' => $defaultLocale, 'country_code' => $defaultCountryCode]) }}">
                     @csrf
                     <button class="primary-button" type="submit">{{ __('setup.database_prepare') }}</button>
                 </form>
