@@ -105,6 +105,15 @@ test("product photo controls follow the optional-photo setting", () => {
   assert.match(publicCss, /\.dialog-media\[hidden\]/);
 });
 
+test("draft products stay private while published products drive public category filters", () => {
+  assert.ok(adminHtml.includes('id="product-published"'));
+  assert.ok(adminJs.includes('product.published !== false'));
+  assert.ok(adminJs.includes('$("#product-published").checked'));
+  assert.ok(publicJs.includes('filter((product) => product.published !== false)'));
+  assert.ok(publicJs.includes('products.map((product) => product.category)'));
+  assert.ok(publicJs.includes('new Set([...(business.categories || []), ...dynamicCategories])'));
+});
+
 test("product prices support the configured primary and additional currencies", () => {
   assert.ok(adminHtml.includes('id="product-prices"'));
   assert.ok(adminJs.includes("enabledCurrencies()"));

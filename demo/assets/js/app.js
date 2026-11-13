@@ -90,7 +90,9 @@
   };
 
   const renderCategories = () => {
-    const labels = ["Todos", ...business.categories];
+    const dynamicCategories = products.map((product) => product.category).filter(Boolean);
+    const availableCategories = [...new Set([...(business.categories || []), ...dynamicCategories])];
+    const labels = ["Todos", ...availableCategories];
     const buttons = labels.map((label, index) => {
       const value = index === 0 ? "all" : label;
       const button = make("button", label);
@@ -173,7 +175,7 @@
 
   const renderBusiness = () => {
     settings = NexoraStore.getSettings(business);
-    products = NexoraStore.getProducts(business);
+    products = NexoraStore.getProducts(business).filter((product) => product.published !== false);
     activeCategory = "all";
     searchTerm = "";
     searchInput.value = "";

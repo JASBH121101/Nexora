@@ -41,7 +41,7 @@
       <div class="admin-notice"><strong>Importante:</strong> esta pantalla es solo una simulación visual. Los datos se guardan en el almacenamiento local del navegador y no representan un panel seguro ni multiusuario.</div>
 
       <section class="stat-grid" aria-label="Resumen del catálogo">
-        <article class="stat-card"><span>PRODUCTOS ACTIVOS</span><strong id="stat-products">0</strong><small>En este catálogo</small></article>
+        <article class="stat-card"><span>PRODUCTOS PUBLICADOS</span><strong id="stat-products">0</strong><small>Visibles en el catálogo público</small></article>
         <article class="stat-card"><span>CATEGORÍAS</span><strong id="stat-categories">0</strong><small>Con productos registrados</small></article>
         <article class="stat-card"><span>DESTACADOS</span><strong id="stat-featured">0</strong><small>Visibles en la muestra</small></article>
       </section>
@@ -80,6 +80,7 @@
       <label>Descripción<textarea id="product-description" rows="3" maxlength="500" required></textarea></label>
       <div id="dynamic-product-fields" class="dynamic-product-fields"></div>
       <label id="product-image-field">Fotografía del producto (URL de muestra)<input id="product-image" type="url" placeholder="https://..."></label>
+      <label class="check-label"><input id="product-published" type="checkbox" checked> Publicar en el catálogo público</label>
       <label class="check-label"><input id="product-featured" type="checkbox"> Marcar como destacado</label>
       <div class="form-actions"><button id="cancel-product" class="button button-outline button-small" type="button">Cancelar</button><button class="button button-dark button-small" type="submit">Guardar producto</button></div>
     </form>

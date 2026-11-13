@@ -118,9 +118,10 @@
   };
   const render = () => {
     const categories = new Set(products.map((item) => item.category).filter(Boolean));
-    $("#stat-products").textContent = String(products.length);
-    $("#stat-categories").textContent = String(categories.size);
-    $("#stat-featured").textContent = String(products.filter((item) => item.featured).length);
+    const publishedProducts = products.filter((item) => item.published !== false);
+    $("#stat-products").textContent = String(publishedProducts.length);
+    $("#stat-categories").textContent = String(new Set(publishedProducts.map((item) => item.category).filter(Boolean)).size);
+    $("#stat-featured").textContent = String(publishedProducts.filter((item) => item.featured).length);
     $("#admin-empty").hidden = products.length > 0;
 
     const rows = products.map((product) => {
@@ -145,8 +146,10 @@
         ? "Consultar"
         : NexoraStore.money(currentPrice, primaryCurrency())));
       const stateCell = make("td");
-      const state = make("span", "Publicado");
+      const isPublished = product.published !== false;
+      const state = make("span", isPublished ? "Publicado" : "Borrador");
       state.classList.add("state-pill");
+      if (!isPublished) state.classList.add("is-draft");
       stateCell.append(state);
 
       const actionsCell = make("td");
@@ -255,6 +258,7 @@
     form.reset();
     $("#product-id").value = "";
     $("#product-form-title").textContent = "Nuevo producto";
+    $("#product-published").checked = true;
     renderDynamicFields();
     renderProductPrices();
     setPhotoFieldVisibility();
@@ -278,6 +282,7 @@
     $("#product-description").value = product.description;
     $("#product-image").value = product.image || "";
     $("#product-featured").checked = Boolean(product.featured);
+    $("#product-published").checked = product.published !== false;
     renderDynamicFields(product.attributes || {});
     setPhotoFieldVisibility();
     dialog.showModal();
@@ -322,6 +327,7 @@
       category: $("#product-category").value.trim(),
       price: primaryPrice,
       prices,
+      published: $("#product-published").checked,
       oldPrice: $("#product-old-price").value ? Number($("#product-old-price").value) : null,
       description: $("#product-description").value.trim(),
       image: photoUploadsEnabled() ? $("#product-image").value.trim() : (products.find((item) => item.id === id)?.image || ""),

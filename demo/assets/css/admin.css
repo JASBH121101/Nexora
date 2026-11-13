@@ -37,6 +37,7 @@
 .table-product img { width: 37px; height: 39px; object-fit: cover; border-radius: 5px; background: #edf0e9; }
 .table-product strong { display: block; max-width: 190px; overflow: hidden; color: #303a32; font-size: 10px; text-overflow: ellipsis; }
 .table-product small { display: block; margin-top: 3px; color: #9aa196; font-size: 8px; }
+.state-pill.is-draft { color:#8a6b2e; background:#fff4d8; }
 .state-pill { display: inline-flex; align-items: center; gap: 5px; padding: 5px 8px; border-radius: 30px; color: #64734e; background: #eff4e6; font-size: 8px; font-weight: 700; }
 .state-pill::before { width: 5px; height: 5px; border-radius: 50%; background: #9fc34b; content: ''; }
 .row-actions { display: flex; justify-content: flex-end; gap: 5px; }
