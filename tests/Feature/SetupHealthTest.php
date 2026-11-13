@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\BusinessContact;
 use App\Models\CatalogCategory;
 use App\Models\CatalogGroup;
 use App\Models\InstallationSettings;
@@ -86,7 +87,7 @@ class SetupHealthTest extends TestCase
     {
         $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
 
-        $contact = \\App\\Models\\BusinessContact::query()->firstOrFail();
+        $contact = BusinessContact::query()->firstOrFail();
 
         $this->assertSame('+50588881234', $contact->phone);
         $this->assertSame('+505 8888-1234', $contact->formatted_phone);
@@ -101,7 +102,7 @@ class SetupHealthTest extends TestCase
 
         $this->post('/setup', $payload)->assertRedirect(route('admin.home'));
 
-        $contact = \\App\\Models\\BusinessContact::query()->firstOrFail();
+        $contact = BusinessContact::query()->firstOrFail();
 
         $this->assertSame('+12025550123', $contact->phone);
         $this->assertSame('+1 202 555 0123', $contact->formatted_phone);
