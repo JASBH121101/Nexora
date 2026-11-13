@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Core\Installation\InstallationState;
 use App\Models\BusinessContact;
 use App\Models\CatalogCategory;
 use App\Models\CatalogGroup;
@@ -1152,6 +1153,140 @@ class SetupHealthTest extends TestCase
         ])->assertRedirect(route('admin.home'));
 
         $this->assertAuthenticatedAs(User::query()->where('email', 'owner@example.com')->firstOrFail());
+    }
+
+
+    public function test_setup_page_renders_the_entire_installer_in_english_when_selected(): void
+    {
+        config(['nexora.installation_mode' => 'demo']);
+
+        $this->get('/setup?locale=en&country_code=US')
+            ->assertOk()
+            ->assertSee('<html lang="en">', false)
+            ->assertSee('Get your catalog ready')
+            ->assertSee('1. Language and country')
+            ->assertSee('Primary language')
+            ->assertSee('Cancel test')
+            ->assertSee('DEMO ENVIRONMENT')
+            ->assertDontSee('Prepara tu catálogo')
+            ->assertDontSee('Cancelar prueba');
+    }
+
+    public function test_setup_validation_messages_follow_the_selected_english_language(): void
+    {
+        $payload = $this->validSetupPayload();
+        $payload['locale'] = 'en';
+        unset($payload['owner_name']);
+
+        $this->from('/setup?locale=en&country_code=US')
+            ->post('/setup?locale=en&country_code=US', $payload)
+            ->assertRedirect('/setup?locale=en&country_code=US')
+            ->assertSessionHasErrors('owner_name');
+
+        $this->get('/setup?locale=en&country_code=US')
+            ->assertOk()
+            ->assertSee('The owner name field is required.')
+            ->assertDontSee('El campo nombre del propietario es obligatorio.');
+    }
+
+    public function test_english_template_catalog_translates_all_template_preview_labels(): void
+    {
+        $catalog = app(TemplateCatalog::class);
+        $english = $catalog->previews('en');
+
+        $this->assertSame('Perfumery', $catalog->all('en')['perfumery']);
+        $this->assertContains('Phones', $english['technology']['categories']);
+        $this->assertContains('Auto parts', $english['automotive']['categories']);
+        $this->assertContains('Food', $english['grocery']['categories']);
+        $this->assertSame('Classification & fragrance', $english['perfumery']['groups'][0]['name']);
+        $this->assertSame('Product type', $english['perfumery']['groups'][0]['fields'][0]);
+    }
+
+    public function test_english_installation_seeds_translated_template_data_and_stable_field_keys(): void
+    {
+        $payload = $this->validSetupPayload();
+        $payload['country_code'] = 'US';
+        $payload['locale'] = 'en';
+        $payload['business_type'] = 'perfumery';
+
+        $this->post('/setup', $payload)->assertRedirect(route('admin.home'));
+
+        $settings = InstallationSettings::query()->findOrFail(1);
+
+        $this->assertSame('en', data_get($settings->configuration, 'regional.locale'));
+        $this->assertSame('production', data_get($settings->configuration, 'environment.mode'));
+        $this->assertDatabaseHas('catalog_groups', ['name' => 'Classification & fragrance']);
+        $this->assertDatabaseHas('product_field_definitions', [
+            'field_key' => 'perfume_type',
+            'label' => 'Product type',
+        ]);
+
+        $perfumeType = ProductFieldDefinition::query()->where('field_key', 'perfume_type')->firstOrFail();
+        $this->assertSame(['Original', 'Inspired', 'Generic'], $perfumeType->options);
+    }
+
+    public function test_demo_installation_can_be_reset_without_dropping_its_schema(): void
+    {
+        config(['nexora.installation_mode' => 'demo']);
+
+        $payload = $this->validSetupPayload();
+        $payload['business_type'] = 'perfumery';
+        $payload['locale'] = 'en';
+
+        $this->post('/setup', $payload)->assertRedirect(route('admin.home'));
+
+        $settings = InstallationSettings::query()->findOrFail(1);
+        $this->assertSame('demo', data_get($settings->configuration, 'environment.mode'));
+
+        $exitCode = Artisan::call('nexora:demo:reset', [
+            '--confirm' => 'RESET-DEMO-DATA',
+        ]);
+
+        $this->assertSame(0, $exitCode);
+        $this->assertDatabaseCount('users', 0);
+        $this->assertDatabaseCount('installation_settings', 0);
+        $this->assertDatabaseCount('catalog_categories', 0);
+        $this->assertDatabaseCount('catalog_groups', 0);
+        $this->assertDatabaseCount('product_field_definitions', 0);
+        $this->assertTrue(app(InstallationState::class)->hasSchema());
+        $this->assertFalse(app(InstallationState::class)->isCompleted());
+
+        $this->get('/setup?locale=en')->assertOk()->assertSee('Get your catalog ready');
+    }
+
+    public function test_demo_reset_is_blocked_in_production_even_with_confirmation(): void
+    {
+        config(['nexora.installation_mode' => 'production']);
+
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $exitCode = Artisan::call('nexora:demo:reset', [
+            '--confirm' => 'RESET-DEMO-DATA',
+        ]);
+
+        $this->assertSame(1, $exitCode);
+        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseCount('installation_settings', 1);
+    }
+
+    public function test_demo_reset_requires_the_persisted_installation_demo_marker(): void
+    {
+        config(['nexora.installation_mode' => 'demo']);
+
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $settings = InstallationSettings::query()->findOrFail(1);
+        $configuration = $settings->configuration;
+        $configuration['environment']['mode'] = 'production';
+        $settings->forceFill(['configuration' => $configuration])->save();
+
+        $exitCode = Artisan::call('nexora:demo:reset', [
+            '--confirm' => 'RESET-DEMO-DATA',
+        ]);
+
+        $this->assertSame(1, $exitCode);
+        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseCount('installation_settings', 1);
     }
 
     private function validSetupPayload(): array
