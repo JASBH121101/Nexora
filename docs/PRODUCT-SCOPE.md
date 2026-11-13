@@ -40,7 +40,7 @@ La versión inicial permite precios por moneda registrados manualmente. Conversi
 - Plantillas editables: agregar, renombrar, ordenar o eliminar grupos y campos.
 - La plantilla puede cambiarse sin perder silenciosamente personalizaciones: el cambio debe ofrecer combinación de campos nuevos o reinicio explícitamente confirmado.
 - Fotografías opcionales a nivel de configuración de la instalación. Si se deshabilitan, el formulario de producto no muestra el campo de imágenes y el backend rechaza cargas.
-- Biblioteca de unidades por dimensión: masa, volumen, longitud, cantidad y área.
+- Biblioteca de unidades por dimensión: masa, volumen, longitud, cantidad, capacidad digital y área.
 - Permitir agregar unidades personalizadas dentro de una dimensión.
 - No mostrar unidades incompatibles con la dimensión elegida.
 
