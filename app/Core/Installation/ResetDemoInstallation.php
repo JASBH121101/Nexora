@@ -37,21 +37,27 @@ final class ResetDemoInstallation
             throw new RuntimeException(__('setup.demo_reset_disabled'));
         }
 
-        if (! Schema::hasTable('installation_settings')) {
-            throw new RuntimeException(__('setup.demo_reset_not_demo_installation'));
+        try {
+            if (! Schema::hasTable('installation_settings')) {
+                throw new RuntimeException(__('setup.demo_reset_not_demo_installation'));
+            }
+
+            $settings = InstallationSettings::query()->find(1);
+
+            if (
+                $settings === null
+                || $settings->setup_completed_at === null
+                || data_get($settings->configuration, 'environment.mode') !== 'demo'
+            ) {
+                throw new RuntimeException(__('setup.demo_reset_not_demo_installation'));
+            }
+
+            return $settings;
+        } catch (RuntimeException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
+            throw new RuntimeException(__('setup.demo_reset_not_demo_installation'), 0, $exception);
         }
-
-        $settings = InstallationSettings::query()->find(1);
-
-        if (
-            $settings === null
-            || $settings->setup_completed_at === null
-            || data_get($settings->configuration, 'environment.mode') !== 'demo'
-        ) {
-            throw new RuntimeException(__('setup.demo_reset_not_demo_installation'));
-        }
-
-        return $settings;
     }
 
     public function reset(): void
