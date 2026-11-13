@@ -95,7 +95,6 @@ final class ServerRequirements
             'storage/framework/sessions' => storage_path('framework/sessions'),
             'storage/framework/views' => storage_path('framework/views'),
             'storage/logs' => storage_path('logs'),
-            'public' => public_path(),
             'bootstrap/cache' => base_path('bootstrap/cache'),
         ];
         $unwritable = array_keys(array_filter(
