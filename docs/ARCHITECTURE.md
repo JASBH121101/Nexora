@@ -1,106 +1,185 @@
-# NEXORA — Arquitectura del catálogo digital
+# NEXORA — Arquitectura del catálogo configurable
 
-**Producto:** página web de catálogo con panel administrativo.  
-**Modelo:** un código fuente reutilizable y una instalación independiente por negocio.
+**Modelo:** código fuente reutilizable + una instalación independiente por negocio.  
+**Backend objetivo:** Laravel / PHP + MariaDB Community o MySQL Community.  
+**Interfaz:** Blade, HTML, CSS y JavaScript.  
+**Alcance:** catálogo web configurable; no ERP y no SaaS centralizado multiempresa.
 
-## 1. Propósito y límites
+## 1. Principios
 
-NEXORA permite a un negocio mostrar sus productos en una página pública y administrarlos desde un panel privado. Debe ser sencillo de instalar, operar y mantener.
+1. Cada instalación pertenece a un negocio y tiene su propia base de datos, archivos, configuración y propietario.
+2. No hay registro central ni selector multiempresa en producción.
+3. Las plantillas son configuraciones iniciales, no estructuras SQL separadas por industria.
+4. Los campos dinámicos se almacenan como definiciones y valores asociados a productos; el cliente nunca ejecuta SQL.
+5. Los campos base del producto son estables y protegidos.
+6. Las imágenes son opcionales por instalación y se validan en servidor.
+7. La aplicación básica no depende de servicios de pago obligatorios.
 
-No es un ERP, no procesa pedidos ni pagos y no es un SaaS centralizado multiempresa. Cada cliente recibe una instalación separada. El código se reutiliza, pero los datos, fotografías y configuración no se comparten entre clientes.
+## 2. Componentes de aplicación
 
-## 2. Arquitectura técnica
+- **Setup/Installer:** primer acceso controlado; crea al propietario y los datos iniciales. Se bloquea después de finalizar.
+- **Business Settings:** identidad, moneda, teléfonos, preferencias de catálogo y fotos.
+- **Template Registry:** plantillas sectoriales versionadas.
+- **Catalog Schema Manager:** grupos, definiciones, tipos, opciones, unidades, visibilidad y orden.
+- **Product Manager:** datos base y valores configurables.
+- **Public Catalog Renderer:** genera fichas desde las mismas definiciones guardadas.
+- **Media Manager:** valida y almacena imágenes localmente.
+- **Owner Dashboard:** resumen y operaciones del propietario.
 
-Aplicación monolítica Laravel en el VPS de cada cliente:
-- Laravel/PHP para rutas, autenticación, validación y lógica.
-- Blade para las páginas públicas y administrativas.
-- HTML, CSS y JavaScript para la interfaz.
-- MariaDB Community o MySQL Community en el VPS.
-- Sistema de archivos local para fotografías.
-- GitHub para versionado y CI.
+La UI del editor no debe contener lógica de autorización. Las políticas y validaciones se ejecutan en Laravel.
 
-No se introducen microservicios, multi-tenancy, marketplace de módulos, cuentas centrales de propietarios ni servicios de pago en esta fase.
+## 3. Flujo de primer inicio
 
-## 3. Flujo de instalación
+1. El instalador valida que la base de datos esté configurada y que la instalación no haya sido completada.
+2. El propietario registra nombre comercial, nombre, correo y contraseña.
+3. Laravel envía verificación de correo. La contraseña se almacena con el hasher del framework, nunca en texto plano.
+4. Se registra el tipo de negocio y se carga una plantilla inicial.
+5. El propietario configura hasta cinco teléfonos: principal y visibilidad pública por número.
+6. Completa identidad, moneda, datos opcionales y preferencia de fotografías.
+7. Personaliza grupos/campos de producto y revisa la vista previa.
+8. El instalador marca la configuración como completada y bloquea el endpoint de creación inicial.
 
-1. El cliente contrata su dominio y VPS.
-2. Recibe el ZIP y la guía de instalación.
-3. Configura las credenciales de base de datos y ejecuta las migraciones.
-4. Durante el primer acceso controlado crea la cuenta del propietario y registra el nombre comercial.
-5. El propietario configura el negocio, WhatsApp, categorías y productos.
-6. El sitio público queda disponible en el dominio del negocio.
+El registro de números no verifica su titularidad. OTP por SMS o WhatsApp se deja como integración opcional después de elegir proveedor, precio y consentimiento. Los botones de contacto utilizan enlaces `wa.me`; no requieren WhatsApp Business API.
 
-El asistente de instalación debe permitir crear el primer propietario de forma segura y quedar bloqueado al concluir. No habrá registro público abierto.
+## 4. Plantillas y catálogo dinámico
 
-## 4. Secciones funcionales
+### Plantillas iniciales
 
-| Sección | Función |
+- Perfumería: marca, fragancia, concentración y presentación/volumen.
+- Ropa y calzado: talla, color, material y público.
+- Tecnología: marca, modelo, procesador, RAM y almacenamiento.
+- Gimnasio/fitness: tipo de equipo, peso, material y resistencia.
+- Repuestos/vehículos: marca, modelo compatible, año, código de pieza y estado.
+- Alimentos/abarrotes: contenido, unidad, presentación y vencimiento.
+- Otro: grupo inicial libre.
+
+Cada plantilla es un conjunto versionado de grupos y definiciones. Su aplicación inicial crea registros de configuración para esa instalación. No crea tablas nuevas.
+
+### Editor
+
+Cada grupo tiene nombre, orden y una colección de campos. Cada campo tiene:
+- clave interna estable (slug/UUID), etiqueta y tipo de dato;
+- orden dentro del grupo;
+- ancho semántico (media columna o fila completa);
+- indicador obligatorio;
+- visibilidad en la ficha pública;
+- disponibilidad como criterio de búsqueda/filtro;
+- opciones para listas;
+- magnitud y unidad para campos numéricos medibles.
+
+Los tipos iniciales son texto, número, lista, selección múltiple, booleano, fecha y texto largo. Los valores se validan según tipo en servidor. Las opciones de listas se guardan en JSON validado.
+
+### Cambio de plantilla y conservación de datos
+
+Cambiar la plantilla no debe sobrescribir campos personalizados silenciosamente. El comportamiento de producción será:
+- **Combinar sugerencias:** incorporar grupos/campos que falten, conservar campos existentes, valores, visibilidad y orden.
+- **Reiniciar plantilla:** solo tras confirmación explícita, mostrando qué campos y valores se eliminarán.
+- No reutilizar claves internas ni borrar valores por coincidencia de etiqueta únicamente.
+
+Al eliminar una definición con valores, solicitar confirmación y permitir exportar o conservar un respaldo antes de eliminarla.
+
+## 5. Modelo relacional propuesto
+
+| Tabla | Responsabilidad |
 |---|---|
-| Resumen | Cantidad de productos, categorías y productos publicados |
-| Productos | Crear, editar, publicar, ocultar y eliminar productos |
-| Categorías | Crear, editar, ordenar y eliminar categorías |
-| Fotografías | Cargar, reemplazar, ordenar y eliminar imágenes |
-| Configuración | Nombre, logotipo, descripción, colores básicos, moneda y WhatsApp |
-| Cuenta | Inicio y cierre de sesión del propietario |
+| `users` | Propietario de esta instalación |
+| `business_settings` | Identidad, tipo de negocio, color, opciones y bandera de fotos |
+| `business_contacts` | Hasta cinco números, principal y visibilidad |
+| `business_currencies` | Monedas habilitadas y moneda principal |
+| `categories` | Categorías propias del catálogo |
+| `products` | Nombre, descripción, categoría, estado y datos base |
+| `product_prices` | Precio por producto y moneda habilitada |
+| `product_images` | Ruta, metadatos, texto alternativo y posición |
+| `measurement_units` | Biblioteca predeterminada y unidades personalizadas por dimensión |
+| `product_field_groups` | Grupos de ficha y orden |
+| `product_field_definitions` | Tipo, opciones, flags, unidad, ancho y orden |
+| `product_field_values` | Valor de un campo dinámico para un producto |
 
-Estas secciones son partes de un panel sencillo; no son módulos ERP que el cliente active o contrate.
+### Reglas de datos
 
-## 5. Modelo de datos inicial
+- Claves foráneas y restricciones de unicidad para evitar valores huérfanos.
+- `product_field_definitions.key` es estable, única dentro de la instalación y no depende de la etiqueta visible.
+- `product_field_values` tiene unicidad por producto y definición.
+- Valor dinámico almacenado en un formato tipado/JSON validado por Laravel. No interpolar nombres de tablas o columnas a partir de campos del usuario.
+- `product_prices` se relaciona con códigos ISO 4217 y solo admite monedas habilitadas.
+- Cada unidad pertenece a una dimensión (masa, volumen, longitud, cantidad, área); los selectores solo muestran unidades de la dimensión correspondiente.
+- Las unidades personalizadas se guardan dentro de su dimensión y no alteran la biblioteca global de otras instalaciones.
+- El límite de cinco teléfonos se aplica en validación de servidor y en restricciones de datos compatibles.
 
-Mantener el esquema reducido:
-- `users`: propietario de la instalación.
-- `business_settings`: identidad y contacto del negocio.
-- `categories`: categorías del catálogo.
-- `products`: nombre, descripción, categoría, precio opcional, estado, destacado y detalle adicional opcional.
-- `product_images`: ruta, texto alternativo y orden de las fotografías.
+## 6. Reglas de presentación y prevención de solapamientos
 
-No crear tablas de inventario, almacenes, movimientos, pedidos, pagos, compras, proveedores, facturación, contabilidad ni nómina.
+1. La ficha pública y la vista previa comparten el mismo componente de renderizado.
+2. Los grupos se ordenan por `sort_order`; los campos también, dentro de su grupo.
+3. La distribución usa CSS Grid/Flexbox con flujo normal, nunca coordenadas absolutas para campos.
+4. Un campo de ancho completo ocupa toda la fila; los de media columna se acomodan en una rejilla de dos columnas.
+5. En anchos móviles la rejilla pasa a una columna.
+6. Etiquetas largas pueden envolver líneas; valores largos usan `overflow-wrap:anywhere`.
+7. Campos ocultos no se muestran ni se filtran desde la página pública.
+8. Solo los tipos y campos autorizados pueden habilitar búsqueda/filtro.
+9. Imágenes se presentan en su bloque reservado; si fotos están deshabilitadas no se renderiza ese bloque.
 
-No crear todavía un constructor avanzado de atributos dinámicos. Para diferencias entre rubros se podrá usar un campo de detalle adicional libre, por ejemplo talla, color, kilometraje o almacenamiento. Un editor de atributos configurable solo se considerará si el cliente lo pide expresamente.
+## 7. Monedas, precios y unidades
 
-## 6. Seguridad
+- Código de moneda ISO 4217, moneda principal y conjunto de monedas habilitadas.
+- Versión inicial: captura manual de un precio por moneda. No convertir automáticamente importes.
+- Conversión automática necesitaría proveedor de tasas, frecuencia, fecha de actualización y manejo de errores; es una integración opcional con costo potencial.
+- La unidad es un atributo de campo numérico (por ejemplo, volumen/ml o masa/kg) o de presentación, según configuración.
+- No presentar litros en campos de peso ni unidades de masa en una dimensión de volumen.
 
-- Toda ruta administrativa requiere autenticación.
-- Las operaciones de escritura requieren validación y autorización en el servidor.
-- La primera cuenta de propietario se crea durante la instalación, no mediante registro público.
-- Las contraseñas se guardan usando el hashing seguro del framework.
-- Las sesiones y cookies se configuran con atributos seguros en producción.
-- La carga de imágenes valida MIME real, extensión, tamaño y dimensiones.
-- Los archivos utilizan nombres generados por el sistema.
-- Ocultar un botón en el frontend nunca sustituye la autorización del backend.
+## 8. Fotografías
 
-La demo frontend no ofrece seguridad y no debe utilizarse para administrar datos reales.
+- La bandera `photos_enabled` se configura por instalación.
+- Si es falsa, el formulario oculta la carga y el endpoint rechaza archivos.
+- Si es verdadera, las imágenes se guardan en el disco configurado de Laravel y la base almacena rutas/metadatos, nunca blobs.
+- Validar MIME real, extensión, tamaño, dimensiones y permisos.
+- Generar nombres aleatorios; no confiar en el nombre ni extensión enviados por el navegador.
+- Preferir WebP cuando el servidor pueda procesarlo; crear miniaturas y limitar dimensiones.
+- La política de cantidad máxima de imágenes por producto se define en configuración de servidor.
 
-## 7. Fotografías
+## 9. Seguridad
 
-Las imágenes se almacenan como archivos en el almacenamiento local configurado por Laravel; la base de datos guarda sus rutas y metadatos. No se guardan imágenes binarias como BLOB en MariaDB/MySQL.
+- Autenticación de Laravel y verificación de correo.
+- Hash de contraseña con el hasher del framework.
+- CSRF en formularios; sesiones y cookies seguras con HTTPS.
+- Rate limiting en login, recuperación y verificación.
+- Todas las rutas administrativas requieren autenticación y autorización server-side.
+- Validación de datos en Form Requests y políticas.
+- Sanitización/escape de salida en Blade.
+- Carga de archivos limitada a tipos y tamaños permitidos; nombres generados.
+- Bloqueo del setup luego de crear propietario y completar configuración.
+- No incluir secretos en Git ni en ZIP.
+- Pruebas de aislamiento de instalaciones; ninguna instalación comparte credenciales o base de datos.
 
-El flujo validará formato, MIME real, tamaño y dimensiones; redimensionará y comprimirá las imágenes. WebP será preferido si el entorno lo soporta. No se requiere R2, S3 ni otro almacenamiento externo para el funcionamiento básico.
+## 10. WhatsApp
 
-## 8. WhatsApp
+Los enlaces de contacto se componen desde números normalizados con código de país:
+- Contacto general: número principal visible.
+- Si hay varios números visibles, el visitante puede seleccionar destino.
+- Consulta por producto: mensaje precargado con nombre del producto y precio, si lo hay.
+- No guardar ni enviar mensajes por API desde NEXORA.
 
-El propietario configura un número con código de país y un mensaje general. Cada producto podrá generar un enlace `https://wa.me/` con un texto precargado que incluya el nombre y, si está configurado, el precio del producto.
+## 11. Instalación y entrega
 
-NEXORA no procesa compras, pagos ni pedidos. La conversación y cierre de venta suceden fuera del sistema.
+El cliente contrata VPS y dominio. La aplicación se instala con:
+1. Requisitos PHP/extensiones, Composer y servidor web.
+2. Crear base de datos y usuario con privilegios mínimos.
+3. Configurar `.env`.
+4. Ejecutar migraciones y seeders de biblioteca/plantillas.
+5. Ejecutar setup de primer propietario.
+6. Configurar HTTPS, almacenamiento y permisos de directorios.
+7. Validar publicación y copias de seguridad.
 
-## 9. Despliegue y entrega
+La versión compatible exacta de Laravel/PHP se fija al seleccionar el entorno mínimo de despliegue y ejecutar CI. No se habilitan servicios pagos sin aprobación.
 
-Requisitos previstos: PHP compatible con la versión de Laravel seleccionada, Composer, MariaDB/MySQL, servidor web, HTTPS y extensiones PHP necesarias.
+## 12. Calidad y pruebas
 
-La versión definitiva de PHP, Laravel y extensiones se fijará después de conocer el entorno VPS del cliente. La entrega incluirá ZIP, `.env.example`, migraciones, instrucciones y procedimiento de actualización. Nunca incluirá credenciales ni secretos.
+- Pruebas unitarias de plantillas, validación, dimensiones de unidad y normalización de claves.
+- Pruebas feature de setup de un solo uso, email verification, autenticación, CRUD y autorización.
+- Pruebas de integración del guardado/lectura de valores dinámicos y precios por moneda.
+- Pruebas de carga de imágenes con fotos habilitadas y deshabilitadas.
+- Pruebas visuales/responsive de vista previa y ficha pública.
+- JB Expert QA como auditoría auxiliar; no sustituye pruebas funcionales ni revisión visual.
 
-El cliente contrata y mantiene el VPS, dominio y cualquier servicio externo opcional.
+## 13. Estado actual del repositorio
 
-## 10. Calidad
-
-JB Expert QA se ejecuta en CI como herramienta de desarrollo; no forma parte del producto instalado por el cliente. La auditoría estática no sustituye pruebas funcionales ni revisión visual real.
-
-Antes de entregar se probarán página pública, responsive, autenticación, CRUD, gestión de categorías, carga y eliminación de fotografías, enlaces de WhatsApp y protección de rutas.
-
-## 11. Demo actual
-
-`demo/` es una muestra independiente en HTML/CSS/JS. Incluye tres rubros ficticios para mostrar la reutilización del diseño, búsqueda, filtros, fichas, WhatsApp y un panel de prueba que guarda cambios en `localStorage`.
-
-La selección de rubro es únicamente un recurso de demostración. En producción cada despliegue corresponde a un único negocio y lee su propia identidad y catálogo desde su base de datos.
-
-La demo no tiene autenticación real, API, base de datos ni almacenamiento seguro de fotografías.
+La demo estática contiene un prototipo del asistente y constructor en `demo/setup.html`. Los datos se guardan en `localStorage` y se limitan al navegador. No hay autenticación real, backend, verificación por correo, MySQL/MariaDB ni almacenamiento seguro. La aplicación Laravel de producción sigue pendiente.
