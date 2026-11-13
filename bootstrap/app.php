@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Middleware\ApplyInstallationLocale;
 use App\Http\Middleware\AdminAccess;
+use App\Http\Middleware\ApplyInstallationLocale;
 use App\Http\Middleware\OwnerOnly;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Http\Middleware\RequirePermission;
