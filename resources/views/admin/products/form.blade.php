@@ -193,6 +193,8 @@
     .notice{padding:12px;border-radius:10px;background:#f4f6ef;color:#56614d;font-size:13px}.error{background:#fff0ee;color:#963b32}
     @media(max-width:560px){.page-head{flex-direction:column}.field-grid{grid-template-columns:1fr}.form-section{padding:13px}.form-actions .link,.form-actions button{flex:1}.current-image{align-items:flex-start;flex-direction:column}}
 </style>
+@endpush
+
 @push('scripts')
 <script>
 (() => {
@@ -219,5 +221,4 @@
     syncCategoryFields();
 })();
 </script>
-@endpush
 @endpush
