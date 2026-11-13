@@ -88,7 +88,11 @@ class SetupHealthTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertSee('Tienda de prueba')
-            ->assertSee('CATÁLOGO DIGITAL');
+            ->assertSee('CATÁLOGO DIGITAL')
+            ->assertDontSee('Versión de PHP')
+            ->assertDontSee('Extensiones PHP')
+            ->assertDontSee('Conexión a la base de datos')
+            ->assertDontSee('Permisos de escritura');
     }
 
     public function test_setup_page_redirects_after_installation_is_completed(): void
