@@ -38,10 +38,15 @@ final class PublicSiteController
                     $builder->where('name', 'like', '%'.$search.'%')
                         ->orWhere('description', 'like', '%'.$search.'%')
                         ->orWhereHas('fieldValues', function (Builder $values) use ($search): void {
-                            $values->whereHas('definition', static fn (Builder $definition): Builder => $definition
-                                ->where('is_public', true)
-                                ->where('is_searchable', true))
-                                ->where('value', 'like', '%'.$search.'%');
+                            $values->whereHas('definition', static function (Builder $definition): void {
+                                $definition
+                                    ->where('is_public', true)
+                                    ->where('is_searchable', true)
+                                    ->whereHas('group', static function (Builder $group): void {
+                                        $group->whereNull('category_id')
+                                            ->orWhereColumn('catalog_groups.category_id', 'products.category_id');
+                                    });
+                            })->where('value', 'like', '%'.$search.'%');
                         });
                 });
             })
@@ -89,15 +94,23 @@ final class PublicSiteController
         $settings = InstallationSettings::query()->findOrFail(1);
         $product = Product::query()
             ->published()
-            ->with([
-                'category',
-                'prices',
-                'fieldValues' => static fn ($query) => $query
-                    ->whereHas('definition', static fn ($definition) => $definition->where('is_public', true))
-                    ->with('definition'),
-            ])
+            ->with(['category', 'prices'])
             ->where('slug', $slug)
             ->firstOrFail();
+
+        $product->load([
+            'fieldValues' => static fn ($query) => $query
+                ->whereHas('definition', static fn ($definition) => $definition
+                    ->where('is_public', true)
+                    ->whereHas('group', static function ($group) use ($product): void {
+                        $group->whereNull('category_id');
+
+                        if ($product->category_id !== null) {
+                            $group->orWhere('category_id', $product->category_id);
+                        }
+                    }))
+                ->with('definition'),
+        ]);
 
         return view('site.product', [
             'settings' => $settings,
