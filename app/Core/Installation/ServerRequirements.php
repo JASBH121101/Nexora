@@ -77,7 +77,7 @@ final class ServerRequirements
         } catch (Throwable $exception) {
             return [
                 'key' => 'database',
-                'label' => 'Conexión a la base de datos',
+                'label' => __('setup.checks.database_label'),
                 'passed' => false,
                 'detail' => app()->environment('production')
                     ? __('setup.checks.database_failed')
