@@ -1,6 +1,6 @@
 <?php
 
-namespace App\\Modules\\Setup\\Services;
+namespace App\Modules\Setup\Services;
 
 final class CountryCatalog
 {
