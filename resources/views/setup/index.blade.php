@@ -155,7 +155,7 @@
                 <section class="wizard-step" data-step="2" hidden>
                     <h2>3. Plantilla y catálogo</h2>
                     <p class="muted">La plantilla cargará categorías y campos iniciales editables. Podrás cambiar sus etiquetas, agregar campos y reorganizar grupos desde el panel.</p>
-                    <div class="template-summary" id="template-summary">Selecciona un tipo de negocio en el paso 1 para ver su plantilla.</div>
+                    <div class="template-summary" id="template-summary" aria-live="polite">Selecciona un tipo de negocio en el paso 1 para ver su plantilla.</div>
                     <div class="note">Los campos dinámicos se guardarán como definiciones y valores relacionados. NEXORA no creará columnas SQL por cada campo personalizado.</div>
                 </section>
 
@@ -186,7 +186,7 @@
     .primary-button,.secondary-button{min-height:42px;padding:0 17px;border:0;border-radius:10px;font:inherit;font-weight:750;cursor:pointer}.primary-button{background:#20271f;color:#fff}.secondary-button{background:#eef1e9;color:#35402b}
     .currency-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.currency-options label,.toggle-row{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #e7ebdf;border-radius:9px}.currency-options input,.toggle-row input{width:16px;height:16px}
     .section-separator{margin-top:22px;padding-top:17px;border-top:1px solid #edf0e9}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.section-heading h3{margin:0;font-size:15px}.section-heading p{margin:5px 0}.phone-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #edf0e9}.phone-row label{margin:4px 0}.phone-options{display:flex;gap:12px;flex-wrap:wrap;font-size:12px}.phone-options label{display:flex;align-items:center;gap:6px}
-    .template-summary,.review-list{padding:15px;border-radius:11px;background:#f4f6ef;font-size:13px;line-height:1.7}.review-list div{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #e7ebdf}.review-list div:last-child{border:0}
+    .template-summary,.review-list{padding:15px;border-radius:11px;background:#f4f6ef;font-size:13px;line-height:1.7}.template-summary{display:grid;gap:12px}.template-summary__section{display:grid;gap:7px;padding-top:10px;border-top:1px solid #e2e8d9}.template-summary__items{display:flex;flex-wrap:wrap;gap:7px}.template-summary__chip{padding:4px 9px;border:1px solid #e0e7d6;border-radius:999px;background:#fff;font-size:12px}.template-summary__fields{color:#4e5846}.review-list div{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #e7ebdf}.review-list div:last-child{border:0}
     .section-heading .secondary-button{white-space:nowrap}
     @media(max-width:560px){.field-grid{grid-template-columns:1fr;gap:0}.currency-options{grid-template-columns:repeat(3,minmax(0,1fr))}.phone-row{grid-template-columns:1fr}.wizard-actions button{flex:1}.section-heading{align-items:flex-start;flex-direction:column}}
 </style>
@@ -320,18 +320,49 @@
     });
 
     const getValue = (name) => form.elements.namedItem(name)?.value || '';
+    const templatePreviews = @json($templatePreviews);
     const renderTemplate = () => {
-        const labels = {
-            perfumery: 'Perfumería: Perfumes, Cuidado personal, Sets y estuches.',
-            fashion: 'Ropa y calzado: Ropa, Calzado, Accesorios.',
-            technology: 'Tecnología: Teléfonos, Computadoras, Accesorios.',
-            gym: 'Gimnasio y fitness: Equipos, Accesorios, Ropa deportiva.',
-            automotive: 'Repuestos y vehículos: Repuestos, Vehículos, Accesorios. Incluye cilindraje (cc) independiente.',
-            grocery: 'Alimentos y abarrotes: Alimentos, Bebidas, Abarrotes.',
-            other: 'Catálogo personalizado: categoría General con campos iniciales editables.'
-        };
-        document.getElementById('template-summary').textContent =
-            labels[getValue('business_type')] || 'Selecciona un tipo de negocio en el paso 1.';
+        const container = document.getElementById('template-summary');
+        const preview = templatePreviews[getValue('business_type')];
+        container.replaceChildren();
+
+        if (!preview) {
+            container.textContent = 'Selecciona un tipo de negocio en el paso 1 para ver su plantilla.';
+            return;
+        }
+
+        const title = document.createElement('strong');
+        title.textContent = 'Plantilla seleccionada: ' + preview.label;
+        container.append(title);
+
+        const categoriesSection = document.createElement('section');
+        categoriesSection.className = 'template-summary__section';
+        const categoriesTitle = document.createElement('strong');
+        categoriesTitle.textContent = 'Categorías que se crearán';
+        const categories = document.createElement('div');
+        categories.className = 'template-summary__items';
+
+        preview.categories.forEach((category) => {
+            const chip = document.createElement('span');
+            chip.className = 'template-summary__chip';
+            chip.textContent = category;
+            categories.append(chip);
+        });
+
+        categoriesSection.append(categoriesTitle, categories);
+        container.append(categoriesSection);
+
+        preview.groups.forEach((group) => {
+            const fieldsSection = document.createElement('section');
+            fieldsSection.className = 'template-summary__section';
+            const groupTitle = document.createElement('strong');
+            groupTitle.textContent = 'Campos iniciales · ' + group.name;
+            const fields = document.createElement('p');
+            fields.className = 'template-summary__fields';
+            fields.textContent = group.fields.join(' · ') || 'Sin campos iniciales';
+            fieldsSection.append(groupTitle, fields);
+            container.append(fieldsSection);
+        });
     };
 
     const renderReview = () => {

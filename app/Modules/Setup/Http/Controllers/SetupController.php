@@ -47,6 +47,7 @@ final class SetupController
             'schemaReady' => $installation->hasSchema(),
             'databaseConnected' => (bool) (collect($checks)->firstWhere('key', 'database')['passed'] ?? false),
             'templates' => $templates->all(),
+            'templatePreviews' => $templates->previews(),
             'currencies' => self::CURRENCIES,
         ]);
     }

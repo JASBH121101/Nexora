@@ -32,6 +32,23 @@ class SetupHealthTest extends TestCase
             ->assertSee('Permisos de escritura');
     }
 
+    public function test_setup_page_previews_every_available_template_from_the_template_catalog(): void
+    {
+        $response = $this->get('/setup');
+
+        $response->assertOk()
+            ->assertSee('const templatePreviews =', false)
+            ->assertSee('Plantilla seleccionada:', false)
+            ->assertSee('Sets y estuches', false)
+            ->assertSee('Calzado', false)
+            ->assertSee('Computadoras', false)
+            ->assertSee('Memoria RAM', false)
+            ->assertSee('Ropa deportiva', false)
+            ->assertSee('Cilindraje', false)
+            ->assertSee('Abarrotes', false)
+            ->assertSee('Catálogo personalizado', false);
+    }
+
     public function test_public_site_redirects_to_setup_before_installation_is_completed(): void
     {
         $this->get('/')->assertRedirect(route('setup.show'));

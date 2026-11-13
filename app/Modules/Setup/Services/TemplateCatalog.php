@@ -22,6 +22,32 @@ final class TemplateCatalog
         ];
     }
 
+    public function previews(): array
+    {
+        $previews = [];
+
+        foreach ($this->all() as $type => $label) {
+            $definition = $this->definition($type);
+
+            $previews[$type] = [
+                'label' => $label,
+                'categories' => $definition['categories'],
+                'groups' => array_map(
+                    static fn (array $group): array => [
+                        'name' => $group['name'],
+                        'fields' => array_values(array_map(
+                            static fn (array $field): string => $field['label'],
+                            $group['fields'],
+                        )),
+                    ],
+                    $definition['groups'],
+                ),
+            ];
+        }
+
+        return $previews;
+    }
+
     public function seed(string $type): void
     {
         $template = $this->definition($type);
