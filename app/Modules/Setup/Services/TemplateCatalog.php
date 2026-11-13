@@ -64,12 +64,13 @@ final class TemplateCatalog
     {
         $template = $this->definition($type);
 
-        foreach ($template['categories'] as $categoryIndex => $categoryGroups) {
-            $categoryName = (string) $categoryIndex;
+        $categoryOrder = 0;
+
+        foreach ($template['categories'] as $categoryName => $categoryGroups) {
             $category = CatalogCategory::query()->create([
                 'name' => $categoryName,
                 'slug' => Str::slug($categoryName),
-                'sort_order' => count(CatalogCategory::query()->get()) - count($template['categories']) + array_search($categoryIndex, array_keys($template['categories']), true),
+                'sort_order' => $categoryOrder++,
                 'is_active' => true,
             ]);
 
