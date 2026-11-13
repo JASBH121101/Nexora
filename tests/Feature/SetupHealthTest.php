@@ -364,7 +364,7 @@ class SetupHealthTest extends TestCase
             'name' => 'Fragancia de prueba',
             'category_id' => $perfumes->id,
             'description' => 'Fragancia de muestra.',
-            'status' => 'draft',
+            'status' => 'published',
             'prices' => ['USD' => '20.00', 'NIO' => ''],
             'fields' => [
                 'perfume_type' => 'Inspiración',
@@ -384,7 +384,7 @@ class SetupHealthTest extends TestCase
             'name' => 'Fragancia de prueba',
             'category_id' => $bodyMist->id,
             'description' => 'Ahora clasificada como body mist.',
-            'status' => 'draft',
+            'status' => 'published',
             'prices' => ['USD' => '18.00', 'NIO' => ''],
             'fields' => [
                 'body_mist_brand' => 'Casa de fragancias',
