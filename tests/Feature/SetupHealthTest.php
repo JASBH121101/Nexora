@@ -13,6 +13,7 @@ use App\Models\ProductFieldValue;
 use App\Models\User;
 use App\Modules\Setup\Services\CountryCatalog;
 use App\Modules\Setup\Services\CountryDialingCodeCatalog;
+use App\Modules\Setup\Services\TemplateCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
@@ -54,6 +55,23 @@ class SetupHealthTest extends TestCase
             ->assertSee('Cilindraje', false)
             ->assertSee('Abarrotes', false)
             ->assertSee('"other"', false);
+    }
+
+    public function test_every_template_preview_groups_fields_under_a_real_category(): void
+    {
+        $catalog = app(TemplateCatalog::class);
+
+        foreach (array_keys($catalog->all()) as $type) {
+            $preview = $catalog->previews()[$type];
+
+            $this->assertNotEmpty($preview['categories']);
+            $this->assertNotEmpty($preview['groups']);
+
+            foreach ($preview['groups'] as $group) {
+                $this->assertContains($group['category'], $preview['categories']);
+                $this->assertNotEmpty($group['fields']);
+            }
+        }
     }
 
     public function test_setup_suggests_language_and_country_from_browser_preferences(): void
@@ -350,6 +368,16 @@ class SetupHealthTest extends TestCase
                 ->where('field_key', 'body_mist_aroma')
                 ->value('id'),
         ]);
+
+        $this->get(route('site.product', $product->slug))
+            ->assertOk()
+            ->assertSee('Aroma fresco')
+            ->assertDontSee('Referencia olfativa');
+
+        $this->get('/?q=Referencia')
+            ->assertOk()
+            ->assertDontSee('Fragancia de prueba')
+            ->assertSee('No encontramos productos');
     }
 
     public function test_category_scoped_field_group_can_be_created_and_reassigned(): void
