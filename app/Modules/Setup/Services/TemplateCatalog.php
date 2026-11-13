@@ -101,11 +101,11 @@ final class TemplateCatalog
 
         return match ($type) {
             'perfumery' => [
-                'categories' => ['Perfumes', 'Cuidado personal', 'Sets y estuches'],
+                'categories' => ['Perfumes', 'Body mist', 'Sets'],
                 'groups' => [['name' => 'Detalles', 'fields' => [
                     $text('brand', 'Marca', true),
                     $number('content', 'Contenido', 'volume', 'ml'),
-                    $select('concentration', 'Concentración', ['EDT', 'EDP', 'Parfum', 'Body mist']),
+                    $select('concentration', 'Concentración', ['EDT', 'EDP', 'Parfum']),
                     $select('audience', 'Público', ['Mujer', 'Hombre', 'Unisex']),
                 ]]],
             ],
