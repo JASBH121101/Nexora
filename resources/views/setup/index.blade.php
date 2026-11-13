@@ -484,12 +484,12 @@
         });
 
         if (tag === 'SELECT') {
-            if (currentNode.id === 'setup-locale') {
-                [...currentNode.options].forEach((option, index) => {
-                    const translatedOption = translatedNode.options[index];
-                    if (translatedOption) option.textContent = translatedOption.textContent;
-                });
-            }
+            const selectedValue = currentNode.value;
+            [...currentNode.options].forEach((option, index) => {
+                const translatedOption = translatedNode.options[index];
+                if (translatedOption) option.textContent = translatedOption.textContent;
+            });
+            currentNode.value = selectedValue;
             return;
         }
 
@@ -571,7 +571,6 @@
             currentUrl.searchParams.set('locale', requestedLocale);
             currentUrl.searchParams.set('country_code', selectedCountry);
             window.history.replaceState({}, '', currentUrl.toString());
-            syncLocalizedText(document.querySelector('.panel'), translatedPanel);
             showStep(current);
         } catch (error) {
             localeSelect.value = document.documentElement.lang || 'es';
@@ -903,7 +902,7 @@
             return;
         }
         submit.disabled = true;
-        submit.textContent = @json(__('setup.creating_installation'));
+        submit.textContent = localeData.creatingInstallation;
     });
     syncSetupUrl();
     showStep(0);
