@@ -104,6 +104,7 @@ test("product photo controls follow the optional-photo setting", () => {
 test("the public product detail renders only fields marked as public", () => {
   assert.ok(publicJs.includes("field.showPublic"));
   assert.ok(publicJs.includes("product.attributes[field.id]"));
+  assert.ok(adminJs.includes("return definition?.showPublic ?"));
   assert.match(publicCss, /\.attribute-group/);
 });
 
