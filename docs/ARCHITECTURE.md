@@ -183,3 +183,41 @@ La versión compatible exacta de Laravel/PHP se fija al seleccionar el entorno m
 ## 13. Estado actual del repositorio
 
 La demo estática contiene un prototipo del asistente y constructor en `demo/setup.html`. Los datos se guardan en `localStorage` y se limitan al navegador. No hay autenticación real, backend, verificación por correo, MySQL/MariaDB ni almacenamiento seguro. La aplicación Laravel de producción sigue pendiente.
+
+
+## 14. NEXORA Site Engine — personalización de la página pública
+
+El Site Engine renderiza la página pública del negocio desde la configuración persistida en la misma instalación. El panel privado y el sitio público son superficies distintas: las rutas administrativas requieren autenticación y autorización; las rutas públicas solo exponen información expresamente publicada.
+
+### Dos niveles de edición
+
+**Nivel 1 — Personalización guiada (alcance inicial):**
+- Selección de plantilla y variante visual disponible.
+- Logotipo, colores, tipografías predefinidas y datos de presentación.
+- Activación/desactivación de secciones permitidas.
+- Configuración del encabezado, distribución del catálogo, tarjetas y contacto.
+- Vista previa adaptable antes de publicar.
+
+**Nivel 2 — Constructor visual avanzado (progresivo):**
+- Agregar, quitar y reordenar secciones desde un catálogo de componentes aprobados.
+- Elegir variantes y ajustar opciones controladas de espaciado, alineación y contenido.
+- Vista previa en escritorio y móvil.
+- Guardar cambios como borrador y publicarlos explícitamente.
+
+El constructor no será un editor de código ni permitirá insertar HTML, JavaScript o CSS arbitrario. Las secciones y propiedades se validan en servidor mediante un esquema versionado y una lista permitida de componentes. Esto evita XSS, diseños rotos y configuraciones incompatibles.
+
+### Modelo de publicación
+- Configuración del sitio con estado borrador/publicado.
+- Los cambios en borrador no alteran la página pública hasta confirmar publicación.
+- El renderizador utiliza componentes Blade controlados y datos públicos validados.
+- Productos en borrador u ocultos y campos marcados como privados nunca se exponen.
+- Los cambios de plantilla deben conservar contenido y ofrecer combinación o reinicio con confirmación.
+- La vista previa reutiliza el mismo renderizador y reglas de presentación del sitio publicado.
+
+### Dominio y HTTPS
+Cada instalación puede operar con un dominio propio. El cliente registra el dominio, configura DNS hacia su VPS y dispone de un servidor web que apunte a la aplicación. El instalador/guía comprueba la configuración y, cuando el entorno lo permita, facilita la emisión y renovación de TLS mediante ACME/Let's Encrypt. HTTPS no se considera garantizado solo por introducir un dominio: requiere DNS válido, puertos accesibles, servidor compatible y renovación operativa. Se fuerza HTTPS después de validar el certificado.
+
+### Separación de superficies
+- Sitio público: portada, catálogo, búsqueda, fichas y contactos públicos.
+- Panel privado: login, productos, categorías, configuración, editor, vista previa y exportaciones.
+- PDF y reportes administrativos solo se generan desde rutas autenticadas; nunca se publican por defecto.
