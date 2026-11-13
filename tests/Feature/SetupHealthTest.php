@@ -211,6 +211,185 @@ class SetupHealthTest extends TestCase
         $this->assertSame(2, data_get(InstallationSettings::query()->findOrFail(1)->configuration, 'templateVersion'));
     }
 
+    public function test_dynamic_field_groups_are_scoped_to_their_catalog_category(): void
+    {
+        $payload = $this->validSetupPayload();
+        $payload['business_type'] = 'perfumery';
+
+        $this->post('/setup', $payload)->assertRedirect(route('admin.home'));
+
+        $perfumes = CatalogCategory::query()->where('name', 'Perfumes')->firstOrFail();
+        $bodyMist = CatalogCategory::query()->where('name', 'Body mist')->firstOrFail();
+        $sets = CatalogCategory::query()->where('name', 'Sets')->firstOrFail();
+
+        $perfumeGroup = CatalogGroup::query()
+            ->where('category_id', $perfumes->id)
+            ->firstOrFail();
+        $bodyMistGroup = CatalogGroup::query()
+            ->where('category_id', $bodyMist->id)
+            ->firstOrFail();
+        $setsGroup = CatalogGroup::query()
+            ->where('category_id', $sets->id)
+            ->firstOrFail();
+
+        $this->assertNotSame($perfumeGroup->id, $bodyMistGroup->id);
+        $this->assertSame($perfumes->id, $perfumeGroup->category->id);
+        $this->assertSame($bodyMist->id, $bodyMistGroup->category->id);
+        $this->assertSame($sets->id, $setsGroup->category->id);
+
+        $this->assertDatabaseHas('product_field_definitions', [
+            'group_id' => $perfumeGroup->id,
+            'field_key' => 'perfume_type',
+        ]);
+        $this->assertDatabaseHas('product_field_definitions', [
+            'group_id' => $perfumeGroup->id,
+            'field_key' => 'inspired_by',
+        ]);
+        $this->assertDatabaseHas('product_field_definitions', [
+            'group_id' => $bodyMistGroup->id,
+            'field_key' => 'body_mist_aroma',
+        ]);
+        $this->assertDatabaseHas('product_field_definitions', [
+            'group_id' => $setsGroup->id,
+            'field_key' => 'set_contents',
+        ]);
+
+        $this->get(route('admin.products.create'))
+            ->assertOk()
+            ->assertSee('data-field-group', false)
+            ->assertSee('data-category-id="'.$perfumes->id.'"', false)
+            ->assertSee('data-category-id="'.$bodyMist->id.'"', false)
+            ->assertSee('product-category', false);
+    }
+
+    public function test_product_validation_rejects_fields_from_another_category(): void
+    {
+        $payload = $this->validSetupPayload();
+        $payload['business_type'] = 'perfumery';
+
+        $this->post('/setup', $payload)->assertRedirect(route('admin.home'));
+
+        $perfumes = CatalogCategory::query()->where('name', 'Perfumes')->firstOrFail();
+
+        $this->post(route('admin.products.store'), [
+            'name' => 'Fragancia de inspiración',
+            'category_id' => $perfumes->id,
+            'description' => 'Fragancia de muestra.',
+            'status' => 'draft',
+            'prices' => ['USD' => '20.00', 'NIO' => ''],
+            'fields' => [
+                'perfume_type' => 'Inspiración',
+                'brand' => 'Casa de fragancias',
+                'inspired_by' => 'Referencia olfativa',
+                'concentration' => 'EDP',
+                'content' => '100',
+                'audience' => 'Unisex',
+                'olfactory_family' => 'Amaderada',
+                'body_mist_aroma' => 'Campo que pertenece a Body mist',
+            ],
+        ])->assertSessionHasErrors('fields');
+
+        $this->assertDatabaseMissing('products', ['name' => 'Fragancia de inspiración']);
+    }
+
+    public function test_changing_product_category_preserves_values_from_the_previous_category(): void
+    {
+        $payload = $this->validSetupPayload();
+        $payload['business_type'] = 'perfumery';
+
+        $this->post('/setup', $payload)->assertRedirect(route('admin.home'));
+
+        $perfumes = CatalogCategory::query()->where('name', 'Perfumes')->firstOrFail();
+        $bodyMist = CatalogCategory::query()->where('name', 'Body mist')->firstOrFail();
+
+        $this->post(route('admin.products.store'), [
+            'name' => 'Fragancia de prueba',
+            'category_id' => $perfumes->id,
+            'description' => 'Fragancia de muestra.',
+            'status' => 'draft',
+            'prices' => ['USD' => '20.00', 'NIO' => ''],
+            'fields' => [
+                'perfume_type' => 'Inspiración',
+                'brand' => 'Casa de fragancias',
+                'inspired_by' => 'Referencia olfativa',
+                'concentration' => 'EDP',
+                'content' => '100',
+                'audience' => 'Unisex',
+                'olfactory_family' => 'Amaderada',
+            ],
+        ])->assertRedirect(route('admin.products.index'));
+
+        $product = Product::query()->where('name', 'Fragancia de prueba')->firstOrFail();
+        $oldDefinition = ProductFieldDefinition::query()->where('field_key', 'inspired_by')->firstOrFail();
+
+        $this->put(route('admin.products.update', $product), [
+            'name' => 'Fragancia de prueba',
+            'category_id' => $bodyMist->id,
+            'description' => 'Ahora clasificada como body mist.',
+            'status' => 'draft',
+            'prices' => ['USD' => '18.00', 'NIO' => ''],
+            'fields' => [
+                'body_mist_brand' => 'Casa de fragancias',
+                'body_mist_aroma' => 'Aroma fresco',
+                'body_mist_content' => '200',
+                'body_mist_audience' => 'Unisex',
+                'body_mist_family' => 'Fresca',
+            ],
+        ])->assertRedirect(route('admin.products.index'));
+
+        $product->refresh();
+
+        $this->assertSame($bodyMist->id, $product->category_id);
+        $this->assertDatabaseHas('product_field_values', [
+            'product_id' => $product->id,
+            'field_definition_id' => $oldDefinition->id,
+        ]);
+        $this->assertDatabaseHas('product_field_values', [
+            'product_id' => $product->id,
+            'field_definition_id' => ProductFieldDefinition::query()
+                ->where('field_key', 'body_mist_aroma')
+                ->value('id'),
+        ]);
+    }
+
+    public function test_category_scoped_field_group_can_be_created_and_reassigned(): void
+    {
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $vehicles = CatalogCategory::query()->where('name', 'Vehículos')->firstOrFail();
+        $parts = CatalogCategory::query()->where('name', 'Repuestos')->firstOrFail();
+
+        $this->post(route('admin.fields.groups.store'), [
+            'name' => 'Datos de garantía',
+            'category_id' => $parts->id,
+        ])->assertRedirect()->assertSessionHas('status');
+
+        $group = CatalogGroup::query()->where('name', 'Datos de garantía')->firstOrFail();
+
+        $this->assertSame($parts->id, $group->category_id);
+
+        $this->put(route('admin.fields.groups.update', $group), [
+            'name' => 'Garantía de vehículos',
+            'category_id' => $vehicles->id,
+        ])->assertRedirect();
+
+        $this->assertSame($vehicles->id, $group->fresh()->category_id);
+    }
+
+    public function test_shared_field_groups_remain_supported_for_legacy_or_common_attributes(): void
+    {
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $group = CatalogGroup::query()->create([
+            'category_id' => null,
+            'name' => 'Datos comunes',
+            'sort_order' => 99,
+        ]);
+
+        $this->assertNull($group->fresh()->category_id);
+        $this->assertNull($group->category);
+    }
+
     public function test_public_site_redirects_to_setup_before_installation_is_completed(): void
     {
         $this->get('/')->assertRedirect(route('setup.show'));
