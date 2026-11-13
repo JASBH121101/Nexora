@@ -223,7 +223,7 @@
     .wizard-step h2{margin:8px 0 15px}.wizard-step[hidden]{display:none}.wizard-actions{display:flex;justify-content:space-between;gap:10px;margin-top:14px}.wizard-cancel-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px}.cancel-button{padding:7px 0;border:0;background:transparent;color:#7a453e;font:inherit;font-size:12px;font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
     .primary-button,.secondary-button{min-height:42px;padding:0 17px;border:0;border-radius:10px;font:inherit;font-weight:750;cursor:pointer}.primary-button{background:#20271f;color:#fff}.secondary-button{background:#eef1e9;color:#35402b}
     .currency-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.currency-options label,.toggle-row{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #e7ebdf;border-radius:9px}.currency-options input,.toggle-row input{width:16px;height:16px}
-    .section-separator{margin-top:22px;padding-top:17px;border-top:1px solid #edf0e9}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.section-heading h3{margin:0;font-size:15px}.section-heading p{margin:5px 0}.phone-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #edf0e9}.phone-row label{margin:4px 0}.phone-options{display:flex;gap:12px;flex-wrap:wrap;font-size:12px}.phone-options label{display:flex;align-items:center;gap:6px}
+    .section-separator{margin-top:22px;padding-top:17px;border-top:1px solid #edf0e9}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.section-heading h3{margin:0;font-size:15px}.section-heading p{margin:5px 0}.phone-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #edf0e9}.phone-row label{margin:4px 0}.phone-input-grid{display:grid;grid-template-columns:minmax(105px,.36fr) minmax(0,1fr);gap:9px}.phone-input-grid label{min-width:0;font-size:11px}.phone-input-grid input{font-variant-numeric:tabular-nums;letter-spacing:.035em}.phone-options{display:flex;gap:12px;flex-wrap:wrap;font-size:12px}.phone-options label{display:flex;align-items:center;gap:6px}
     .template-summary,.review-list{padding:15px;border-radius:11px;background:#f4f6ef;font-size:13px;line-height:1.7}.template-summary{display:grid;gap:12px}.template-summary__section{display:grid;gap:7px;padding-top:10px;border-top:1px solid #e2e8d9}.template-summary__items{display:flex;flex-wrap:wrap;gap:7px}.template-summary__chip{padding:4px 9px;border:1px solid #e0e7d6;border-radius:999px;background:#fff;font-size:12px}.template-summary__fields{color:#4e5846}.review-list div{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #e7ebdf}.review-list div:last-child{border:0}
     .section-heading .secondary-button{white-space:nowrap}
     @media(max-width:560px){.field-grid{grid-template-columns:1fr;gap:0}.phone-row{grid-template-columns:1fr}.wizard-actions button{flex:1}.wizard-cancel-row{align-items:flex-start;flex-direction:column;gap:4px}.section-heading{align-items:flex-start;flex-direction:column}.currency-add-row{grid-template-columns:minmax(0,1fr) auto}.business-hours-row{grid-template-columns:1fr 1fr;align-items:center}.business-hours-row label:first-child{grid-column:1/-1}.business-hours-remove{grid-column:1/-1;width:100%}}
@@ -256,6 +256,7 @@
     const hoursList = document.getElementById('business-hours-list');
     const initialAdditionalCurrencies = @json(old('additional_currencies', []));
     const initialBusinessHours = @json(old('business_hours', []));
+    const initialPhones = @json(old('phones', []));
     const selectedAdditionalCurrencies = [];
     let businessHours = [];
     let current = 0;
@@ -445,7 +446,10 @@
         renderCurrencyOptions();
         renderBusinessHours();
     });
-    countrySelect.addEventListener('change', applyCountryCurrency);
+    countrySelect.addEventListener('change', () => {
+        applyCountryCurrency();
+        updateDefaultPhoneCallingCodes();
+    });
     currencySelect.addEventListener('change', () => {
         const index = selectedAdditionalCurrencies.indexOf(currencySelect.value);
         if (index !== -1) selectedAdditionalCurrencies.splice(index, 1);
@@ -510,8 +514,26 @@
         return true;
     };
 
+    const defaultPhoneCallingCode = () => countryDialingCodes[countrySelect.value] || '';
+
+    const formatPhoneNumber = (value) => {
+        const digits = String(value || '').replace(/\\D/g, '').slice(0, 15);
+
+        if (digits.length <= 4) return digits;
+        if (digits.length <= 8) return digits.slice(0, 4) + '-' + digits.slice(4);
+        if (digits.length === 9) {
+            return digits.slice(0, 3) + ' ' + digits.slice(3, 6) + ' ' + digits.slice(6);
+        }
+        if (digits.length >= 10) {
+            return digits.slice(0, 3) + ' ' + digits.slice(3, 6) + ' ' + digits.slice(6);
+        }
+
+        return digits;
+    };
+
     const reindexPhones = () => {
         [...phoneList.querySelectorAll('[data-phone-row]')].forEach((row, index) => {
+            row.querySelector('[data-phone-calling-code]').name = 'phones[' + index + '][country_calling_code]';
             row.querySelector('[data-phone-number]').name = 'phones[' + index + '][number]';
             row.querySelector('[data-phone-show-hidden]').name = 'phones[' + index + '][show_public]';
             row.querySelector('[data-phone-show]').name = 'phones[' + index + '][show_public]';
@@ -519,25 +541,54 @@
         });
     };
 
-    document.getElementById('add-phone').addEventListener('click', () => {
+    const addPhoneRow = (initial = {}) => {
         const rows = phoneList.querySelectorAll('[data-phone-row]');
         if (rows.length >= 5) return;
+
         const row = document.createElement('div');
         row.className = 'phone-row';
         row.dataset.phoneRow = '';
 
         const details = document.createElement('div');
-        const phoneLabel = document.createElement('label');
-        phoneLabel.append(document.createTextNode('Teléfono de contacto'));
+        const phoneInputs = document.createElement('div');
+        phoneInputs.className = 'phone-input-grid';
 
+        const codeLabel = document.createElement('label');
+        codeLabel.append(document.createTextNode('Código de país'));
+        const codeInput = document.createElement('input');
+        codeInput.dataset.phoneCallingCode = '';
+        codeInput.type = 'tel';
+        codeInput.inputMode = 'tel';
+        codeInput.maxLength = 4;
+        codeInput.pattern = '\\+[1-9][0-9]{0,2}';
+        codeInput.placeholder = '+505';
+        codeInput.required = true;
+        const suggestedCode = defaultPhoneCallingCode();
+        codeInput.value = initial.country_calling_code || suggestedCode;
+        codeInput.dataset.manual = initial.country_calling_code && initial.country_calling_code !== suggestedCode ? 'true' : 'false';
+        codeInput.addEventListener('input', () => {
+            codeInput.dataset.manual = 'true';
+            codeInput.value = codeInput.value.replace(/[^+0-9]/g, '').replace(/(?!^)\\+/g, '').slice(0, 4);
+        });
+        codeLabel.append(codeInput);
+
+        const numberLabel = document.createElement('label');
+        numberLabel.append(document.createTextNode('Número móvil'));
         const phoneInput = document.createElement('input');
         phoneInput.dataset.phoneNumber = '';
         phoneInput.type = 'tel';
-        phoneInput.inputMode = 'tel';
-        phoneInput.maxLength = 20;
-        phoneInput.placeholder = '+505 8888 8888';
+        phoneInput.inputMode = 'numeric';
+        phoneInput.maxLength = 22;
+        phoneInput.placeholder = '8888-8888';
         phoneInput.required = true;
-        phoneLabel.append(phoneInput);
+        phoneInput.value = formatPhoneNumber(initial.number || '');
+        phoneInput.addEventListener('input', () => {
+            phoneInput.value = formatPhoneNumber(phoneInput.value);
+        });
+        numberLabel.append(phoneInput);
+
+        phoneInputs.append(codeLabel, numberLabel);
+        details.append(phoneInputs);
 
         const phoneOptions = document.createElement('div');
         phoneOptions.className = 'phone-options';
@@ -548,7 +599,7 @@
         primaryInput.type = 'radio';
         primaryInput.name = 'primary_phone';
         primaryInput.value = '0';
-        primaryInput.checked = rows.length === 0;
+        primaryInput.checked = initial.primary === true || (!initial.primary && rows.length === 0);
         primaryLabel.append(primaryInput, document.createTextNode(' Principal'));
 
         const publicLabel = document.createElement('label');
@@ -561,7 +612,7 @@
         publicVisibilityInput.dataset.phoneShow = '';
         publicVisibilityInput.type = 'checkbox';
         publicVisibilityInput.value = '1';
-        publicVisibilityInput.checked = true;
+        publicVisibilityInput.checked = initial.show_public === undefined ? true : Boolean(Number(initial.show_public));
         publicLabel.append(
             hiddenVisibilityInput,
             publicVisibilityInput,
@@ -569,7 +620,6 @@
         );
 
         phoneOptions.append(primaryLabel, publicLabel);
-        details.append(phoneLabel, phoneOptions);
 
         const removeButton = document.createElement('button');
         removeButton.type = 'button';
@@ -581,10 +631,27 @@
             reindexPhones();
         });
 
-        row.append(details, removeButton);
+        row.append(details, phoneOptions, removeButton);
         phoneList.append(row);
         reindexPhones();
-    });
+    };
+
+    const updateDefaultPhoneCallingCodes = () => {
+        const suggestedCode = defaultPhoneCallingCode();
+
+        if (!suggestedCode) return;
+
+        phoneList.querySelectorAll('[data-phone-row]').forEach((row) => {
+            const codeInput = row.querySelector('[data-phone-calling-code]');
+
+            if (codeInput.dataset.manual !== 'true') {
+                codeInput.value = suggestedCode;
+            }
+        });
+    };
+
+    document.getElementById('add-phone').addEventListener('click', () => addPhoneRow());
+    initialPhones.forEach((phone) => addPhoneRow(phone));
 
     const getValue = (name) => form.elements.namedItem(name)?.value || '';
     const templatePreviews = @json($templatePreviews);
@@ -634,7 +701,11 @@
 
     const renderReview = () => {
         const currencies = [getValue('primary_currency')].concat(selectedAdditionalCurrencies);
-        const phones = [...phoneList.querySelectorAll('[data-phone-number]')].map(x => x.value).filter(Boolean);
+        const phones = [...phoneList.querySelectorAll('[data-phone-row]')].map((row) => {
+            const code = row.querySelector('[data-phone-calling-code]')?.value || '';
+            const number = row.querySelector('[data-phone-number]')?.value || '';
+            return [code, number].filter(Boolean).join(' ');
+        }).filter(Boolean);
         const rows = [
             ['Idioma principal', localeSelect.selectedOptions[0]?.textContent || getValue('locale')],
             ['País del negocio', countrySelect.selectedOptions[0]?.textContent || getValue('country_code')],
