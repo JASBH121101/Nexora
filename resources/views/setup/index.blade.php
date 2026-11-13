@@ -516,6 +516,41 @@
         });
     };
 
+    const syncPhoneRowLabels = () => {
+        phoneList.querySelectorAll('[data-phone-row]').forEach((row) => {
+            const fieldLabels = [...row.querySelectorAll('.phone-input-grid label')];
+            if (fieldLabels[0]?.firstChild) fieldLabels[0].firstChild.nodeValue = copy.country_calling_code;
+            if (fieldLabels[1]?.firstChild) fieldLabels[1].firstChild.nodeValue = copy.mobile_number;
+
+            const optionLabels = [...row.querySelectorAll('.phone-options label')];
+            if (optionLabels[0]?.lastChild?.nodeType === Node.TEXT_NODE) {
+                optionLabels[0].lastChild.nodeValue = ' ' + copy.primary;
+            }
+            if (optionLabels[1]?.lastChild?.nodeType === Node.TEXT_NODE) {
+                optionLabels[1].lastChild.nodeValue = ' ' + copy.show_publicly;
+            }
+
+            const removeButton = row.querySelector('[data-remove-phone]');
+            if (removeButton) removeButton.textContent = copy.remove_phone;
+        });
+    };
+
+    const syncPasswordToggleLabels = () => {
+        form.querySelectorAll('[data-password-toggle]').forEach((button) => {
+            const input = document.getElementById(button.getAttribute('aria-controls'));
+            if (!input) return;
+
+            const isVisible = input.type !== 'password';
+            const isConfirmation = input.id === 'owner-password-confirmation';
+
+            button.textContent = isVisible ? copy.hide_password : copy.show_password;
+            button.setAttribute('aria-label', isVisible
+                ? (isConfirmation ? copy.hide_password_confirmation_aria : copy.hide_password_aria)
+                : (isConfirmation ? copy.show_password_confirmation_aria : copy.show_password_aria));
+            button.setAttribute('aria-pressed', String(isVisible));
+        });
+    };
+
     const changeLocaleWithoutReload = async () => {
         const requestedLocale = localeSelect.value;
         const selectedCountry = countrySelect.value || preferredCountry;
@@ -561,6 +596,8 @@
             renderCurrencyOptions();
             renderAdditionalCurrencies();
             renderBusinessHours();
+            syncPhoneRowLabels();
+            syncPasswordToggleLabels();
             renderTemplate();
             renderReview();
 
