@@ -38,17 +38,11 @@ final class PublicSiteController
                     $builder->where('name', 'like', '%'.$search.'%')
                         ->orWhere('description', 'like', '%'.$search.'%')
                         ->orWhereHas('fieldValues', function (Builder $values) use ($search): void {
-                            $values->whereHas('definition', static function (Builder $definition): void {
-                                $definition
-                                    ->where('is_public', true)
-                                    ->where('is_searchable', true)
-                                    ->whereHas('group', static function (Builder $group): void {
-                                        $group->where(function (Builder $scope): void {
-                                            $scope->whereNull('category_id')
-                                                ->orWhereColumn('catalog_groups.category_id', 'products.category_id');
-                                        });
-                                    });
-                            })->where('value', 'like', '%'.$search.'%');
+                            $values->whereHas('definition', static fn (Builder $definition): Builder => $definition
+                                ->where('is_public', true)
+                                ->where('is_searchable', true)
+                                ->availableForCurrentProductCategory())
+                                ->where('value', 'like', '%'.$search.'%');
                         });
                 });
             })
@@ -104,15 +98,7 @@ final class PublicSiteController
             'fieldValues' => static fn ($query) => $query
                 ->whereHas('definition', static fn ($definition) => $definition
                     ->where('is_public', true)
-                    ->whereHas('group', static function ($group) use ($product): void {
-                        $group->where(function ($scope) use ($product): void {
-                            $scope->whereNull('category_id');
-
-                            if ($product->category_id !== null) {
-                                $scope->orWhere('category_id', $product->category_id);
-                            }
-                        });
-                    }))
+                    ->availableForCategory($product->category_id))
                 ->with('definition'),
         ]);
 
