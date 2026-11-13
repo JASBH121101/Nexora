@@ -39,7 +39,11 @@ class SetupHealthTest extends TestCase
         $response->assertOk()
             ->assertSee('const templatePreviews =', false)
             ->assertSee('Plantilla seleccionada:', false)
-            ->assertSee('Sets y estuches', false)
+            ->assertSee('Perfumes', false)
+            ->assertSee('Body mist', false)
+            ->assertSee('Sets', false)
+            ->assertDontSee('Cuidado personal', false)
+            ->assertDontSee('Sets y estuches', false)
             ->assertSee('Calzado', false)
             ->assertSee('Computadoras', false)
             ->assertSee('Memoria RAM', false)
@@ -47,6 +51,66 @@ class SetupHealthTest extends TestCase
             ->assertSee('Cilindraje', false)
             ->assertSee('Abarrotes', false)
             ->assertSee('"other"', false);
+    }
+
+    public function test_setup_suggests_language_and_country_from_browser_preferences(): void
+    {
+        $this->withHeader('Accept-Language', 'en-US,en;q=0.9')
+            ->get('/setup')
+            ->assertOk()
+            ->assertSee('value="en" selected', false)
+            ->assertSee('data-selected-country="US"', false)
+            ->assertSee('country_code', false)
+            ->assertSee('const countryCodes =', false);
+    }
+
+    public function test_cancelling_setup_does_not_create_any_business_records(): void
+    {
+        $this->post('/setup/cancel')
+            ->assertRedirect(route('setup.show'))
+            ->assertSessionHas('status', fn (string $message): bool => str_contains($message, 'No se creó el propietario'));
+
+        $this->assertDatabaseCount('users', 0);
+        $this->assertDatabaseCount('installation_settings', 0);
+        $this->assertDatabaseCount('business_contacts', 0);
+        $this->assertDatabaseCount('business_currencies', 0);
+        $this->assertDatabaseCount('catalog_categories', 0);
+        $this->assertDatabaseCount('catalog_groups', 0);
+    }
+
+    public function test_setup_persists_selected_country_and_language_with_installation_settings(): void
+    {
+        $payload = $this->validSetupPayload();
+        $payload['country_code'] = 'US';
+        $payload['locale'] = 'en';
+
+        $this->post('/setup', $payload)->assertRedirect(route('admin.home'));
+
+        $settings = InstallationSettings::query()->findOrFail(1);
+
+        $this->assertSame('US', data_get($settings->configuration, 'regional.countryCode'));
+        $this->assertSame('en', data_get($settings->configuration, 'regional.locale'));
+    }
+
+    public function test_perfumery_template_seeds_only_perfumes_body_mist_and_sets(): void
+    {
+        $payload = $this->validSetupPayload();
+        $payload['business_type'] = 'perfumery';
+
+        $this->post('/setup', $payload)->assertRedirect(route('admin.home'));
+
+        $this->assertDatabaseCount('catalog_categories', 3);
+        $this->assertDatabaseHas('catalog_categories', ['name' => 'Perfumes']);
+        $this->assertDatabaseHas('catalog_categories', ['name' => 'Body mist']);
+        $this->assertDatabaseHas('catalog_categories', ['name' => 'Sets']);
+        $this->assertDatabaseMissing('catalog_categories', ['name' => 'Cuidado personal']);
+        $this->assertDatabaseMissing('catalog_categories', ['name' => 'Sets y estuches']);
+
+        $concentration = ProductFieldDefinition::query()
+            ->where('field_key', 'concentration')
+            ->firstOrFail();
+
+        $this->assertSame(['EDT', 'EDP', 'Parfum'], $concentration->options);
     }
 
     public function test_public_site_redirects_to_setup_before_installation_is_completed(): void
@@ -697,6 +761,8 @@ class SetupHealthTest extends TestCase
     private function validSetupPayload(): array
     {
         return [
+            'country_code' => 'NI',
+            'locale' => 'es',
             'business_name' => 'Tienda de prueba',
             'business_type' => 'automotive',
             'owner_name' => 'Propietario de prueba',
