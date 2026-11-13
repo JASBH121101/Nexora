@@ -43,8 +43,10 @@ final class PublicSiteController
                                     ->where('is_public', true)
                                     ->where('is_searchable', true)
                                     ->whereHas('group', static function (Builder $group): void {
-                                        $group->whereNull('category_id')
-                                            ->orWhereColumn('catalog_groups.category_id', 'products.category_id');
+                                        $group->where(function (Builder $scope): void {
+                                            $scope->whereNull('category_id')
+                                                ->orWhereColumn('catalog_groups.category_id', 'products.category_id');
+                                        });
                                     });
                             })->where('value', 'like', '%'.$search.'%');
                         });
@@ -103,11 +105,13 @@ final class PublicSiteController
                 ->whereHas('definition', static fn ($definition) => $definition
                     ->where('is_public', true)
                     ->whereHas('group', static function ($group) use ($product): void {
-                        $group->whereNull('category_id');
+                        $group->where(function ($scope) use ($product): void {
+                            $scope->whereNull('category_id');
 
-                        if ($product->category_id !== null) {
-                            $group->orWhere('category_id', $product->category_id);
-                        }
+                            if ($product->category_id !== null) {
+                                $scope->orWhere('category_id', $product->category_id);
+                            }
+                        });
                     }))
                 ->with('definition'),
         ]);
