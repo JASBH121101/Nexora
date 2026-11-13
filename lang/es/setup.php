@@ -2,6 +2,7 @@
 
 return [
     'page_title' => 'Instalación · NEXORA',
+    'engine_label' => 'MOTOR DE INSTALACIÓN NEXORA',
     'heading' => 'Prepara tu catálogo',
     'intro' => 'Primero validamos el VPS y después configuramos el negocio, la cuenta propietaria, las monedas y la plantilla.',
     'correct' => 'Correcto',
