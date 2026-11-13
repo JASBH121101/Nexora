@@ -6,7 +6,10 @@
 @if(session('status'))<div class="notice success" role="status">{{session('status')}}</div>@endif
 @if(session('verification_message'))<div class="notice">{{session('verification_message')}}</div>@endif
 @if(auth()->user()->isOwner()&&!auth()->user()->hasVerifiedEmail())<div class="notice warning">El correo del propietario todavía no está verificado.<form method="POST" action="{{route('verification.send')}}">@csrf<button class="text-button">Solicitar enlace de verificación</button></form></div>@endif
-@if(auth()->user()->isOwner())<nav class="shortcuts"><a href="{{route('admin.employees.index')}}">Empleados <span>{{$employeeCount}}</span></a><a href="{{route('admin.access-requests.index')}}">Solicitudes de acceso <span>{{$pendingHelpCount}}</span></a></nav>@endif
+<nav class="shortcuts">
+@if(auth()->user()->hasPermission('catalog.view'))<a href="{{route('admin.products.index')}}">Productos <span>{{$productCount}}</span></a>@endif
+@if(auth()->user()->isOwner())<a href="{{route('admin.employees.index')}}">Empleados <span>{{$employeeCount}}</span></a><a href="{{route('admin.access-requests.index')}}">Solicitudes de acceso <span>{{$pendingHelpCount}}</span></a>@endif
+</nav>
 <div class="metrics"><article><span>PRODUCTOS</span><strong>{{$productCount}}</strong></article><article><span>PUBLICADOS</span><strong>{{$publishedCount}}</strong></article><article><span>PLANTILLA</span><strong>{{ucfirst($settings->business_type)}}</strong></article></div>
 <div class="notice">La cuenta y la configuración inicial están guardadas. Los módulos de gestión del catálogo se habilitarán en las siguientes entregas.</div>
 </section>

@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\CatalogCategory;
 use App\Models\InstallationSettings;
 use App\Models\LoginHelpRequest;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -324,6 +326,106 @@ class SetupHealthTest extends TestCase
             'status' => 'resolved',
             'handled_by' => auth()->id(),
         ]);
+    }
+
+    public function test_owner_can_create_and_update_products_with_dynamic_fields_and_manual_prices(): void
+    {
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $category = CatalogCategory::query()->where('name', 'Vehículos')->firstOrFail();
+
+        $response = $this->post(route('admin.products.store'), [
+            'name' => 'Honda Civic',
+            'category_id' => $category->id,
+            'description' => 'Sedán de prueba.',
+            'status' => 'published',
+            'is_featured' => '1',
+            'prices' => [
+                'USD' => '10000.00',
+                'NIO' => '',
+            ],
+            'fields' => [
+                'brand' => 'Honda',
+                'model' => 'Civic',
+                'year' => '2022',
+                'engine_displacement' => '2000',
+                'compatibility' => 'Civic 2022',
+            ],
+        ]);
+
+        $response->assertRedirect(route('admin.products.index'))
+            ->assertSessionHas('status');
+
+        $product = Product::query()
+            ->with(['fieldValues.definition', 'prices'])
+            ->where('name', 'Honda Civic')
+            ->firstOrFail();
+
+        $this->assertSame('published', $product->status);
+        $this->assertSame('honda-civic', $product->slug);
+        $this->assertSame($category->id, $product->category_id);
+        $this->assertCount(1, $product->prices);
+        $this->assertSame('USD', $product->prices->first()->currency_code);
+        $this->assertSame(10000.0, (float) $product->prices->first()->amount);
+
+        $fieldValues = [];
+
+        foreach ($product->fieldValues as $fieldValue) {
+            $fieldValues[$fieldValue->definition->field_key] = $fieldValue->value['value'];
+        }
+
+        $this->assertSame('Honda', $fieldValues['brand']);
+        $this->assertSame('2000', $fieldValues['engine_displacement']);
+
+        $this->put(route('admin.products.update', $product), [
+            'name' => 'Honda Civic Sport',
+            'category_id' => $category->id,
+            'description' => 'Versión actualizada.',
+            'status' => 'draft',
+            'prices' => [
+                'USD' => '9500.00',
+                'NIO' => '',
+            ],
+            'fields' => [
+                'brand' => 'Honda',
+                'model' => 'Civic Sport',
+                'year' => '2023',
+                'engine_displacement' => '2000',
+                'compatibility' => 'Civic 2023',
+            ],
+        ])->assertRedirect(route('admin.products.index'));
+
+        $updatedProduct = $product->fresh()->load('prices');
+
+        $this->assertSame('Honda Civic Sport', $updatedProduct->name);
+        $this->assertSame('honda-civic-sport', $updatedProduct->slug);
+        $this->assertSame('draft', $updatedProduct->status);
+        $this->assertSame(9500.0, (float) $updatedProduct->prices->first()->amount);
+    }
+
+    public function test_employee_product_access_obeys_catalog_permissions(): void
+    {
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $this->post('/admin/employees', [
+            'name' => 'Empleado de prueba',
+            'username' => 'empleado01',
+            'email' => 'employee@example.com',
+        ])->assertRedirect();
+
+        $employee = User::query()->where('username', 'empleado01')->firstOrFail();
+        $employee->forceFill([
+            'is_active' => true,
+            'must_change_password' => false,
+            'permissions' => ['catalog.view'],
+        ])->save();
+
+        $this->actingAs($employee)->get('/admin/products')->assertOk();
+        $this->get('/admin/products/create')->assertForbidden();
+
+        $employee->forceFill(['permissions' => ['catalog.manage']])->save();
+        $this->actingAs($employee->fresh())->get('/admin/products')->assertOk();
+        $this->get('/admin/products/create')->assertOk();
     }
 
     public function test_owner_can_log_in_again_after_logout(): void

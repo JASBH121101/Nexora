@@ -57,7 +57,13 @@ class User extends Authenticatable implements MustVerifyEmailContract
             return false;
         }
 
-        return in_array($permission, $this->permissions ?? [], true)
+        $grantedPermissions = $this->permissions ?? [];
+
+        if ($permission === 'catalog.view' && in_array('catalog.manage', $grantedPermissions, true)) {
+            return true;
+        }
+
+        return in_array($permission, $grantedPermissions, true)
             && array_key_exists($permission, PermissionCatalog::labels());
     }
 }

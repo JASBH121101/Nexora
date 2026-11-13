@@ -9,6 +9,7 @@ use App\Modules\Admin\Http\Controllers\EmployeeController;
 use App\Modules\Admin\Http\Controllers\LoginController;
 use App\Modules\Admin\Http\Controllers\LoginHelpController;
 use App\Modules\Admin\Http\Controllers\PasswordController;
+use App\Modules\Admin\Http\Controllers\ProductController;
 use App\Modules\Admin\Http\Controllers\VerifyEmailController;
 use App\Modules\Setup\Http\Controllers\SetupController;
 use App\Modules\Site\Http\Controllers\PublicSiteController;
@@ -49,6 +50,25 @@ Route::middleware(['auth', AdminAccess::class, RequirePasswordChange::class])
         Route::get('/password/change', [PasswordController::class, 'edit'])->name('admin.password.change');
         Route::post('/password/change', [PasswordController::class, 'update'])->name('admin.password.update');
         Route::get('/', DashboardController::class)->name('admin.home');
+
+        Route::get('/products', [ProductController::class, 'index'])
+            ->middleware('permission:catalog.view')
+            ->name('admin.products.index');
+        Route::get('/products/create', [ProductController::class, 'create'])
+            ->middleware('permission:catalog.manage')
+            ->name('admin.products.create');
+        Route::post('/products', [ProductController::class, 'store'])
+            ->middleware('permission:catalog.manage')
+            ->name('admin.products.store');
+        Route::get('/products/{product}/edit', [ProductController::class, 'edit'])
+            ->middleware('permission:catalog.manage')
+            ->name('admin.products.edit');
+        Route::put('/products/{product}', [ProductController::class, 'update'])
+            ->middleware('permission:catalog.manage')
+            ->name('admin.products.update');
+        Route::delete('/products/{product}', [ProductController::class, 'destroy'])
+            ->middleware('permission:catalog.manage')
+            ->name('admin.products.destroy');
 
         Route::middleware(OwnerOnly::class)->group(function (): void {
             Route::get('/employees', [EmployeeController::class, 'index'])->name('admin.employees.index');
