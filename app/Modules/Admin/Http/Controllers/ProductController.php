@@ -186,11 +186,13 @@ final class ProductController
         $categoryId = filter_var($request->input('category_id'), FILTER_VALIDATE_INT);
         $definitions = ProductFieldDefinition::query()
             ->whereHas('group', static function ($query) use ($categoryId): void {
-                $query->whereNull('category_id');
+                $query->where(function ($scope) use ($categoryId): void {
+                    $scope->whereNull('category_id');
 
-                if ($categoryId !== false && $categoryId !== null) {
-                    $query->orWhere('category_id', $categoryId);
-                }
+                    if ($categoryId !== false && $categoryId !== null) {
+                        $scope->orWhere('category_id', $categoryId);
+                    }
+                });
             })
             ->orderBy('sort_order')
             ->get();
@@ -308,11 +310,13 @@ final class ProductController
     {
         $definitions = ProductFieldDefinition::query()
             ->whereHas('group', static function ($query) use ($product): void {
-                $query->whereNull('category_id');
+                $query->where(function ($scope) use ($product): void {
+                    $scope->whereNull('category_id');
 
-                if ($product->category_id !== null) {
-                    $query->orWhere('category_id', $product->category_id);
-                }
+                    if ($product->category_id !== null) {
+                        $scope->orWhere('category_id', $product->category_id);
+                    }
+                });
             })
             ->get()
             ->keyBy('field_key');
