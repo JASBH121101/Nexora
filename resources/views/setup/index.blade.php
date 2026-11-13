@@ -61,7 +61,7 @@
             <form id="nexora-setup-form" method="POST" action="{{ route('setup.store') }}" enctype="multipart/form-data" novalidate>
                 @csrf
                 <div class="wizard-progress">
-                    <span class="wizard-current" id="wizard-current">Paso 1 de 4</span>
+                    <span class="wizard-current" id="wizard-current">Paso 1 de 5</span>
                     <div class="wizard-track"><span id="wizard-progress-bar"></span></div>
                 </div>
 
@@ -175,7 +175,7 @@
                 <section class="wizard-step" data-step="3" hidden>
                     <h2>4. Plantilla y catálogo</h2>
                     <p class="muted">La plantilla cargará categorías y campos iniciales editables. Podrás cambiar sus etiquetas, agregar campos y reorganizar grupos desde el panel.</p>
-                    <div class="template-summary" id="template-summary" aria-live="polite">Selecciona un tipo de negocio en el paso 1 para ver su plantilla.</div>
+                    <div class="template-summary" id="template-summary" aria-live="polite">Selecciona un tipo de negocio en el paso 2 para ver su plantilla.</div>
                     <div class="note">Los campos dinámicos se guardarán como definiciones y valores relacionados. NEXORA no creará columnas SQL por cada campo personalizado.</div>
                 </section>
 
@@ -185,16 +185,19 @@
                     <div class="note">Los datos de este asistente permanecen en el formulario y no se guardan como negocio ni como propietario hasta pulsar «Crear instalación». Esa acción sí completa la instalación y no se puede repetir en la misma base de datos.</div>
                 </section>
 
-                <div class="wizard-cancel-row">
-                    <button type="submit" class="cancel-button" id="wizard-cancel" formnovalidate formaction="{{ route('setup.cancel') }}" formmethod="POST">Cancelar prueba</button>
-                    <span class="muted small">Cancelar no crea ni elimina datos del negocio.</span>
-                </div>
-                <div class="wizard-actions">
-                    <button type="button" class="secondary-button" id="wizard-prev" hidden>Volver</button>
-                    <button type="button" class="primary-button" id="wizard-next">Continuar</button>
-                    <button type="submit" class="primary-button" id="wizard-submit" hidden>Crear instalación</button>
-                </div>
             </form>
+            <div class="wizard-cancel-row">
+                <form id="nexora-cancel-form" method="POST" action="{{ route('setup.cancel') }}">
+                    @csrf
+                    <button type="submit" class="cancel-button" id="wizard-cancel">Cancelar prueba</button>
+                </form>
+                <span class="muted small">Cancelar no envía los datos del formulario ni crea registros.</span>
+            </div>
+            <div class="wizard-actions">
+                <button type="button" class="secondary-button" id="wizard-prev" hidden>Volver</button>
+                <button type="button" class="primary-button" id="wizard-next">Continuar</button>
+                <button type="submit" class="primary-button" id="wizard-submit" form="nexora-setup-form" hidden>Crear instalación</button>
+            </div>
         @endif
     </section>
 @endsection
@@ -464,8 +467,6 @@
     });
     prev.addEventListener('click', () => showStep(Math.max(current - 1, 0)));
     form.addEventListener('submit', (event) => {
-        if (event.submitter?.id === 'wizard-cancel') return;
-
         if (!validateStep()) {
             event.preventDefault();
             return;
