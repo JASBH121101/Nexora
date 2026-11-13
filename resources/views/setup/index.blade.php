@@ -483,10 +483,18 @@
             }
         });
 
-        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'OPTION') {
-            if (tag === 'OPTION') {
-                currentNode.textContent = translatedNode.textContent;
+        if (tag === 'SELECT') {
+            if (currentNode.id === 'setup-locale') {
+                [...currentNode.options].forEach((option, index) => {
+                    const translatedOption = translatedNode.options[index];
+                    if (translatedOption) option.textContent = translatedOption.textContent;
+                });
             }
+            return;
+        }
+
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'OPTION') {
+            if (tag === 'OPTION') currentNode.textContent = translatedNode.textContent;
             return;
         }
 
