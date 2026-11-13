@@ -537,6 +537,8 @@
             const translatedDocument = new DOMParser().parseFromString(html, 'text/html');
             const translatedPanel = translatedDocument.querySelector('.panel');
             const currentPanel = document.querySelector('.panel');
+            const translatedFooter = translatedDocument.querySelector('.footer');
+            const currentFooter = document.querySelector('.footer');
             const translatedDataNode = translatedDocument.getElementById('setup-locale-data');
 
             if (!translatedPanel || !currentPanel || !translatedDataNode) {
@@ -545,6 +547,9 @@
 
             const nextData = JSON.parse(translatedDataNode.textContent);
             syncLocalizedText(currentPanel, translatedPanel);
+            if (currentFooter && translatedFooter) {
+                syncLocalizedText(currentFooter, translatedFooter);
+            }
             localeData = nextData;
             copy = nextData.copy;
             dayLabels = nextData.days;
