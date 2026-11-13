@@ -135,22 +135,23 @@
                             <input name="primary_color" type="color" required value="{{ old('primary_color', '#89a92f') }}">
                         </label>
                         <label>Moneda principal
-                            <select name="primary_currency" required>
+                            <select id="primary-currency" name="primary_currency" required data-selected-currency="{{ old('primary_currency', $defaultPrimaryCurrency) }}">
                                 @foreach ($currencies as $currency)
-                                    <option value="{{ $currency }}" @selected(old('primary_currency', 'USD') === $currency)>{{ $currency }}</option>
+                                    <option value="{{ $currency }}" @selected(old('primary_currency', $defaultPrimaryCurrency) === $currency)>{{ $currency }}</option>
                                 @endforeach
                             </select>
                         </label>
                     </div>
-                    <p class="muted small">Monedas adicionales. Los precios se registrarán manualmente por moneda; NEXORA no hará conversiones automáticas.</p>
-                    <div class="currency-options">
-                        @foreach ($currencies as $currency)
-                            @if ($currency !== 'USD' && $currency !== 'NIO')
-                                <label><input type="checkbox" name="additional_currencies[]" value="{{ $currency }}" @checked(in_array($currency, old('additional_currencies', [])))> {{ $currency }}</label>
-                            @endif
-                        @endforeach
-                        <label><input type="checkbox" name="additional_currencies[]" value="NIO" @checked(in_array('NIO', old('additional_currencies', [])))> NIO</label>
+                    <p class="muted small">La moneda local se sugiere según el país seleccionado. Puedes cambiarla manualmente; las demás monedas se agregan una por una.</p>
+                    <div class="currency-add-row">
+                        <label for="additional-currency-picker">Añadir otra moneda
+                            <select id="additional-currency-picker">
+                                <option value="">Seleccionar moneda…</option>
+                            </select>
+                        </label>
+                        <button type="button" class="secondary-button" id="add-currency">Añadir</button>
                     </div>
+                    <div id="additional-currency-list" class="selected-currencies" aria-live="polite"></div>
 
                     <div class="section-separator">
                         <div class="section-heading">
@@ -158,6 +159,13 @@
                             <button type="button" class="secondary-button" id="add-phone">Añadir teléfono</button>
                         </div>
                         <div id="phone-list"></div>
+                    </div>
+                    <div class="section-separator">
+                        <div class="section-heading">
+                            <div><h3>Horarios de atención</h3><p class="muted small">Opcional. Añade los días y las horas en que atiende el negocio.</p></div>
+                            <button type="button" class="secondary-button" id="add-business-hours">Añadir horario</button>
+                        </div>
+                        <div id="business-hours-list" class="business-hours-list"></div>
                     </div>
                     <input type="hidden" name="photos_enabled" value="0">
                     <label class="toggle-row"><input type="checkbox" name="photos_enabled" value="1" checked> Permitir fotografías en el catálogo</label>
@@ -208,14 +216,17 @@
     input,select,textarea{width:100%;min-width:0;border:1px solid #dfe5d8;border-radius:10px;padding:11px 12px;background:#fff;color:#20271f;font:inherit}
     input:focus,select:focus,textarea:focus{outline:2px solid #c7d89b;outline-offset:1px}
     input[type=color]{height:44px;padding:4px}input[type=checkbox],input[type=radio]{width:16px;height:16px;accent-color:#6c8d28}
-    .field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.password-control{display:flex;align-items:center;gap:8px}.password-control input{flex:1;min-width:0}.password-toggle{flex:none;min-height:42px;padding:0 12px;border:1px solid #dfe5d8;border-radius:10px;background:#f4f6ef;color:#35402b;font:inherit;font-size:12px;font-weight:750;cursor:pointer}.password-toggle:focus-visible{outline:2px solid #89a92f;outline-offset:2px}.small{font-size:12px}.wizard-progress{margin:22px 0}.wizard-current{font-size:12px;font-weight:800}.wizard-track{height:5px;margin-top:9px;border-radius:10px;background:#e9eee2;overflow:hidden}.wizard-track span{display:block;width:25%;height:100%;background:#89a92f;transition:width .2s}
+    .field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .currency-add-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:9px;margin-top:9px}.currency-add-row label{margin:0}.currency-add-row button{min-height:41px}
+    .selected-currencies{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}.currency-chip{display:inline-flex;align-items:center;gap:7px;padding:5px 8px;border:1px solid #e1e6da;border-radius:999px;background:#f7f8f4;font-size:12px}.currency-chip button{border:0;background:transparent;color:#7a453e;font:inherit;font-weight:800;cursor:pointer}
+    .business-hours-list{display:grid;gap:7px;margin-top:8px}.business-hours-row{display:grid;grid-template-columns:minmax(100px,1.1fr) 1fr 1fr auto;align-items:end;gap:8px;padding:8px 9px;border:1px solid #e7ebdf;border-radius:9px}.business-hours-row label{margin:0;font-size:11px}.business-hours-row input,.business-hours-row select{padding:8px 9px;font-size:12px}.business-hours-remove{height:35px;padding:0 9px;border:0;border-radius:8px;background:#f8eeee;color:#8b3939;font:inherit;font-size:12px;font-weight:750;cursor:pointer}.empty-hours{margin:0;color:#7a8374;font-size:12px;padding:8px 0}.password-control{display:flex;align-items:center;gap:8px}.password-control input{flex:1;min-width:0}.password-toggle{flex:none;min-height:42px;padding:0 12px;border:1px solid #dfe5d8;border-radius:10px;background:#f4f6ef;color:#35402b;font:inherit;font-size:12px;font-weight:750;cursor:pointer}.password-toggle:focus-visible{outline:2px solid #89a92f;outline-offset:2px}.small{font-size:12px}.wizard-progress{margin:22px 0}.wizard-current{font-size:12px;font-weight:800}.wizard-track{height:5px;margin-top:9px;border-radius:10px;background:#e9eee2;overflow:hidden}.wizard-track span{display:block;width:25%;height:100%;background:#89a92f;transition:width .2s}
     .wizard-step h2{margin:8px 0 15px}.wizard-step[hidden]{display:none}.wizard-actions{display:flex;justify-content:space-between;gap:10px;margin-top:14px}.wizard-cancel-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px}.cancel-button{padding:7px 0;border:0;background:transparent;color:#7a453e;font:inherit;font-size:12px;font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
     .primary-button,.secondary-button{min-height:42px;padding:0 17px;border:0;border-radius:10px;font:inherit;font-weight:750;cursor:pointer}.primary-button{background:#20271f;color:#fff}.secondary-button{background:#eef1e9;color:#35402b}
     .currency-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.currency-options label,.toggle-row{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #e7ebdf;border-radius:9px}.currency-options input,.toggle-row input{width:16px;height:16px}
     .section-separator{margin-top:22px;padding-top:17px;border-top:1px solid #edf0e9}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.section-heading h3{margin:0;font-size:15px}.section-heading p{margin:5px 0}.phone-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #edf0e9}.phone-row label{margin:4px 0}.phone-options{display:flex;gap:12px;flex-wrap:wrap;font-size:12px}.phone-options label{display:flex;align-items:center;gap:6px}
     .template-summary,.review-list{padding:15px;border-radius:11px;background:#f4f6ef;font-size:13px;line-height:1.7}.template-summary{display:grid;gap:12px}.template-summary__section{display:grid;gap:7px;padding-top:10px;border-top:1px solid #e2e8d9}.template-summary__items{display:flex;flex-wrap:wrap;gap:7px}.template-summary__chip{padding:4px 9px;border:1px solid #e0e7d6;border-radius:999px;background:#fff;font-size:12px}.template-summary__fields{color:#4e5846}.review-list div{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #e7ebdf}.review-list div:last-child{border:0}
     .section-heading .secondary-button{white-space:nowrap}
-    @media(max-width:560px){.field-grid{grid-template-columns:1fr;gap:0}.currency-options{grid-template-columns:repeat(3,minmax(0,1fr))}.phone-row{grid-template-columns:1fr}.wizard-actions button{flex:1}.wizard-cancel-row{align-items:flex-start;flex-direction:column;gap:4px}.section-heading{align-items:flex-start;flex-direction:column}}
+    @media(max-width:560px){.field-grid{grid-template-columns:1fr;gap:0}.phone-row{grid-template-columns:1fr}.wizard-actions button{flex:1}.wizard-cancel-row{align-items:flex-start;flex-direction:column;gap:4px}.section-heading{align-items:flex-start;flex-direction:column}.currency-add-row{grid-template-columns:minmax(0,1fr) auto}.business-hours-row{grid-template-columns:1fr 1fr;align-items:center}.business-hours-row label:first-child{grid-column:1/-1}.business-hours-remove{grid-column:1/-1;width:100%}}
 </style>
 @endpush
 
@@ -235,8 +246,170 @@
     const localeSelect = document.getElementById('setup-locale');
     const countrySelect = document.getElementById('country-code');
     const countryCodes = @json($countryCodes);
+    const countryCurrencies = @json($countryCurrencies);
+    const currencies = @json($currencies);
     const preferredCountry = countrySelect.dataset.selectedCountry || 'NI';
+    const currencySelect = document.getElementById('primary-currency');
+    const currencyPicker = document.getElementById('additional-currency-picker');
+    const addCurrencyButton = document.getElementById('add-currency');
+    const currencyList = document.getElementById('additional-currency-list');
+    const hoursList = document.getElementById('business-hours-list');
+    const initialAdditionalCurrencies = @json(old('additional_currencies', []));
+    const initialBusinessHours = @json(old('business_hours', []));
+    const selectedAdditionalCurrencies = [];
+    let businessHours = [];
     let current = 0;
+
+    const currencyLabel = (code) => {
+        try {
+            const names = new Intl.DisplayNames([localeSelect.value || 'es'], { type: 'currency' });
+            const name = names.of(code);
+
+            return name && name !== code ? code + ' — ' + name : code;
+        } catch (error) {
+            return code;
+        }
+    };
+
+    const renderCurrencyOptions = () => {
+        const selected = currencySelect.value || currencySelect.dataset.selectedCurrency || 'USD';
+        currencySelect.replaceChildren(...currencies.map((code) => {
+            const option = document.createElement('option');
+            option.value = code;
+            option.textContent = currencyLabel(code);
+            return option;
+        }));
+        currencySelect.value = currencies.includes(selected) ? selected : 'USD';
+
+        const available = currencies.filter((code) =>
+            code !== currencySelect.value && !selectedAdditionalCurrencies.includes(code)
+        );
+        currencyPicker.replaceChildren();
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Seleccionar moneda…';
+        currencyPicker.append(placeholder);
+        available.forEach((code) => {
+            const option = document.createElement('option');
+            option.value = code;
+            option.textContent = currencyLabel(code);
+            currencyPicker.append(option);
+        });
+        addCurrencyButton.disabled = available.length === 0;
+    };
+
+    const renderAdditionalCurrencies = () => {
+        currencyList.replaceChildren();
+        selectedAdditionalCurrencies.forEach((code) => {
+            const chip = document.createElement('span');
+            chip.className = 'currency-chip';
+            const label = document.createElement('span');
+            label.textContent = currencyLabel(code);
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.textContent = 'Quitar';
+            remove.setAttribute('aria-label', 'Quitar moneda ' + code);
+            remove.addEventListener('click', () => {
+                const index = selectedAdditionalCurrencies.indexOf(code);
+                if (index !== -1) selectedAdditionalCurrencies.splice(index, 1);
+                renderAdditionalCurrencies();
+            });
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'additional_currencies[]';
+            hidden.value = code;
+            chip.append(label, remove, hidden);
+            currencyList.append(chip);
+        });
+        renderCurrencyOptions();
+    };
+
+    const applyCountryCurrency = () => {
+        const suggested = countryCurrencies[countrySelect.value];
+        if (suggested && currencies.includes(suggested)) {
+            currencySelect.value = suggested;
+            const index = selectedAdditionalCurrencies.indexOf(suggested);
+            if (index !== -1) selectedAdditionalCurrencies.splice(index, 1);
+        }
+        renderAdditionalCurrencies();
+    };
+
+    const dayLabels = {
+        es: { monday: 'Lunes', tuesday: 'Martes', wednesday: 'Miércoles', thursday: 'Jueves', friday: 'Viernes', saturday: 'Sábado', sunday: 'Domingo' },
+        en: { monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday' }
+    };
+    const weekDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+    const renderBusinessHours = () => {
+        hoursList.replaceChildren();
+        if (businessHours.length === 0) {
+            const empty = document.createElement('p');
+            empty.className = 'empty-hours';
+            empty.textContent = 'No has añadido horarios. Puedes dejarlos vacíos.';
+            hoursList.append(empty);
+            return;
+        }
+
+        businessHours.forEach((hours, index) => {
+            const row = document.createElement('div');
+            row.className = 'business-hours-row';
+            const addField = (labelText, input) => {
+                const label = document.createElement('label');
+                label.append(document.createTextNode(labelText), input);
+                row.append(label);
+            };
+            const day = document.createElement('select');
+            day.name = 'business_hours[' + index + '][day]';
+            day.setAttribute('aria-label', 'Día de atención');
+            weekDays.forEach((key) => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = (dayLabels[localeSelect.value] || dayLabels.es)[key];
+                day.append(option);
+            });
+            day.value = hours.day || weekDays[index % weekDays.length];
+
+            const opens = document.createElement('input');
+            opens.type = 'time';
+            opens.name = 'business_hours[' + index + '][open]';
+            opens.required = true;
+            opens.value = hours.open || '09:00';
+
+            const closes = document.createElement('input');
+            closes.type = 'time';
+            closes.name = 'business_hours[' + index + '][close]';
+            closes.required = true;
+            closes.value = hours.close || '18:00';
+
+            addField(localeSelect.value === 'en' ? 'Day' : 'Día', day);
+            addField(localeSelect.value === 'en' ? 'Opens' : 'Apertura', opens);
+            addField(localeSelect.value === 'en' ? 'Closes' : 'Cierre', closes);
+
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'business-hours-remove';
+            remove.textContent = localeSelect.value === 'en' ? 'Remove' : 'Quitar';
+            remove.addEventListener('click', () => {
+                businessHours.splice(index, 1);
+                renderBusinessHours();
+            });
+            row.append(remove);
+            hoursList.append(row);
+            day.addEventListener('change', () => { hours.day = day.value; });
+            opens.addEventListener('change', () => { hours.open = opens.value; });
+            closes.addEventListener('change', () => { hours.close = closes.value; });
+        });
+    };
+
+    initialAdditionalCurrencies.forEach((code) => {
+        if (currencies.includes(code) && !selectedAdditionalCurrencies.includes(code)) {
+            selectedAdditionalCurrencies.push(code);
+        }
+    });
+    businessHours = Array.isArray(initialBusinessHours) ? initialBusinessHours.map((entry) => ({ ...entry })) : [];
+    renderCurrencyOptions();
+    renderAdditionalCurrencies();
+    renderBusinessHours();
 
     const renderCountryOptions = () => {
         const locale = localeSelect.value || 'es';
@@ -267,7 +440,33 @@
     };
 
     renderCountryOptions();
-    localeSelect.addEventListener('change', renderCountryOptions);
+    applyCountryCurrency();
+    localeSelect.addEventListener('change', () => {
+        renderCountryOptions();
+        renderCurrencyOptions();
+        renderBusinessHours();
+    });
+    countrySelect.addEventListener('change', applyCountryCurrency);
+    currencySelect.addEventListener('change', () => {
+        const index = selectedAdditionalCurrencies.indexOf(currencySelect.value);
+        if (index !== -1) selectedAdditionalCurrencies.splice(index, 1);
+        renderAdditionalCurrencies();
+    });
+    addCurrencyButton.addEventListener('click', () => {
+        const code = currencyPicker.value;
+        if (!code || selectedAdditionalCurrencies.includes(code)) return;
+        if (selectedAdditionalCurrencies.length >= 10) {
+            window.alert('Puedes añadir hasta diez monedas adicionales.');
+            return;
+        }
+        selectedAdditionalCurrencies.push(code);
+        renderAdditionalCurrencies();
+    });
+    document.getElementById('add-business-hours').addEventListener('click', () => {
+        if (businessHours.length >= 14) return;
+        businessHours.push({ day: weekDays[businessHours.length % weekDays.length], open: '09:00', close: '18:00' });
+        renderBusinessHours();
+    });
 
     cancel.addEventListener('click', (event) => {
         if (!window.confirm('¿Cancelar esta prueba? No se creará el propietario, el negocio ni las categorías. La estructura vacía de tablas se conservará para repetir la prueba.')) {
@@ -449,6 +648,10 @@
             ['Moneda principal', getValue('primary_currency')],
             ['Monedas habilitadas', [...new Set(currencies)].join(', ')],
             ['Contactos', phones.length ? phones.join(', ') : 'Sin teléfonos'],
+            ['Horarios', businessHours.length ? businessHours.map((item) => {
+                const day = (dayLabels[localeSelect.value] || dayLabels.es)[item.day] || item.day;
+                return day + ' ' + item.open + '–' + item.close;
+            }).join(', ') : 'No definidos'],
             ['Fotografías', form.querySelector('input[type="checkbox"][name="photos_enabled"]')?.checked ? 'Habilitadas' : 'Deshabilitadas']
         ];
         document.getElementById('setup-review').replaceChildren(...rows.map(([label, content]) => {
