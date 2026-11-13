@@ -40,7 +40,7 @@
     grocery: "ALIMENTOS Y ABARROTES",
     other: "CATÁLOGO PERSONALIZADO"
   };
-  const visiblePhones = (studioConfig?.business?.phones || []).filter((phone) => phone.showPublic && /^\\d{8,15}$/.test(String(phone.number || "")));
+  const visiblePhones = (studioConfig?.business?.phones || []).filter((phone) => phone.showPublic && /^\d{8,15}$/.test(String(phone.number || "")));
   const primaryPhone = visiblePhones.find((phone) => phone.isMain) || visiblePhones[0];
   const studioBusiness = studioMode ? {
     id: "studio-config",
