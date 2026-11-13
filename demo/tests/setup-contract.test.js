@@ -6,7 +6,7 @@ const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const html = read("../setup.html");
 const js = read("../assets/js/setup.js");
 const css = read("../assets/css/setup.css");
-const scope = read("../../../../docs/PRODUCT-SCOPE.md");
+const scope = read("../../docs/PRODUCT-SCOPE.md");
 
 test("setup wizard exposes the four guided stages", () => {
   for (const step of [1, 2, 3, 4]) {
