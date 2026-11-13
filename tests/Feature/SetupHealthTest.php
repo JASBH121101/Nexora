@@ -17,7 +17,7 @@ class SetupHealthTest extends TestCase
         $response = $this->get('/setup');
 
         $response->assertOk()
-            ->assertSee('Preparación de instalación')
+            ->assertSee('Prepara tu catálogo')
             ->assertSee('Versión de PHP')
             ->assertSee('Extensiones PHP')
             ->assertSee('Conexión a la base de datos')
