@@ -6,6 +6,8 @@ use App\Models\CatalogCategory;
 use App\Models\InstallationSettings;
 use App\Models\LoginHelpRequest;
 use App\Models\Product;
+use App\Models\ProductFieldDefinition;
+use App\Models\ProductFieldValue;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -75,7 +77,7 @@ class SetupHealthTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertSee('Tienda de prueba')
-            ->assertSee('NEXORA Site Engine');
+            ->assertSee('CATÁLOGO DIGITAL');
     }
 
     public function test_setup_page_redirects_after_installation_is_completed(): void
@@ -426,6 +428,89 @@ class SetupHealthTest extends TestCase
         $employee->forceFill(['permissions' => ['catalog.manage']])->save();
         $this->actingAs($employee->fresh())->get('/admin/products')->assertOk();
         $this->get('/admin/products/create')->assertOk();
+    }
+
+    public function test_public_catalog_only_lists_published_products_and_filters_by_category(): void
+    {
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $category = CatalogCategory::query()->where('name', 'Vehículos')->firstOrFail();
+
+        Product::query()->create([
+            'category_id' => $category->id,
+            'name' => 'Vehículo publicado',
+            'slug' => 'vehiculo-publicado',
+            'description' => 'Descripción visible.',
+            'status' => 'published',
+        ]);
+
+        Product::query()->create([
+            'category_id' => $category->id,
+            'name' => 'Producto en borrador',
+            'slug' => 'producto-en-borrador',
+            'description' => 'No debe aparecer.',
+            'status' => 'draft',
+        ]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Vehículo publicado')
+            ->assertDontSee('Producto en borrador');
+
+        $this->get('/?category=vehiculos')
+            ->assertOk()
+            ->assertSee('Vehículo publicado');
+
+        $this->get('/?q=No-existe')
+            ->assertOk()
+            ->assertSee('No encontramos productos');
+    }
+
+    public function test_public_product_detail_hides_private_dynamic_fields_and_drafts(): void
+    {
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $category = CatalogCategory::query()->where('name', 'Vehículos')->firstOrFail();
+        $product = Product::query()->create([
+            'category_id' => $category->id,
+            'name' => 'Vehículo de muestra',
+            'slug' => 'vehiculo-de-muestra',
+            'description' => 'Detalle público.',
+            'status' => 'published',
+        ]);
+
+        $privateBrand = ProductFieldDefinition::query()->where('field_key', 'brand')->firstOrFail();
+        $privateBrand->forceFill(['is_public' => false])->save();
+
+        $publicModel = ProductFieldDefinition::query()->where('field_key', 'model')->firstOrFail();
+
+        ProductFieldValue::query()->create([
+            'product_id' => $product->id,
+            'field_definition_id' => $privateBrand->id,
+            'value' => ['value' => 'INTERNAL-SECRET-BRAND'],
+        ]);
+
+        ProductFieldValue::query()->create([
+            'product_id' => $product->id,
+            'field_definition_id' => $publicModel->id,
+            'value' => ['value' => 'Civic 2023'],
+        ]);
+
+        $this->get('/producto/vehiculo-de-muestra')
+            ->assertOk()
+            ->assertSee('Vehículo de muestra')
+            ->assertSee('Civic 2023')
+            ->assertDontSee('INTERNAL-SECRET-BRAND');
+
+        $draft = Product::query()->create([
+            'category_id' => $category->id,
+            'name' => 'Producto reservado',
+            'slug' => 'producto-reservado',
+            'description' => 'No público.',
+            'status' => 'draft',
+        ]);
+
+        $this->get('/producto/'.$draft->slug)->assertNotFound();
     }
 
     public function test_owner_can_log_in_again_after_logout(): void

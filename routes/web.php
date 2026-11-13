@@ -90,4 +90,5 @@ Route::middleware(['auth', AdminAccess::class, RequirePasswordChange::class])
         });
     });
 
+Route::get('/producto/{slug}', [PublicSiteController::class, 'show'])->name('site.product');
 Route::get('/', PublicSiteController::class)->name('site.home');
