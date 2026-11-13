@@ -110,6 +110,8 @@ test("the configured setup profile drives the public site and hides the sector d
   assert.ok(publicJs.includes("studioConfig.identity?.description"));
   assert.ok(publicJs.includes("studioConfig.identity?.coverUrl"));
   assert.ok(publicJs.includes("phone.showPublic"));
+  assert.ok(publicJs.includes("/^" + String.fromCharCode(92) + "d{8,15}$/"));
+  assert.ok(publicJs.includes("visiblePhones.length < 2"));
   assert.ok(publicJs.includes("renderContactTargets"));
   assert.ok(publicJs.includes('document.documentElement.style.setProperty("--lime", primaryColor)'));
   assert.ok(adminJs.includes('id: "studio-config"'));
