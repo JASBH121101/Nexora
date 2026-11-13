@@ -2,11 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\BusinessContact;
-use App\Models\BusinessCurrency;
-use App\Models\CatalogCategory;
 use App\Models\InstallationSettings;
-use App\Models\ProductFieldDefinition;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
