@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Modules\Setup\Services\CountryDialingCodeCatalog;
 use Illuminate\Database\Eloquent\Model;
 
 class BusinessContact extends Model
@@ -15,5 +16,10 @@ class BusinessContact extends Model
             'show_public' => 'boolean',
             'sort_order' => 'integer',
         ];
+    }
+
+    public function getFormattedPhoneAttribute(): string
+    {
+        return CountryDialingCodeCatalog::formatInternational($this->phone);
     }
 }
