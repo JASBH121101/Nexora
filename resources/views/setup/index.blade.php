@@ -233,6 +233,13 @@
 @endpush
 
 @push('scripts')
+<script type="application/json" id="setup-locale-data">@json([
+    'copy' => __('setup.javascript'),
+    'days' => __('setup.days'),
+    'templatePreviews' => $templatePreviews,
+    'creatingInstallation' => __('setup.creating_installation'),
+])</script>
+
 <script>
 (() => {
     const form = document.getElementById('nexora-setup-form');
@@ -338,8 +345,9 @@
         renderAdditionalCurrencies();
     };
 
-    const dayLabels = @json(__('setup.days'));
-    const copy = @json(__('setup.javascript'));
+    let localeData = JSON.parse(document.getElementById('setup-locale-data').textContent);
+    let dayLabels = localeData.days;
+    let copy = localeData.copy;
     const weekDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
     const renderBusinessHours = () => {
@@ -366,7 +374,7 @@
             weekDays.forEach((key) => {
                 const option = document.createElement('option');
                 option.value = key;
-                option.textContent = (dayLabels[localeSelect.value] || dayLabels.es)[key];
+                option.textContent = dayLabels[key];
                 day.append(option);
             });
             day.value = hours.day || weekDays[index % weekDays.length];
@@ -454,12 +462,118 @@
         if (cancelForm) cancelForm.action = '/setup/cancel' + query;
     };
 
-    localeSelect.addEventListener('change', () => {
-        const url = new URL(window.location.href);
-        url.searchParams.set('locale', localeSelect.value);
-        url.searchParams.set('country_code', countrySelect.value || preferredCountry);
-        window.location.assign(url.toString());
-    });
+    const syncLocalizedText = (currentNode, translatedNode) => {
+        if (currentNode.nodeType === Node.TEXT_NODE) {
+            currentNode.nodeValue = translatedNode.nodeValue;
+            return;
+        }
+
+        if (currentNode.nodeType !== Node.ELEMENT_NODE || translatedNode.nodeType !== Node.ELEMENT_NODE) {
+            return;
+        }
+
+        const tag = currentNode.tagName;
+        if (tag === 'SCRIPT' || tag === 'STYLE') return;
+
+        ['placeholder', 'aria-label', 'title'].forEach((attribute) => {
+            if (translatedNode.hasAttribute(attribute)) {
+                currentNode.setAttribute(attribute, translatedNode.getAttribute(attribute));
+            } else {
+                currentNode.removeAttribute(attribute);
+            }
+        });
+
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'OPTION') {
+            if (tag === 'OPTION') {
+                currentNode.textContent = translatedNode.textContent;
+            }
+            return;
+        }
+
+        const dynamicContainers = new Set([
+            'phone-list',
+            'additional-currency-list',
+            'business-hours-list',
+            'template-summary',
+            'setup-review',
+        ]);
+
+        if (currentNode.id && dynamicContainers.has(currentNode.id)) return;
+
+        const currentChildren = [...currentNode.childNodes];
+        const translatedChildren = [...translatedNode.childNodes];
+        currentChildren.forEach((child, index) => {
+            const translatedChild = translatedChildren[index];
+            if (translatedChild) syncLocalizedText(child, translatedChild);
+        });
+    };
+
+    const changeLocaleWithoutReload = async () => {
+        const requestedLocale = localeSelect.value;
+        const selectedCountry = countrySelect.value || preferredCountry;
+        localeSelect.disabled = true;
+
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('locale', requestedLocale);
+            url.searchParams.set('country_code', selectedCountry);
+
+            const response = await fetch(url.toString(), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' },
+                credentials: 'same-origin',
+            });
+
+            if (!response.ok) throw new Error('Could not load the selected language.');
+
+            const html = await response.text();
+            const translatedDocument = new DOMParser().parseFromString(html, 'text/html');
+            const translatedPanel = translatedDocument.querySelector('.panel');
+            const currentPanel = document.querySelector('.panel');
+            const translatedDataNode = translatedDocument.getElementById('setup-locale-data');
+
+            if (!translatedPanel || !currentPanel || !translatedDataNode) {
+                throw new Error('The translated setup content is incomplete.');
+            }
+
+            const nextData = JSON.parse(translatedDataNode.textContent);
+            syncLocalizedText(currentPanel, translatedPanel);
+            localeData = nextData;
+            copy = nextData.copy;
+            dayLabels = nextData.days;
+            templatePreviews = nextData.templatePreviews;
+            document.documentElement.lang = requestedLocale;
+            document.title = translatedDocument.title;
+
+            renderCountryOptions();
+            renderCurrencyOptions();
+            renderAdditionalCurrencies();
+            renderBusinessHours();
+            renderTemplate();
+            renderReview();
+
+            form.action = '/setup?locale=' + encodeURIComponent(requestedLocale)
+                + '&country_code=' + encodeURIComponent(selectedCountry);
+            const cancelForm = document.getElementById('nexora-cancel-form');
+            if (cancelForm) {
+                cancelForm.action = '/setup/cancel?locale=' + encodeURIComponent(requestedLocale)
+                    + '&country_code=' + encodeURIComponent(selectedCountry);
+            }
+
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('locale', requestedLocale);
+            currentUrl.searchParams.set('country_code', selectedCountry);
+            window.history.replaceState({}, '', currentUrl.toString());
+            syncLocalizedText(document.querySelector('.panel'), translatedPanel);
+            showStep(current);
+        } catch (error) {
+            localeSelect.value = document.documentElement.lang || 'es';
+            window.alert(error.message || 'Could not change the language.');
+        } finally {
+            localeSelect.disabled = false;
+        }
+    };
+
+    localeSelect.addEventListener('change', changeLocaleWithoutReload);
     countrySelect.addEventListener('change', () => {
         applyCountryCurrency();
         updateDefaultPhoneCallingCodes();
@@ -692,7 +806,7 @@
     initialPhones.forEach((phone) => addPhoneRow(phone));
 
     const getValue = (name) => form.elements.namedItem(name)?.value || '';
-    const templatePreviews = @json($templatePreviews);
+    let templatePreviews = localeData.templatePreviews;
     const renderTemplate = () => {
         const container = document.getElementById('template-summary');
         const preview = templatePreviews[getValue('business_type')];
