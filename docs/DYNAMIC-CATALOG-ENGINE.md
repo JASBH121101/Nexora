@@ -82,9 +82,10 @@ Un grupo con campos no se elimina hasta moverlos o eliminarlos. En producción, 
 | Volumen | L, ml, gal, fl oz |
 | Longitud | m, cm, mm, in, ft |
 | Cantidad | unidad, pieza, par, paquete, caja, docena |
+| Capacidad digital | MB, GB, TB |
 | Área | m², ft² |
 
-Una unidad pertenece a una dimensión. La UI solo presenta las unidades correspondientes a la magnitud seleccionada. Los clientes pueden agregar unidades propias a la biblioteca local de su instalación; no se modifican otras instalaciones.
+Una unidad pertenece a una dimensión. La UI solo presenta las unidades correspondientes a la magnitud seleccionada. RAM/almacenamiento utilizan capacidad digital y el cilindraje utiliza volumen (cc). Los clientes pueden agregar unidades propias a la biblioteca local de su instalación; no se modifican otras instalaciones.
 
 ## Fotografías opcionales
 
