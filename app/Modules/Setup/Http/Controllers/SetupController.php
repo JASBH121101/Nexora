@@ -138,7 +138,7 @@ final class SetupController
         $phones = array_values(array_filter(
             (array) $request->input('phones', []),
             static fn ($phone): bool => is_array($phone)
-                && filled(preg_replace('/\\D+/', '', (string) ($phone['number'] ?? ''))),
+                && trim((string) ($phone['number'] ?? '')) !== '',
         ));
 
         $request->merge(['phones' => $phones]);
