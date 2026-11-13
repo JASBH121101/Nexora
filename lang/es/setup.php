@@ -108,6 +108,7 @@ return [
         'enabled' => 'Habilitadas',
         'disabled' => 'Deshabilitadas',
         'cancel_confirm' => '¿Cancelar esta prueba? No se creará el propietario, el negocio ni las categorías. La estructura vacía de tablas se conservará para repetir la prueba.',
+        'locale_change_failed' => 'No se pudo cambiar el idioma. Inténtalo de nuevo.',
         'show_password_button' => 'Mostrar',
 
         'show_password' => 'Mostrar',
