@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @php($isEdit = isset($product) && $product !== null)
+@php($selectedCategoryId = (string) old('category_id', $product?->category_id ?? ''))
 
 @section('title', ($isEdit ? 'Editar producto' : 'Nuevo producto').' · NEXORA')
 
@@ -39,7 +40,7 @@
                 <input name="name" maxlength="120" required value="{{ old('name', $product?->name) }}" placeholder="Ej. Producto de muestra">
             </label>
             <label>Categoría
-                <select name="category_id">
+                <select id="product-category" name="category_id">
                     <option value="">Sin categoría</option>
                     @foreach ($categories as $category)
                         <option value="{{ $category->id }}" @selected((string) old('category_id', $product?->category_id) === (string) $category->id)>
@@ -105,8 +106,13 @@
         </div>
 
         @forelse ($fieldGroups as $group)
-            <div class="form-section">
-                <h2>{{ $group->name }}</h2>
+            <div
+                class="form-section"
+                data-field-group
+                data-category-id="{{ $group->category_id ?? '' }}"
+                @if ($group->category_id !== null && (string) $group->category_id !== $selectedCategoryId) hidden @endif
+            >
+                <h2>{{ $group->name }}@if ($group->category) <span class="muted small">· {{ $group->category->name }}</span>@endif</h2>
                 <div class="field-grid">
                     @foreach ($group->fields as $field)
                         @php($fieldValue = old('fields.'.$field->field_key, $values[$field->field_key] ?? null))
@@ -178,7 +184,7 @@
 @push('head')
 <style>
     .page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.12em}.page-head h1{margin:8px 0}.link{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
-    .product-form{display:grid;gap:18px;margin-top:20px}.form-section{padding:16px;border:1px solid #e6eae2;border-radius:12px}.form-section h2{font-size:15px;margin:0 0 12px}.form-section p{margin:0 0 10px}
+    .product-form{display:grid;gap:18px;margin-top:20px}.form-section{padding:16px;border:1px solid #e6eae2;border-radius:12px}.form-section[hidden]{display:none}.form-section h2{font-size:15px;margin:0 0 12px}.form-section p{margin:0 0 10px}
     .product-form label{display:grid;gap:7px;margin:10px 0;font-size:12px;font-weight:700}.product-form input:not([type=checkbox]),.product-form select,.product-form textarea{width:100%;min-width:0;min-height:42px;padding:10px;border:1px solid #dfe5d8;border-radius:9px;background:#fff;color:#20271f;font:inherit}.product-form textarea{resize:vertical}
     .field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.dynamic-field{min-width:0}.dynamic-field.full{grid-column:1/-1}
     .checkbox-field{display:flex!important;align-items:center;gap:9px;min-height:40px}.checkbox-field input[type=checkbox]{width:17px;height:17px;flex:none;accent-color:#6c8d28}.checkbox-field span{font-size:12px}
@@ -187,4 +193,31 @@
     .notice{padding:12px;border-radius:10px;background:#f4f6ef;color:#56614d;font-size:13px}.error{background:#fff0ee;color:#963b32}
     @media(max-width:560px){.page-head{flex-direction:column}.field-grid{grid-template-columns:1fr}.form-section{padding:13px}.form-actions .link,.form-actions button{flex:1}.current-image{align-items:flex-start;flex-direction:column}}
 </style>
+@push('scripts')
+<script>
+(() => {
+    const categorySelect = document.getElementById('product-category');
+    const groups = [...document.querySelectorAll('[data-field-group]')];
+
+    if (!categorySelect || groups.length === 0) return;
+
+    const syncCategoryFields = () => {
+        const selectedCategory = categorySelect.value;
+
+        groups.forEach((group) => {
+            const categoryId = group.dataset.categoryId;
+            const visible = categoryId === '' || categoryId === selectedCategory;
+
+            group.hidden = !visible;
+            group.querySelectorAll('input, select, textarea').forEach((field) => {
+                field.disabled = !visible;
+            });
+        });
+    };
+
+    categorySelect.addEventListener('change', syncCategoryFields);
+    syncCategoryFields();
+})();
+</script>
+@endpush
 @endpush
