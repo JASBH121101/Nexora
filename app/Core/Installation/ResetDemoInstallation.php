@@ -37,6 +37,10 @@ final class ResetDemoInstallation
             throw new RuntimeException(__('setup.demo_reset_disabled'));
         }
 
+        if (! Schema::hasTable('installation_settings')) {
+            throw new RuntimeException(__('setup.demo_reset_not_demo_installation'));
+        }
+
         $settings = InstallationSettings::query()->find(1);
 
         if (
