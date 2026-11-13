@@ -53,9 +53,6 @@ final class SetupController
             ? $requestedCountryCode
             : $this->detectCountryCode($request);
 
-        $locale = strtolower(trim((string) $request->input('locale', 'es')));
-        App::setLocale(array_key_exists($locale, LanguageCatalog::all()) ? $locale : 'es');
-
         $checks = $requirements->checks();
 
         return view('setup.index', [
@@ -133,6 +130,9 @@ final class SetupController
         if ($installation->isCompleted()) {
             return redirect()->route('admin.login');
         }
+
+        $requestedLocale = strtolower(trim((string) $request->input('locale', 'es')));
+        App::setLocale(array_key_exists($requestedLocale, LanguageCatalog::all()) ? $requestedLocale : 'es');
 
         $checks = $requirements->checks();
 
