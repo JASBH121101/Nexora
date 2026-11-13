@@ -2,10 +2,12 @@
 
 namespace App\Modules\Admin\Http\Controllers;
 
+use App\Core\Authorization\PermissionCatalog;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 final class EmployeeController
@@ -17,6 +19,7 @@ final class EmployeeController
                 ->where('role', 'employee')
                 ->orderBy('name')
                 ->paginate(20),
+            'availablePermissions' => PermissionCatalog::labels(),
         ]);
     }
 
@@ -56,6 +59,24 @@ final class EmployeeController
             'username' => $data['username'],
             'password' => $temporaryPassword,
         ]);
+    }
+
+    public function updatePermissions(Request $request, User $employee): RedirectResponse
+    {
+        abort_unless($employee->isEmployee(), 404);
+
+        $allowedPermissions = array_keys(PermissionCatalog::labels());
+
+        $data = $request->validate([
+            'permissions' => ['sometimes', 'array', 'max:'.count($allowedPermissions)],
+            'permissions.*' => ['string', 'distinct', Rule::in($allowedPermissions)],
+        ]);
+
+        $employee->forceFill([
+            'permissions' => array_values(array_unique($data['permissions'] ?? [])),
+        ])->save();
+
+        return back()->with('status', 'Permisos actualizados para '.$employee->username.'.');
     }
 
     public function updateStatus(Request $request, User $employee): RedirectResponse

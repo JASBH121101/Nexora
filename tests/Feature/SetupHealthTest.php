@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class SetupHealthTest extends TestCase
@@ -214,6 +215,65 @@ class SetupHealthTest extends TestCase
         $this->assertFalse($employee->fresh()->must_change_password);
         $this->get('/admin/employees')->assertForbidden();
         $this->get('/admin/access-requests')->assertForbidden();
+    }
+
+    public function test_owner_can_assign_only_known_permissions_to_an_employee(): void
+    {
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $this->post('/admin/employees', [
+            'name' => 'Empleado de prueba',
+            'username' => 'empleado01',
+            'email' => 'employee@example.com',
+        ])->assertRedirect();
+
+        $employee = User::query()->where('username', 'empleado01')->firstOrFail();
+
+        $this->post(route('admin.employees.permissions', $employee), [
+            'permissions' => ['catalog.view', 'catalog.manage'],
+        ])->assertRedirect();
+
+        $employee = $employee->fresh();
+
+        $this->assertSame(['catalog.view', 'catalog.manage'], $employee->permissions);
+        $this->assertTrue($employee->hasPermission('catalog.view'));
+        $this->assertTrue($employee->hasPermission('catalog.manage'));
+        $this->assertFalse($employee->hasPermission('reports.view'));
+
+        Route::middleware(['auth', 'permission:catalog.manage'])
+            ->get('/__test/permission-check', static fn () => response('allowed'));
+
+        $this->actingAs($employee)->get('/__test/permission-check')->assertOk();
+
+        $this->post(route('admin.employees.permissions', $employee), [
+            'permissions' => ['owner.all'],
+        ])->assertSessionHasErrors('permissions.0');
+
+        $this->assertSame(['catalog.view', 'catalog.manage'], $employee->fresh()->permissions);
+    }
+
+    public function test_employee_cannot_assign_permissions_or_access_owner_controls(): void
+    {
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $this->post('/admin/employees', [
+            'name' => 'Empleado de prueba',
+            'username' => 'empleado01',
+            'email' => 'employee@example.com',
+        ])->assertRedirect();
+
+        $employee = User::query()->where('username', 'empleado01')->firstOrFail();
+        $employee->forceFill(['must_change_password' => false])->save();
+
+        $this->actingAs($employee);
+
+        $this->post(route('admin.employees.permissions', $employee), [
+            'permissions' => ['catalog.manage'],
+        ])->assertForbidden();
+
+        $this->get('/admin/employees')->assertForbidden();
+        $this->get('/admin/access-requests')->assertForbidden();
+        $this->assertEmpty($employee->fresh()->permissions ?? []);
     }
 
     public function test_owner_can_process_employee_access_request_with_one_time_password(): void

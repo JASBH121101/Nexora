@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Core\Authorization\PermissionCatalog;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -17,6 +18,7 @@ use Illuminate\Notifications\Notifiable;
     'role',
     'is_active',
     'must_change_password',
+    'permissions',
 ])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmailContract
@@ -31,6 +33,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'password' => 'hashed',
             'is_active' => 'boolean',
             'must_change_password' => 'boolean',
+            'permissions' => 'array',
         ];
     }
 
@@ -42,5 +45,19 @@ class User extends Authenticatable implements MustVerifyEmailContract
     public function isEmployee(): bool
     {
         return $this->role === 'employee';
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        if ($this->isOwner()) {
+            return true;
+        }
+
+        if (! $this->isEmployee() || ! $this->is_active) {
+            return false;
+        }
+
+        return in_array($permission, $this->permissions ?? [], true)
+            && array_key_exists($permission, PermissionCatalog::labels());
     }
 }

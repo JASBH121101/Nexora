@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('role', 16)->default('owner');
             $table->boolean('is_active')->default(true);
             $table->boolean('must_change_password')->default(false);
+            $table->json('permissions')->nullable();
         });
 
         $used = [];
@@ -67,6 +68,7 @@ return new class extends Migration
                 'role',
                 'is_active',
                 'must_change_password',
+                'permissions',
             ]);
         });
     }

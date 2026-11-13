@@ -55,6 +55,8 @@ Route::middleware(['auth', AdminAccess::class, RequirePasswordChange::class])
             Route::post('/employees', [EmployeeController::class, 'store'])->name('admin.employees.store');
             Route::post('/employees/{employee}/status', [EmployeeController::class, 'updateStatus'])
                 ->name('admin.employees.status');
+            Route::post('/employees/{employee}/permissions', [EmployeeController::class, 'updatePermissions'])
+                ->name('admin.employees.permissions');
 
             Route::get('/access-requests', [AccessRequestController::class, 'index'])
                 ->name('admin.access-requests.index');
