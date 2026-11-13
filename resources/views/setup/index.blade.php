@@ -732,7 +732,7 @@
             [copy.review_enabled_currencies, [...new Set(currencies)].join(', ')],
             [copy.review_contacts, phones.length ? phones.join(', ') : copy.review_no_phones],
             [copy.review_hours, businessHours.length ? businessHours.map((item) => {
-                const day = (dayLabels[localeSelect.value] || dayLabels.es)[item.day] || item.day;
+                const day = dayLabels[item.day] || item.day;
                 return day + ' ' + item.open + '–' + item.close;
             }).join(', ') : copy.review_no_hours],
             [copy.review_photos, form.querySelector('input[type="checkbox"][name="photos_enabled"]')?.checked ? copy.enabled : copy.disabled]
