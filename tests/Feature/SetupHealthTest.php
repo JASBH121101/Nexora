@@ -292,7 +292,7 @@ class SetupHealthTest extends TestCase
         $this->assertFalse($referenceFragrance->is_required);
         $this->assertDatabaseHas('product_field_definitions', ['field_key' => 'body_mist_aroma']);
         $this->assertDatabaseHas('product_field_definitions', ['field_key' => 'set_contents']);
-        $this->assertSame(2, data_get(InstallationSettings::query()->findOrFail(1)->configuration, 'templateVersion'));
+        $this->assertSame(3, data_get(InstallationSettings::query()->findOrFail(1)->configuration, 'templateVersion'));
     }
 
     public function test_dynamic_field_groups_are_scoped_to_their_catalog_category(): void
