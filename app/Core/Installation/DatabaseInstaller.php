@@ -4,7 +4,6 @@ namespace App\Core\Installation;
 
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
 final class DatabaseInstaller
