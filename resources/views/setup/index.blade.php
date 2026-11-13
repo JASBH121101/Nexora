@@ -402,7 +402,7 @@
     };
 
     initialAdditionalCurrencies.forEach((code) => {
-        if (currencies.includes(code) && !selectedAdditionalCurrencies.includes(code)) {
+        if (currencies.includes(code) && code !== currencySelect.value && !selectedAdditionalCurrencies.includes(code)) {
             selectedAdditionalCurrencies.push(code);
         }
     });
@@ -440,7 +440,6 @@
     };
 
     renderCountryOptions();
-    applyCountryCurrency();
     localeSelect.addEventListener('change', () => {
         renderCountryOptions();
         renderCurrencyOptions();
