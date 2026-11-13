@@ -633,9 +633,7 @@
     };
 
     const renderReview = () => {
-        const currencies = [getValue('primary_currency')].concat(
-            [...form.querySelectorAll('[name="additional_currencies[]"]:checked')].map(x => x.value)
-        );
+        const currencies = [getValue('primary_currency')].concat(selectedAdditionalCurrencies);
         const phones = [...phoneList.querySelectorAll('[data-phone-number]')].map(x => x.value).filter(Boolean);
         const rows = [
             ['Idioma principal', localeSelect.selectedOptions[0]?.textContent || getValue('locale')],
