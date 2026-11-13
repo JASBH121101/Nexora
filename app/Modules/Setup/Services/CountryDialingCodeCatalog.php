@@ -1,6 +1,6 @@
 <?php
 
-namespace App\\Modules\\Setup\\Services;
+namespace App\Modules\Setup\Services;
 
 final class CountryDialingCodeCatalog
 {
@@ -25,7 +25,7 @@ final class CountryDialingCodeCatalog
 
     public static function formatInternational(string $phone): string
     {
-        $digits = preg_replace('/\\D+/', '', $phone) ?? '';
+        $digits = preg_replace('/\D+/', '', $phone) ?? '';
         $callingCodes = array_unique(array_values(self::all()));
 
         usort(
@@ -46,7 +46,7 @@ final class CountryDialingCodeCatalog
 
     public static function formatNational(string $number): string
     {
-        $digits = preg_replace('/\\D+/', '', $number) ?? '';
+        $digits = preg_replace('/\D+/', '', $number) ?? '';
         $length = strlen($digits);
 
         return match ($length) {
