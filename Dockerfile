@@ -7,7 +7,7 @@ RUN apt-get update \
         libpq-dev \
         libxml2-dev \
         unzip \
-    && docker-php-ext-install -j"$(nproc)" curl dom mbstring pdo_pgsql xml \
+    && docker-php-ext-install -j"$(nproc)" pdo_pgsql xml \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
