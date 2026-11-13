@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\CatalogCategory;
+use App\Models\CatalogGroup;
 use App\Models\InstallationSettings;
 use App\Models\LoginHelpRequest;
 use App\Models\Product;
@@ -511,6 +512,110 @@ class SetupHealthTest extends TestCase
         ]);
 
         $this->get('/producto/'.$draft->slug)->assertNotFound();
+    }
+
+    public function test_owner_can_create_update_and_deactivate_categories(): void
+    {
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $this->post(route('admin.categories.store'), [
+            'name' => 'Accesorios de moto',
+        ])->assertRedirect()->assertSessionHas('status');
+
+        $category = CatalogCategory::query()
+            ->where('name', 'Accesorios de moto')
+            ->firstOrFail();
+
+        $this->assertSame('accesorios-de-moto', $category->slug);
+        $this->assertTrue($category->is_active);
+
+        $this->put(route('admin.categories.update', $category), [
+            'name' => 'Accesorios para motocicleta',
+        ])->assertRedirect();
+
+        $category->refresh();
+
+        $this->assertSame('accesorios-para-motocicleta', $category->slug);
+
+        $this->post(route('admin.categories.status', $category), [
+            'is_active' => '0',
+        ])->assertRedirect();
+
+        $this->assertFalse($category->fresh()->is_active);
+    }
+
+    public function test_owner_can_create_and_configure_dynamic_fields(): void
+    {
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $group = CatalogGroup::query()->firstOrFail();
+
+        $this->post(route('admin.fields.store'), [
+            'group_id' => $group->id,
+            'field_key' => 'product_condition',
+            'label' => 'Condición',
+            'field_type' => 'select',
+            'options_text' => "Nuevo\nUsado\nReacondicionado",
+            'width' => 'half',
+            'is_public' => '1',
+            'is_searchable' => '1',
+        ])->assertRedirect()->assertSessionHas('status');
+
+        $field = ProductFieldDefinition::query()
+            ->where('field_key', 'product_condition')
+            ->firstOrFail();
+
+        $this->assertSame(['Nuevo', 'Usado', 'Reacondicionado'], $field->options);
+        $this->assertTrue($field->is_public);
+        $this->assertTrue($field->is_searchable);
+
+        $this->put(route('admin.fields.update', $field), [
+            'group_id' => $group->id,
+            'field_key' => 'condition_status',
+            'label' => 'Estado del producto',
+            'field_type' => 'select',
+            'options_text' => "Nuevo\nUsado",
+            'width' => 'full',
+            'is_required' => '1',
+            'unit_dimension' => 'condition',
+            'unit_code' => '',
+        ])->assertRedirect();
+
+        $field->refresh();
+
+        $this->assertSame('condition_status', $field->field_key);
+        $this->assertSame('Estado del producto', $field->label);
+        $this->assertSame(['Nuevo', 'Usado'], $field->options);
+        $this->assertTrue($field->is_required);
+        $this->assertFalse($field->is_public);
+        $this->assertFalse($field->is_searchable);
+        $this->assertSame('full', $field->width);
+    }
+
+    public function test_employee_catalog_configuration_requires_the_specific_permission(): void
+    {
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $this->post('/admin/employees', [
+            'name' => 'Empleado de prueba',
+            'username' => 'empleado01',
+            'email' => 'employee@example.com',
+        ])->assertRedirect();
+
+        $employee = User::query()->where('username', 'empleado01')->firstOrFail();
+        $employee->forceFill([
+            'is_active' => true,
+            'must_change_password' => false,
+            'permissions' => ['categories.manage'],
+        ])->save();
+
+        $this->actingAs($employee)->get('/admin/categories')->assertOk();
+        $this->get('/admin/fields')->assertForbidden();
+
+        $employee->forceFill(['permissions' => ['fields.manage']])->save();
+
+        $this->actingAs($employee->fresh())->get('/admin/fields')->assertOk();
+        $this->get('/admin/categories')->assertForbidden();
     }
 
     public function test_owner_can_log_in_again_after_logout(): void

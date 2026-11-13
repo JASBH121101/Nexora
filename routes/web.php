@@ -4,6 +4,8 @@ use App\Http\Middleware\AdminAccess;
 use App\Http\Middleware\OwnerOnly;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Modules\Admin\Http\Controllers\AccessRequestController;
+use App\Modules\Admin\Http\Controllers\CategoryController;
+use App\Modules\Admin\Http\Controllers\FieldDefinitionController;
 use App\Modules\Admin\Http\Controllers\DashboardController;
 use App\Modules\Admin\Http\Controllers\EmployeeController;
 use App\Modules\Admin\Http\Controllers\LoginController;
@@ -69,6 +71,41 @@ Route::middleware(['auth', AdminAccess::class, RequirePasswordChange::class])
         Route::delete('/products/{product}', [ProductController::class, 'destroy'])
             ->middleware('permission:catalog.manage')
             ->name('admin.products.destroy');
+
+        Route::get('/categories', [CategoryController::class, 'index'])
+            ->middleware('permission:categories.manage')
+            ->name('admin.categories.index');
+        Route::post('/categories', [CategoryController::class, 'store'])
+            ->middleware('permission:categories.manage')
+            ->name('admin.categories.store');
+        Route::put('/categories/{category}', [CategoryController::class, 'update'])
+            ->middleware('permission:categories.manage')
+            ->name('admin.categories.update');
+        Route::post('/categories/{category}/status', [CategoryController::class, 'updateStatus'])
+            ->middleware('permission:categories.manage')
+            ->name('admin.categories.status');
+
+        Route::get('/fields', [FieldDefinitionController::class, 'index'])
+            ->middleware('permission:fields.manage')
+            ->name('admin.fields.index');
+        Route::post('/fields/groups', [FieldDefinitionController::class, 'storeGroup'])
+            ->middleware('permission:fields.manage')
+            ->name('admin.fields.groups.store');
+        Route::put('/fields/groups/{group}', [FieldDefinitionController::class, 'updateGroup'])
+            ->middleware('permission:fields.manage')
+            ->name('admin.fields.groups.update');
+        Route::delete('/fields/groups/{group}', [FieldDefinitionController::class, 'destroyGroup'])
+            ->middleware('permission:fields.manage')
+            ->name('admin.fields.groups.destroy');
+        Route::post('/fields', [FieldDefinitionController::class, 'store'])
+            ->middleware('permission:fields.manage')
+            ->name('admin.fields.store');
+        Route::put('/fields/{field}', [FieldDefinitionController::class, 'update'])
+            ->middleware('permission:fields.manage')
+            ->name('admin.fields.update');
+        Route::delete('/fields/{field}', [FieldDefinitionController::class, 'destroy'])
+            ->middleware('permission:fields.manage')
+            ->name('admin.fields.destroy');
 
         Route::middleware(OwnerOnly::class)->group(function (): void {
             Route::get('/employees', [EmployeeController::class, 'index'])->name('admin.employees.index');
