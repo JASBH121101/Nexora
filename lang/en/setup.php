@@ -2,6 +2,7 @@
 
 return [
     'page_title' => 'Setup · NEXORA',
+    'engine_label' => 'NEXORA SETUP ENGINE',
     'heading' => 'Get your catalog ready',
     'intro' => 'First, we check your VPS. Then we configure your business, owner account, currencies and template.',
     'correct' => 'Ready',
