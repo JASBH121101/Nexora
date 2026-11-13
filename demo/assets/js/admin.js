@@ -66,7 +66,7 @@
       const productWrap = make("div");
       productWrap.classList.add("table-product");
       const image = make("img");
-      image.src = safeImageSource(product.image);
+      image.src = photoUploadsEnabled() && product.image ? safeImageSource(product.image) : "assets/img/product-placeholder.svg";
       image.alt = "";
       image.loading = "lazy";
       image.addEventListener("error", () => { image.src = "assets/img/product-placeholder.svg"; }, { once: true });
