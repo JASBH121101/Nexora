@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { Script } from "node:vm";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const html = read("../setup.html");
@@ -118,6 +119,6 @@ test("the admin dynamic field grid collapses safely on narrow screens", () => {
 
 test("all demo JavaScript bundles parse without syntax errors", () => {
   for (const source of scripts) {
-    assert.doesNotThrow(() => new Function(source));
+    assert.doesNotThrow(() => new Script(source));
   }
 });
