@@ -2,6 +2,7 @@
 
 namespace App\Modules\Admin\Http\Controllers;
 
+use App\Models\CatalogCategory;
 use App\Models\CatalogGroup;
 use App\Models\ProductFieldDefinition;
 use Illuminate\Http\RedirectResponse;
@@ -25,8 +26,9 @@ final class FieldDefinitionController
     public function index(): View
     {
         return view('admin.fields.index', [
+            'categories' => CatalogCategory::query()->orderBy('sort_order')->orderBy('name')->get(),
             'groups' => CatalogGroup::query()
-                ->with(['fields' => static fn ($query) => $query->orderBy('sort_order')])
+                ->with(['category', 'fields' => static fn ($query) => $query->orderBy('sort_order')])
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get(),
@@ -38,11 +40,15 @@ final class FieldDefinitionController
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:100'],
+            'category_id' => ['nullable', 'integer', 'exists:catalog_categories,id'],
         ]);
 
         CatalogGroup::query()->create([
+            'category_id' => $data['category_id'] ?? null,
             'name' => trim($data['name']),
-            'sort_order' => (int) CatalogGroup::query()->max('sort_order') + 1,
+            'sort_order' => (int) CatalogGroup::query()
+                ->where('category_id', $data['category_id'] ?? null)
+                ->max('sort_order') + 1,
         ]);
 
         return back()->with('status', 'Grupo creado correctamente.');
@@ -52,9 +58,11 @@ final class FieldDefinitionController
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:100'],
+            'category_id' => ['nullable', 'integer', 'exists:catalog_categories,id'],
         ]);
 
         $group->update([
+            'category_id' => $data['category_id'] ?? null,
             'name' => trim($data['name']),
         ]);
 
