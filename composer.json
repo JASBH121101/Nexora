@@ -36,7 +36,7 @@
       "@php artisan test"
     ],
     "lint": [
-      "@php ./vendor/bin/pint --test -v"
+      "@php ./vendor/bin/pint --test"
     ],
     "post-install-cmd": [
       "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
