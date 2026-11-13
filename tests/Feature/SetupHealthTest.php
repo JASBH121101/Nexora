@@ -46,7 +46,7 @@ class SetupHealthTest extends TestCase
             ->assertSee('Ropa deportiva', false)
             ->assertSee('Cilindraje', false)
             ->assertSee('Abarrotes', false)
-            ->assertSee('Catálogo personalizado', false);
+            ->assertSee('"other"', false);
     }
 
     public function test_public_site_redirects_to_setup_before_installation_is_completed(): void
