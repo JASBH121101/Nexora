@@ -1,60 +1,74 @@
 # NEXORA
 
-**Catálogo digital administrable para negocios.**
+**Catálogo digital configurable para negocios.**
 
-NEXORA permite que un negocio publique sus productos en una página web y los administre desde un panel privado. El mismo código fuente se reutiliza para distintos clientes, pero cada negocio recibe su propia instalación independiente.
+NEXORA es un producto web reutilizable para que distintos tipos de negocio publiquen y administren sus productos desde una página pública y un panel privado. Cada cliente recibe una instalación independiente con su propia base de datos, archivos y configuración.
 
-**NEXORA no es un ERP, una tienda en línea ni un SaaS centralizado.**
+NEXORA **no es un ERP ni un SaaS centralizado multiempresa**. No comparte datos entre negocios y no necesita una cuenta central.
 
-## Primera versión
+## Visión del producto
 
-### Página web pública
-- Diseño adaptable a celulares, tabletas y computadoras.
-- Página de presentación del negocio.
-- Catálogo de productos con fotografías, nombre, categoría y descripción.
-- Precio opcional y detalle adicional.
-- Búsqueda y filtros por categoría.
-- Ficha individual de producto.
-- Botón de contacto por WhatsApp, general y desde cada producto.
-- Personalización sencilla de nombre, logotipo y colores.
+La configuración inicial identifica el tipo de negocio y carga una plantilla editable. El propietario puede personalizar grupos y campos de sus fichas de producto sin crear tablas SQL ni modificar código.
 
-### Panel administrativo privado
-- Inicio de sesión del propietario.
-- Resumen sencillo: productos, categorías y productos publicados.
-- Crear, editar, publicar, ocultar y eliminar productos.
-- Crear, editar y ordenar categorías.
-- Subir, reemplazar y eliminar fotografías.
-- Configurar identidad del negocio y datos de WhatsApp.
+Plantillas previstas: perfumería, ropa y calzado, tecnología, gimnasio y fitness, repuestos/vehículos, alimentos/abarrotes y una plantilla libre.
 
-## Fuera de alcance
-No incluye carrito, pagos, pedidos, inventario, compras, proveedores, facturación, contabilidad, nómina, POS, CRM, módulos activables ni funciones ERP.
+## Funciones previstas para el producto
 
-## Modelo de entrega
-- Un único código fuente reutilizable.
-- Una instalación independiente por negocio, normalmente en el VPS del cliente.
-- Base de datos, fotografías y configuración separadas por instalación.
-- El propietario crea su cuenta y registra el negocio durante la instalación.
-- Entrega prevista: ZIP instalable, documentación y guía de configuración.
-- El VPS, dominio y alojamiento son responsabilidad del cliente.
+### Asistente de configuración
+- Nombre comercial, propietario, correo y tipo de negocio.
+- Verificación del correo y creación segura de la cuenta en producción.
+- Hasta cinco números de WhatsApp, selección de número principal y control de cuáles se muestran públicamente.
+- Logotipo, portada, descripción, color principal, ubicación y horario opcionales.
+- Moneda principal y activación de monedas adicionales.
 
-## Tecnología prevista
+### Catálogo configurable
+- Plantillas sectoriales editables.
+- Constructor de grupos y campos personalizados.
+- Tipos de campo: texto, número, lista, selección múltiple, sí/no, fecha y texto largo.
+- Orden, ancho visual, obligatoriedad, visibilidad pública y filtros configurables.
+- Biblioteca de unidades por magnitud: masa, volumen, longitud, cantidad y área.
+- Posibilidad de agregar unidades personalizadas.
+- Fotografías opcionales por instalación.
+- Campos fundamentales protegidos: nombre, descripción, categoría, precio y estado.
+
+### Página pública y panel
+- Página de presentación y catálogo responsive.
+- Búsqueda y filtros.
+- Ficha de producto organizada por grupos.
+- Contacto directo con enlaces de WhatsApp generales y por producto.
+- Panel privado con resumen, productos, categorías, configuración y editor de fichas.
+
+## Arquitectura y entrega
+
+- Código fuente común, instalación independiente por negocio.
 - Laravel / PHP.
 - MariaDB Community o MySQL Community.
 - Blade, HTML, CSS y JavaScript.
-- Almacenamiento local del servidor para las fotografías.
-- Pruebas automatizadas y JB Expert QA durante el desarrollo.
+- Fotografías almacenadas en el servidor; la base de datos conserva rutas y metadatos.
+- Migraciones reproducibles, validación de servidor y pruebas automatizadas.
+- Entrega objetivo: ZIP instalable, `.env.example`, migraciones y documentación.
+- VPS, dominio y alojamiento contratados por cada cliente.
 
-Las funciones básicas no requieren licencias comerciales ni servicios externos obligatorios. El VPS, dominio y servicios que el cliente contrate pueden generar costos propios.
+No se requiere la API oficial de WhatsApp para enlaces de contacto `wa.me`. Automatización de conversaciones, OTP por SMS/WhatsApp, conversión cambiaria automática y servicios externos son alcances separados que deben evaluarse por costo.
 
-## Estado actual
-El repositorio contiene una demo frontend HTML/CSS/JS para validar el catálogo, la vista de producto, WhatsApp y un panel de prueba. La demo usa `localStorage`; no tiene autenticación real, backend, base de datos ni carga de archivos en servidor.
+## Estado real del repositorio
 
-La demostración incluye tres rubros ficticios para enseñar la flexibilidad del producto. En producción cada instalación mostrará un solo negocio y utilizará su propia base de datos.
+El repositorio contiene una demostración frontend HTML/CSS/JS:
+- `demo/`: muestra pública, panel de administración simulado y datos de muestra.
+- `demo/setup.html`: prototipo del asistente guiado y constructor de fichas.
+- Los cambios de la demo se guardan en `localStorage` del navegador.
+- La demo no tiene autenticación real, API, base de datos ni almacenamiento seguro de imágenes.
+- No debe utilizarse para administrar datos reales ni introducir contraseñas o datos personales.
+
+El prototipo sirve para validar flujo, interacción y estructura visual. **No equivale a la aplicación Laravel de producción.**
 
 ## Documentación
+
 - [Alcance funcional](docs/PRODUCT-SCOPE.md)
 - [Arquitectura técnica](docs/ARCHITECTURE.md)
+- [Motor de catálogo configurable](docs/DYNAMIC-CATALOG-ENGINE.md)
 - [Guía de la demo](demo/README.md)
 
 ## Seguridad
-Este repositorio es público. No subir archivos `.env`, contraseñas, tokens, claves privadas, copias de bases de datos ni datos personales de clientes. La demo debe utilizar información ficticia.
+
+Este repositorio es público. No subir archivos `.env`, contraseñas, tokens, claves privadas, copias de bases de datos ni datos personales. Toda autenticación y autorización real debe ocurrir en el backend; ocultar controles en el navegador no es una medida de seguridad.
