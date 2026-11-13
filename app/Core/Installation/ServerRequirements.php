@@ -24,9 +24,9 @@ final class ServerRequirements
 
         return [
             'key' => 'php',
-            'label' => 'Versión de PHP',
+            'label' => __('setup.checks.php_label'),
             'passed' => $passed,
-            'detail' => sprintf('Detectado %s; mínimo requerido: %s.', PHP_VERSION, $minimum),
+            'detail' => __('setup.checks.php_detail', ['detected' => PHP_VERSION, 'minimum' => $minimum]),
         ];
     }
 
@@ -55,11 +55,11 @@ final class ServerRequirements
 
         return [
             'key' => 'extensions',
-            'label' => 'Extensiones PHP',
+            'label' => __('setup.checks.extensions_label'),
             'passed' => $missing === [],
             'detail' => $missing === []
-                ? 'Todas las extensiones obligatorias para el motor configurado están disponibles.'
-                : 'Faltan: '.implode(', ', $missing).'.',
+                ? __('setup.checks.extensions_passed')
+                : __('setup.checks.extensions_missing', ['extensions' => implode(', ', $missing)]),
         ];
     }
 
@@ -70,9 +70,9 @@ final class ServerRequirements
 
             return [
                 'key' => 'database',
-                'label' => 'Conexión a la base de datos',
+                'label' => __('setup.checks.database_label'),
                 'passed' => true,
-                'detail' => 'Laravel pudo abrir una conexión con el motor configurado.',
+                'detail' => __('setup.checks.database_passed'),
             ];
         } catch (Throwable $exception) {
             return [
@@ -80,8 +80,8 @@ final class ServerRequirements
                 'label' => 'Conexión a la base de datos',
                 'passed' => false,
                 'detail' => app()->environment('production')
-                    ? 'No se pudo conectar. Revisa DB_HOST, DB_DATABASE, DB_USERNAME y DB_PASSWORD.'
-                    : 'No se pudo conectar: '.$exception->getMessage(),
+                    ? __('setup.checks.database_failed')
+                    : __('setup.checks.database_failed_debug', ['error' => $exception->getMessage()]),
             ];
         }
     }
@@ -104,11 +104,11 @@ final class ServerRequirements
 
         return [[
             'key' => 'permissions',
-            'label' => 'Permisos de escritura',
+            'label' => __('setup.checks.permissions_label'),
             'passed' => $unwritable === [],
             'detail' => $unwritable === []
-                ? 'Los directorios requeridos permiten escritura.'
-                : 'Revisa permisos de: '.implode(', ', $unwritable).'.',
+                ? __('setup.checks.permissions_passed')
+                : __('setup.checks.permissions_failed', ['directories' => implode(', ', $unwritable)]),
         ]];
     }
 }
