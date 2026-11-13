@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\InstallationSettings;
+use App\Models\LoginHelpRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -211,7 +212,7 @@ class SetupHealthTest extends TestCase
             'password' => 'Strong-Password-2026!',
         ])->assertRedirect(route('admin.home'));
 
-        $request = \App\Models\LoginHelpRequest::query()->firstOrFail();
+        $request = LoginHelpRequest::query()->firstOrFail();
         $response = $this->post(route('admin.access-requests.temporary-password', $request));
 
         $temporaryPassword = null;
