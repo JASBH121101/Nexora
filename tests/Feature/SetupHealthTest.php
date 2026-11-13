@@ -456,6 +456,29 @@ class SetupHealthTest extends TestCase
 
         $this->assertNull($group->fresh()->category_id);
         $this->assertNull($group->category);
+
+        ProductFieldDefinition::query()->create([
+            'group_id' => $group->id,
+            'field_key' => 'shared_material',
+            'label' => 'Material compartido',
+            'field_type' => 'text',
+            'options' => null,
+            'is_required' => false,
+            'is_public' => true,
+            'is_searchable' => false,
+            'width' => 'half',
+            'sort_order' => 0,
+        ]);
+
+        foreach (CatalogCategory::query()->get() as $category) {
+            $this->assertContains(
+                'shared_material',
+                ProductFieldDefinition::query()
+                    ->availableForCategory($category->id)
+                    ->pluck('field_key')
+                    ->all(),
+            );
+        }
     }
 
     public function test_public_site_redirects_to_setup_before_installation_is_completed(): void
