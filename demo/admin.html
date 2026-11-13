@@ -77,8 +77,8 @@
       <div class="form-two-col"><label>Categoría<input id="product-category" maxlength="45" required></label><label>Precio (USD)<input id="product-price" type="number" min="0" step="0.01" required></label></div>
       <label>Precio anterior (opcional)<input id="product-old-price" type="number" min="0" step="0.01"></label>
       <label>Descripción<textarea id="product-description" rows="3" maxlength="500" required></textarea></label>
-      <label>Imagen (URL de muestra)<input id="product-image" type="url" placeholder="https://..." required></label>
-      <label>Detalle adicional (talla, kilometraje, memoria...)<input id="product-detail" maxlength="80" placeholder="Ej. Disponible en varias tallas"></label>
+      <div id="dynamic-product-fields" class="dynamic-product-fields"></div>
+      <label id="product-image-field">Fotografía del producto (URL de muestra)<input id="product-image" type="url" placeholder="https://..."></label>
       <label class="check-label"><input id="product-featured" type="checkbox"> Marcar como destacado</label>
       <div class="form-actions"><button id="cancel-product" class="button button-outline button-small" type="button">Cancelar</button><button class="button button-dark button-small" type="submit">Guardar producto</button></div>
     </form>
