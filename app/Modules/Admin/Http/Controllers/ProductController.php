@@ -162,7 +162,7 @@ final class ProductController
                 ->orderBy('name')
                 ->get(),
             'fieldGroups' => CatalogGroup::query()
-                ->with(['fields' => static fn ($query) => $query->orderBy('sort_order')])
+                ->with(['category', 'fields' => static fn ($query) => $query->orderBy('sort_order')])
                 ->orderBy('sort_order')
                 ->get(),
             'currencies' => BusinessCurrency::query()
@@ -177,7 +177,17 @@ final class ProductController
 
     private function validateProduct(Request $request): array
     {
-        $definitions = ProductFieldDefinition::query()->orderBy('sort_order')->get();
+        $categoryId = filter_var($request->input('category_id'), FILTER_VALIDATE_INT);
+        $definitions = ProductFieldDefinition::query()
+            ->whereHas('group', static function ($query) use ($categoryId): void {
+                $query->whereNull('category_id');
+
+                if ($categoryId !== false && $categoryId !== null) {
+                    $query->orWhere('category_id', $categoryId);
+                }
+            })
+            ->orderBy('sort_order')
+            ->get();
         $currencies = BusinessCurrency::query()
             ->where('is_enabled', true)
             ->orderBy('sort_order')
@@ -290,11 +300,23 @@ final class ProductController
 
     private function syncProductData(Product $product, array $validated): void
     {
-        $product->fieldValues()->delete();
+        $definitions = ProductFieldDefinition::query()
+            ->whereHas('group', static function ($query) use ($product): void {
+                $query->whereNull('category_id');
+
+                if ($product->category_id !== null) {
+                    $query->orWhere('category_id', $product->category_id);
+                }
+            })
+            ->get()
+            ->keyBy('field_key');
+
+        $product->fieldValues()
+            ->whereIn('field_definition_id', $definitions->pluck('id'))
+            ->delete();
         $product->prices()->delete();
 
         $fieldValues = $validated['fields'] ?? [];
-        $definitions = ProductFieldDefinition::query()->get()->keyBy('field_key');
 
         foreach ($definitions as $fieldKey => $definition) {
             $value = $fieldValues[$fieldKey] ?? null;
