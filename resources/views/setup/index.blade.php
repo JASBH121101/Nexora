@@ -291,7 +291,7 @@
         currencyPicker.replaceChildren();
         const placeholder = document.createElement('option');
         placeholder.value = '';
-        placeholder.textContent = 'Seleccionar moneda…';
+        placeholder.textContent = copy.empty_currency_option;
         currencyPicker.append(placeholder);
         available.forEach((code) => {
             const option = document.createElement('option');
@@ -311,8 +311,8 @@
             label.textContent = currencyLabel(code);
             const remove = document.createElement('button');
             remove.type = 'button';
-            remove.textContent = 'Quitar';
-            remove.setAttribute('aria-label', 'Quitar moneda ' + code);
+            remove.textContent = copy.remove;
+            remove.setAttribute('aria-label', copy.remove_currency.replace(':code', code));
             remove.addEventListener('click', () => {
                 const index = selectedAdditionalCurrencies.indexOf(code);
                 if (index !== -1) selectedAdditionalCurrencies.splice(index, 1);
@@ -338,10 +338,8 @@
         renderAdditionalCurrencies();
     };
 
-    const dayLabels = {
-        es: { monday: 'Lunes', tuesday: 'Martes', wednesday: 'Miércoles', thursday: 'Jueves', friday: 'Viernes', saturday: 'Sábado', sunday: 'Domingo' },
-        en: { monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday' }
-    };
+    const dayLabels = @json(__('setup.days'));
+    const copy = @json(__('setup.javascript'));
     const weekDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
     const renderBusinessHours = () => {
@@ -349,7 +347,7 @@
         if (businessHours.length === 0) {
             const empty = document.createElement('p');
             empty.className = 'empty-hours';
-            empty.textContent = 'No has añadido horarios. Puedes dejarlos vacíos.';
+            empty.textContent = copy.empty_hours;
             hoursList.append(empty);
             return;
         }
@@ -385,14 +383,14 @@
             closes.required = true;
             closes.value = hours.close || '18:00';
 
-            addField(localeSelect.value === 'en' ? 'Day' : 'Día', day);
-            addField(localeSelect.value === 'en' ? 'Opens' : 'Apertura', opens);
-            addField(localeSelect.value === 'en' ? 'Closes' : 'Cierre', closes);
+            addField(copy.day, day);
+            addField(copy.opens, opens);
+            addField(copy.closes, closes);
 
             const remove = document.createElement('button');
             remove.type = 'button';
             remove.className = 'business-hours-remove';
-            remove.textContent = localeSelect.value === 'en' ? 'Remove' : 'Quitar';
+            remove.textContent = copy.remove;
             remove.addEventListener('click', () => {
                 businessHours.splice(index, 1);
                 renderBusinessHours();
@@ -444,14 +442,28 @@
     };
 
     renderCountryOptions();
+    const syncSetupUrl = () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('locale', localeSelect.value);
+        url.searchParams.set('country_code', countrySelect.value || preferredCountry);
+        window.history.replaceState({}, '', url.toString());
+        const query = '?locale=' + encodeURIComponent(localeSelect.value)
+            + '&country_code=' + encodeURIComponent(countrySelect.value || preferredCountry);
+        form.action = '/setup' + query;
+        const cancelForm = document.getElementById('nexora-cancel-form');
+        if (cancelForm) cancelForm.action = '/setup/cancel' + query;
+    };
+
     localeSelect.addEventListener('change', () => {
-        renderCountryOptions();
-        renderCurrencyOptions();
-        renderBusinessHours();
+        const url = new URL(window.location.href);
+        url.searchParams.set('locale', localeSelect.value);
+        url.searchParams.set('country_code', countrySelect.value || preferredCountry);
+        window.location.assign(url.toString());
     });
     countrySelect.addEventListener('change', () => {
         applyCountryCurrency();
         updateDefaultPhoneCallingCodes();
+        syncSetupUrl();
     });
     currencySelect.addEventListener('change', () => {
         const index = selectedAdditionalCurrencies.indexOf(currencySelect.value);
@@ -462,7 +474,7 @@
         const code = currencyPicker.value;
         if (!code || selectedAdditionalCurrencies.includes(code)) return;
         if (selectedAdditionalCurrencies.length >= 10) {
-            window.alert('Puedes añadir hasta diez monedas adicionales.');
+            window.alert(copy.max_additional_currencies);
             return;
         }
         selectedAdditionalCurrencies.push(code);
@@ -475,7 +487,7 @@
     });
 
     cancel.addEventListener('click', (event) => {
-        if (!window.confirm('¿Cancelar esta prueba? No se creará el propietario, el negocio ni las categorías. La estructura vacía de tablas se conservará para repetir la prueba.')) {
+        if (!window.confirm(copy.cancel_confirm)) {
             event.preventDefault();
         }
     });
@@ -488,8 +500,8 @@
 
             const shouldShow = input.type === 'password';
             input.type = shouldShow ? 'text' : 'password';
-            button.textContent = shouldShow ? 'Ocultar' : 'Mostrar';
-            button.setAttribute('aria-label', shouldShow ? 'Ocultar contraseña' : 'Mostrar contraseña');
+            button.textContent = shouldShow ? copy.hide_password : copy.show_password;
+            button.setAttribute('aria-label', shouldShow ? (button.getAttribute('aria-controls') === 'owner-password-confirmation' ? copy.hide_password_confirmation_aria : copy.hide_password_aria) : (button.getAttribute('aria-controls') === 'owner-password-confirmation' ? copy.show_password_confirmation_aria : copy.show_password_aria));
             button.setAttribute('aria-pressed', String(shouldShow));
         });
     });
@@ -500,7 +512,7 @@
         prev.hidden = index === 0;
         next.hidden = index === steps.length - 1;
         submit.hidden = index !== steps.length - 1;
-        counter.textContent = 'Paso ' + (index + 1) + ' de ' + steps.length;
+        counter.textContent = copy.wizard_step.replace(':current', String(index + 1)).replace(':total', String(steps.length));
         progress.style.width = (((index + 1) / steps.length) * 100) + '%';
         if (index === 3) renderTemplate();
         if (index === 4) renderReview();
@@ -557,7 +569,7 @@
         phoneInputs.className = 'phone-input-grid';
 
         const codeLabel = document.createElement('label');
-        codeLabel.append(document.createTextNode('Código de país'));
+        codeLabel.append(document.createTextNode(copy.country_calling_code));
         const codeInput = document.createElement('input');
         codeInput.dataset.phoneCallingCode = '';
         codeInput.type = 'tel';
@@ -576,7 +588,7 @@
         codeLabel.append(codeInput);
 
         const numberLabel = document.createElement('label');
-        numberLabel.append(document.createTextNode('Número móvil'));
+        numberLabel.append(document.createTextNode(copy.mobile_number));
         const phoneInput = document.createElement('input');
         phoneInput.dataset.phoneNumber = '';
         phoneInput.type = 'tel';
@@ -603,7 +615,7 @@
         primaryInput.name = 'primary_phone';
         primaryInput.value = '0';
         primaryInput.checked = initial.primary === true || (!initial.primary && rows.length === 0);
-        primaryLabel.append(primaryInput, document.createTextNode(' Principal'));
+        primaryLabel.append(primaryInput, document.createTextNode(' ' + copy.primary));
 
         const publicLabel = document.createElement('label');
         const hiddenVisibilityInput = document.createElement('input');
@@ -619,7 +631,7 @@
         publicLabel.append(
             hiddenVisibilityInput,
             publicVisibilityInput,
-            document.createTextNode(' Mostrar públicamente'),
+            document.createTextNode(' ' + copy.show_publicly),
         );
 
         phoneOptions.append(primaryLabel, publicLabel);
@@ -628,7 +640,7 @@
         removeButton.type = 'button';
         removeButton.className = 'secondary-button';
         removeButton.dataset.removePhone = '';
-        removeButton.textContent = 'Quitar';
+        removeButton.textContent = copy.remove_phone;
         removeButton.addEventListener('click', () => {
             row.remove();
             reindexPhones();
@@ -664,18 +676,18 @@
         container.replaceChildren();
 
         if (!preview) {
-            container.textContent = 'Selecciona un tipo de negocio en el paso 1 para ver su plantilla.';
+            container.textContent = copy.template_select_prompt;
             return;
         }
 
         const title = document.createElement('strong');
-        title.textContent = 'Plantilla seleccionada: ' + preview.label;
+        title.textContent = copy.template_selected.replace(':name', preview.label);
         container.append(title);
 
         const categoriesSection = document.createElement('section');
         categoriesSection.className = 'template-summary__section';
         const categoriesTitle = document.createElement('strong');
-        categoriesTitle.textContent = 'Categorías que se crearán';
+        categoriesTitle.textContent = copy.categories_to_create;
         const categories = document.createElement('div');
         categories.className = 'template-summary__items';
 
@@ -693,10 +705,10 @@
             const fieldsSection = document.createElement('section');
             fieldsSection.className = 'template-summary__section';
             const groupTitle = document.createElement('strong');
-            groupTitle.textContent = 'Campos iniciales · ' + group.category + ' · ' + group.name;
+            groupTitle.textContent = copy.review_field_group.replace(':category', group.category).replace(':group', group.name);
             const fields = document.createElement('p');
             fields.className = 'template-summary__fields';
-            fields.textContent = group.fields.join(' · ') || 'Sin campos iniciales';
+            fields.textContent = group.fields.join(' · ') || copy.without_initial_fields;
             fieldsSection.append(groupTitle, fields);
             container.append(fieldsSection);
         });
@@ -710,20 +722,20 @@
             return [code, number].filter(Boolean).join(' ');
         }).filter(Boolean);
         const rows = [
-            ['Idioma principal', localeSelect.selectedOptions[0]?.textContent || getValue('locale')],
-            ['País del negocio', countrySelect.selectedOptions[0]?.textContent || getValue('country_code')],
-            ['Negocio', getValue('business_name')],
-            ['Plantilla', form.elements.business_type.selectedOptions[0]?.textContent || ''],
-            ['Propietario', getValue('owner_name')],
-            ['Correo', getValue('owner_email')],
-            ['Moneda principal', getValue('primary_currency')],
-            ['Monedas habilitadas', [...new Set(currencies)].join(', ')],
-            ['Contactos', phones.length ? phones.join(', ') : 'Sin teléfonos'],
-            ['Horarios', businessHours.length ? businessHours.map((item) => {
+            [copy.review_language, localeSelect.selectedOptions[0]?.textContent || getValue('locale')],
+            [copy.review_country, countrySelect.selectedOptions[0]?.textContent || getValue('country_code')],
+            [copy.review_business, getValue('business_name')],
+            [copy.review_template, form.elements.business_type.selectedOptions[0]?.textContent || ''],
+            [copy.review_owner, getValue('owner_name')],
+            [copy.review_email, getValue('owner_email')],
+            [copy.review_primary_currency, getValue('primary_currency')],
+            [copy.review_enabled_currencies, [...new Set(currencies)].join(', ')],
+            [copy.review_contacts, phones.length ? phones.join(', ') : copy.review_no_phones],
+            [copy.review_hours, businessHours.length ? businessHours.map((item) => {
                 const day = (dayLabels[localeSelect.value] || dayLabels.es)[item.day] || item.day;
                 return day + ' ' + item.open + '–' + item.close;
-            }).join(', ') : 'No definidos'],
-            ['Fotografías', form.querySelector('input[type="checkbox"][name="photos_enabled"]')?.checked ? 'Habilitadas' : 'Deshabilitadas']
+            }).join(', ') : copy.review_no_hours],
+            [copy.review_photos, form.querySelector('input[type="checkbox"][name="photos_enabled"]')?.checked ? copy.enabled : copy.disabled]
         ];
         document.getElementById('setup-review').replaceChildren(...rows.map(([label, content]) => {
             const row = document.createElement('div');
@@ -746,8 +758,9 @@
             return;
         }
         submit.disabled = true;
-        submit.textContent = 'Creando instalación…';
+        submit.textContent = @json(__('setup.creating_installation'));
     });
+    syncSetupUrl();
     showStep(0);
 })();
 </script>
