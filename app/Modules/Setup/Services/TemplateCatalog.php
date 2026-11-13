@@ -11,9 +11,9 @@ final class TemplateCatalog
 {
     public const VERSION = 2;
 
-    public function all(): array
+    public function all(string $locale = 'es'): array
     {
-        return [
+        $templates = [
             'perfumery' => 'Perfumería',
             'fashion' => 'Ropa y calzado',
             'technology' => 'Tecnología',
@@ -22,6 +22,20 @@ final class TemplateCatalog
             'grocery' => 'Alimentos y abarrotes',
             'other' => 'Catálogo personalizado',
         ];
+
+        if ($locale === 'en') {
+            return [
+                'perfumery' => 'Perfumery',
+                'fashion' => 'Clothing & footwear',
+                'technology' => 'Technology',
+                'gym' => 'Gym & fitness',
+                'automotive' => 'Auto parts & vehicles',
+                'grocery' => 'Food & groceries',
+                'other' => 'Custom catalog',
+            ];
+        }
+
+        return $templates;
     }
 
     public function version(): int
@@ -29,12 +43,12 @@ final class TemplateCatalog
         return self::VERSION;
     }
 
-    public function previews(): array
+    public function previews(string $locale = 'es'): array
     {
         $previews = [];
 
-        foreach ($this->all() as $type => $label) {
-            $definition = $this->definition($type);
+        foreach ($this->all($locale) as $type => $label) {
+            $definition = $this->definition($type, $locale);
             $groups = [];
 
             foreach ($definition['categories'] as $categoryName => $categoryGroups) {
@@ -60,9 +74,9 @@ final class TemplateCatalog
         return $previews;
     }
 
-    public function seed(string $type): void
+    public function seed(string $type, string $locale = 'es'): void
     {
-        $template = $this->definition($type);
+        $template = $this->definition($type, $locale);
 
         $categoryOrder = 0;
 
@@ -109,7 +123,7 @@ final class TemplateCatalog
         }
     }
 
-    private function definition(string $type): array
+    private function definition(string $type, string $locale = 'es'): array
     {
         $text = static fn (string $key, string $label, bool $searchable = false): array => [
             'key' => $key, 'label' => $label, 'type' => 'text', 'searchable' => $searchable,
@@ -128,7 +142,7 @@ final class TemplateCatalog
             'key' => $key, 'label' => $label, 'type' => 'date',
         ];
 
-        return match ($type) {
+        $definition = match ($type) {
             'perfumery' => [
                 'categories' => [
                     'Perfumes' => [[
@@ -341,5 +355,131 @@ final class TemplateCatalog
                 ],
             ],
         };
+
+        return $this->translateDefinition($definition, $locale);
+    }
+
+    /**
+     * Translate presentation labels only. Stable field keys and data types
+     * keep the template contract identical in Spanish and English.
+     */
+    private function translateDefinition(array $definition, string $locale): array
+    {
+        if ($locale !== 'en') {
+            return $definition;
+        }
+
+        $translations = [
+            'Perfumes' => 'Perfumes', 'Body mist' => 'Body mist', 'Sets' => 'Sets',
+            'Ropa' => 'Clothing', 'Calzado' => 'Footwear', 'Accesorios' => 'Accessories',
+            'Teléfonos' => 'Phones', 'Computadoras' => 'Computers', 'Equipos' => 'Equipment',
+            'Ropa deportiva' => 'Sportswear', 'Repuestos' => 'Auto parts', 'Vehículos' => 'Vehicles',
+            'Alimentos' => 'Food', 'Bebidas' => 'Drinks', 'Abarrotes' => 'Groceries',
+            'General' => 'General',
+            'Clasificación y fragancia' => 'Classification & fragrance',
+            'Detalles del body mist' => 'Body mist details',
+            'Contenido del set' => 'Set contents',
+            'Detalles de la prenda' => 'Clothing details',
+            'Detalles del calzado' => 'Footwear details',
+            'Detalles del accesorio' => 'Accessory details',
+            'Especificaciones del teléfono' => 'Phone specifications',
+            'Especificaciones de la computadora' => 'Computer specifications',
+            'Compatibilidad y detalles' => 'Compatibility & details',
+            'Detalles del equipo' => 'Equipment details',
+            'Detalles del accesorio automotriz' => 'Automotive accessory details',
+            'Identificación del repuesto' => 'Auto part identification',
+            'Ficha técnica del vehículo' => 'Vehicle specifications',
+            'Detalles del alimento' => 'Food details',
+            'Detalles de la bebida' => 'Drink details',
+            'Detalles del producto' => 'Product details',
+            'Detalles' => 'Details',
+            'Tipo de producto' => 'Product type',
+            'Marca comercial' => 'Brand',
+            'Fragancia de referencia' => 'Inspired-by fragrance',
+            'Concentración' => 'Concentration',
+            'Contenido' => 'Volume',
+            'Público' => 'Audience',
+            'Familia olfativa' => 'Fragrance family',
+            'Notas olfativas' => 'Fragrance notes',
+            'Aroma' => 'Scent',
+            'Productos incluidos' => 'Included products',
+            'Cantidad de piezas' => 'Number of pieces',
+            'Marca' => 'Brand',
+            'Talla' => 'Size',
+            'Color' => 'Color',
+            'Material' => 'Material',
+            'Corte' => 'Fit',
+            'Tipo de calzado' => 'Footwear type',
+            'Tipo' => 'Type',
+            'Modelo' => 'Model',
+            'Memoria RAM' => 'RAM',
+            'Almacenamiento' => 'Storage',
+            'Tamaño de pantalla' => 'Screen size',
+            'Batería' => 'Battery',
+            'Procesador' => 'Processor',
+            'Gráficos' => 'Graphics',
+            'Compatibilidad' => 'Compatibility',
+            'Conector' => 'Connector',
+            'Peso' => 'Weight',
+            'Dimensiones' => 'Dimensions',
+            'Capacidad' => 'Capacity',
+            'Tamaño' => 'Size',
+            'Marca del repuesto' => 'Part brand',
+            'Referencia' => 'Reference',
+            'Condición' => 'Condition',
+            'Año' => 'Year',
+            'Cilindraje' => 'Engine displacement',
+            'Combustible' => 'Fuel',
+            'Transmisión' => 'Transmission',
+            'Contenido neto' => 'Net content',
+            'Presentación' => 'Packaging',
+            'Fecha de vencimiento' => 'Expiration date',
+            'Sabor' => 'Flavor',
+            'Unidad de venta' => 'Sales unit',
+            'Original' => 'Original', 'Inspiración' => 'Inspired', 'Genérico' => 'Generic',
+            'Mujer' => 'Women', 'Hombre' => 'Men', 'Unisex' => 'Unisex',
+            'Floral' => 'Floral', 'Amaderada' => 'Woody', 'Cítrica' => 'Citrus',
+            'Oriental' => 'Oriental', 'Aromática' => 'Aromatic', 'Dulce' => 'Sweet',
+            'Fresca' => 'Fresh', 'Chipre' => 'Chypre', 'Cuero' => 'Leather',
+            'Otra' => 'Other', 'Frutal' => 'Fruity',
+            'Regular' => 'Regular', 'Slim' => 'Slim', 'Oversize' => 'Oversized',
+            'Holgado' => 'Loose', 'Gasolina' => 'Gasoline', 'Diésel' => 'Diesel',
+            'Híbrido' => 'Hybrid', 'Eléctrico' => 'Electric', 'Manual' => 'Manual',
+            'Automática' => 'Automatic', 'CVT' => 'CVT', 'Otro' => 'Other',
+            'piezas' => 'pieces', 'pulgadas' => 'inches',
+        ];
+
+        $translate = static fn (string $value): string => $translations[$value] ?? $value;
+        $translatedCategories = [];
+
+        foreach ($definition['categories'] as $categoryName => $groups) {
+            $translatedGroups = [];
+
+            foreach ($groups as $group) {
+                $group['name'] = $translate($group['name']);
+
+                foreach ($group['fields'] as $index => $field) {
+                    $field['label'] = $translate($field['label']);
+
+                    if (isset($field['options']) && is_array($field['options'])) {
+                        $field['options'] = array_map($translate, $field['options']);
+                    }
+
+                    if (isset($field['unit'])) {
+                        $field['unit'] = $translate($field['unit']);
+                    }
+
+                    $group['fields'][$index] = $field;
+                }
+
+                $translatedGroups[] = $group;
+            }
+
+            $translatedCategories[$translate($categoryName)] = $translatedGroups;
+        }
+
+        $definition['categories'] = $translatedCategories;
+
+        return $definition;
     }
 }
