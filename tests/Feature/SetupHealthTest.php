@@ -1171,6 +1171,18 @@ class SetupHealthTest extends TestCase
             ->assertDontSee('Cancelar prueba');
     }
 
+    public function test_setup_language_switch_uses_background_fetch_without_page_navigation(): void
+    {
+        $response = $this->get('/setup?locale=es');
+
+        $response->assertOk()
+            ->assertSee('changeLocaleWithoutReload', false)
+            ->assertSee("fetch(url.toString()", false)
+            ->assertSee("window.history.replaceState", false)
+            ->assertSee("localeSelect.addEventListener('change', changeLocaleWithoutReload)", false)
+            ->assertDontSee("window.location.assign(url.toString())", false);
+    }
+
     public function test_setup_validation_messages_follow_the_selected_english_language(): void
     {
         $payload = $this->validSetupPayload();
