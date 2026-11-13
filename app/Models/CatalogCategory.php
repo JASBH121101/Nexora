@@ -21,4 +21,10 @@ class CatalogCategory extends Model
     {
         return $this->hasMany(Product::class, 'category_id');
     }
+
+    public function groups(): HasMany
+    {
+        return $this->hasMany(CatalogGroup::class, 'category_id')
+            ->orderBy('sort_order');
+    }
 }
