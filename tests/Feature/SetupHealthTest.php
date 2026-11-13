@@ -203,7 +203,7 @@ class SetupHealthTest extends TestCase
             ->assertSee('const showStep =', false)
             ->assertSee('minlength="8"', false)
             ->assertSee('data-password-toggle', false)
-            ->assertSee('data-phone-calling-code', false)
+            ->assertSee('phoneCallingCode', false)
             ->assertSee('updateDefaultPhoneCallingCodes', false)
             ->assertSee('formatPhoneNumber', false)
             ->assertSee('aria-controls="owner-password"', false)
