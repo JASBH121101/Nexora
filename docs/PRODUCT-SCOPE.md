@@ -170,9 +170,10 @@ La página pública se genera automáticamente desde NEXORA Site Engine. No requ
 ### Publicación y dominio
 - La página pública utiliza los productos publicados y los campos autorizados para exposición pública.
 - Los cambios visuales pueden permanecer en borrador hasta que el propietario los publique.
-- Cada instalación puede usar un dominio propio contratado por el cliente.
-- El cliente configura el DNS para apuntar al VPS. El instalador debe comprobar dominio y entorno; la automatización de HTTPS dependerá de los permisos y capacidades del VPS. Se documentará ACME/Let's Encrypt y renovación de certificados.
-- HTTPS requiere DNS correcto, conectividad y certificado TLS válido; escribir un dominio en el asistente no activa por sí solo la protección.
+- Cada instalación admite dos opciones: dominio propio contratado por el cliente o subdominio gratuito de un proveedor externo (por ejemplo, DuckDNS) siempre que el cliente controle ese nombre y pueda configurar sus registros DNS para apuntar al VPS.
+- NEXORA no registra dominios, no garantiza disponibilidad ni permanencia de subdominios gratuitos de terceros y no ofrece en v1 subdominios centrales como `cliente.nexora.tld`.
+- El instalador debe mostrar los registros DNS requeridos y comprobar la resolución del nombre y el acceso al servidor. La automatización de HTTPS dependerá de DNS, puertos, servidor web, permisos y método ACME disponible; se documentará el procedimiento manual cuando no pueda automatizarse.
+- HTTPS requiere DNS correcto, conectividad y un certificado TLS válido. La aplicación solo declara HTTPS activo después de comprobar el certificado, su dominio y su vigencia; escribir un dominio en el asistente no activa por sí solo la protección.
 
 ### Separación y privacidad
 El panel administrativo es privado y requiere autenticación. El sitio público solo expone datos publicados y expresamente marcados como visibles. Exportaciones PDF y reportes administrativos se descargan desde el panel y no se publican automáticamente.
@@ -185,5 +186,5 @@ El panel administrativo es privado y requiere autenticación. El sitio público 
 5. Productos no publicados y campos privados nunca aparecen en rutas públicas.
 6. El diseño se adapta a móvil, tableta y escritorio.
 7. No se ejecuta código arbitrario proporcionado desde el editor.
-8. La página puede asociarse a un dominio propio cuando el VPS y DNS estén configurados.
+8. La página puede asociarse a un dominio propio o a un subdominio gratuito externo controlado por el cliente, cuando el VPS y DNS estén configurados.
 9. La configuración de HTTPS se valida y documenta; no se declara activo sin comprobar un certificado válido.

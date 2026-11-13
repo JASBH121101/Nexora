@@ -30,14 +30,16 @@ La UI del editor no debe contener lógica de autorización. Las políticas y val
 
 ## 3. Flujo de primer inicio
 
-1. El instalador valida que la base de datos esté configurada y que la instalación no haya sido completada.
-2. El propietario registra nombre comercial, nombre, correo y contraseña.
-3. Laravel envía verificación de correo. La contraseña se almacena con el hasher del framework, nunca en texto plano.
-4. Se registra el tipo de negocio y se carga una plantilla inicial.
-5. El propietario configura hasta cinco teléfonos: principal y visibilidad pública por número.
-6. Completa identidad, moneda, datos opcionales y preferencia de fotografías.
-7. Personaliza grupos/campos de producto y revisa la vista previa.
-8. El instalador marca la configuración como completada y bloquea el endpoint de creación inicial.
+El asistente de producción debe respetar los cuatro pasos del prototipo y no crear parcialmente una cuenta si el usuario abandona el proceso:
+
+1. **Negocio y propietario:** nombre comercial, nombre del propietario, correo, credenciales iniciales, tipo de negocio y hasta cinco teléfonos de contacto. Se elige un número principal y la visibilidad pública de cada uno.
+2. **Identidad y monedas:** logotipo/portada opcionales, descripción, color principal, ubicación/horario opcionales, moneda principal y monedas adicionales.
+3. **Plantilla y catálogo:** plantilla sectorial, grupos, campos dinámicos, unidades, preferencia de fotografías y vista previa.
+4. **Revisión y confirmación:** validar el resumen y confirmar la instalación.
+
+Al confirmar el último paso, Laravel guarda la configuración y crea al propietario dentro de una transacción; si cualquier operación falla, se revierte la creación para no dejar una instalación a medias. La contraseña se almacena con el hasher del framework, nunca en texto plano. Después de guardar, Laravel envía el enlace de verificación de correo y el instalador bloquea el alta inicial. La cuenta puede quedar pendiente de verificación hasta que el propietario confirme su dirección.
+
+El prototipo omite deliberadamente la captura de contraseñas reales. La implementación de producción deberá incluirla en el formulario seguro del propietario y nunca persistirla en localStorage ni en el navegador.
 
 El registro de números no verifica su titularidad. OTP por SMS o WhatsApp se deja como integración opcional después de elegir proveedor, precio y consentimiento. Los botones de contacto utilizan enlaces `wa.me`; no requieren WhatsApp Business API.
 
@@ -160,14 +162,16 @@ Los enlaces de contacto se componen desde números normalizados con código de p
 
 ## 11. Instalación y entrega
 
-El cliente contrata VPS y dominio. La aplicación se instala con:
+El cliente contrata el VPS y decide cómo accederá a la instalación: con un dominio propio o con un subdominio gratuito de un proveedor externo que controle y pueda apuntar al VPS. NEXORA no registra dominios ni ofrece subdominios bajo un dominio central propio.
+
+La aplicación se instala con:
 1. Requisitos PHP/extensiones, Composer y servidor web.
 2. Crear base de datos y usuario con privilegios mínimos.
 3. Configurar `.env`.
 4. Ejecutar migraciones y seeders de biblioteca/plantillas.
-5. Ejecutar setup de primer propietario.
-6. Configurar HTTPS, almacenamiento y permisos de directorios.
-7. Validar publicación y copias de seguridad.
+5. Ejecutar el asistente de primer inicio y crear al propietario al confirmar.
+6. Configurar DNS, HTTPS, almacenamiento y permisos de directorios.
+7. Validar publicación, certificado TLS y copias de seguridad.
 
 La versión compatible exacta de Laravel/PHP se fija al seleccionar el entorno mínimo de despliegue y ejecutar CI. No se habilitan servicios pagos sin aprobación.
 
