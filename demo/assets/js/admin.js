@@ -248,7 +248,7 @@
       price: Number($("#product-price").value),
       oldPrice: $("#product-old-price").value ? Number($("#product-old-price").value) : null,
       description: $("#product-description").value.trim(),
-      image: photoUploadsEnabled() ? $("#product-image").value.trim() : "",
+      image: photoUploadsEnabled() ? $("#product-image").value.trim() : (products.find((item) => item.id === id)?.image || ""),
       detail: Object.entries(attributes).filter(([,value]) => value !== "" && value !== null && value !== false && !(Array.isArray(value) && !value.length)).map(([key,value]) => {
         const definition = schemaGroups().flatMap((item) => item.fields || []).find((field) => field.id === key);
         return definition ? definition.label + ": " + (Array.isArray(value) ? value.join(", ") : String(value)) : "";
