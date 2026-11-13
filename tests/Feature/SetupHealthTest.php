@@ -185,7 +185,30 @@ class SetupHealthTest extends TestCase
             ->where('field_key', 'concentration')
             ->firstOrFail();
 
-        $this->assertSame(['EDT', 'EDP', 'Parfum'], $concentration->options);
+        $this->assertSame(['EDT', 'EDP', 'Parfum', 'Extrait'], $concentration->options);
+
+        $perfumes = CatalogCategory::query()->where('name', 'Perfumes')->firstOrFail();
+        $bodyMist = CatalogCategory::query()->where('name', 'Body mist')->firstOrFail();
+        $sets = CatalogCategory::query()->where('name', 'Sets')->firstOrFail();
+
+        $this->assertDatabaseHas('catalog_groups', [
+            'category_id' => $perfumes->id,
+            'name' => 'Clasificación y fragancia',
+        ]);
+        $this->assertDatabaseHas('catalog_groups', [
+            'category_id' => $bodyMist->id,
+            'name' => 'Detalles del body mist',
+        ]);
+        $this->assertDatabaseHas('catalog_groups', [
+            'category_id' => $sets->id,
+            'name' => 'Contenido del set',
+        ]);
+        $this->assertDatabaseHas('product_field_definitions', ['field_key' => 'perfume_type']);
+        $this->assertDatabaseHas('product_field_definitions', ['field_key' => 'inspired_by']);
+        $this->assertDatabaseHas('product_field_definitions', ['field_key' => 'olfactory_family']);
+        $this->assertDatabaseHas('product_field_definitions', ['field_key' => 'body_mist_aroma']);
+        $this->assertDatabaseHas('product_field_definitions', ['field_key' => 'set_contents']);
+        $this->assertSame(2, data_get(InstallationSettings::query()->findOrFail(1)->configuration, 'templateVersion'));
     }
 
     public function test_public_site_redirects_to_setup_before_installation_is_completed(): void
