@@ -26,7 +26,7 @@ Plantillas previstas: perfumería, ropa y calzado, tecnología, gimnasio y fitne
 - Constructor de grupos y campos personalizados.
 - Tipos de campo: texto, número, lista, selección múltiple, sí/no, fecha y texto largo.
 - Orden, ancho visual, obligatoriedad, visibilidad pública y filtros configurables.
-- Biblioteca de unidades por magnitud: masa, volumen, longitud, cantidad y área.
+- Biblioteca de unidades por magnitud: masa, volumen, longitud, cantidad, capacidad digital y área.
 - Posibilidad de agregar unidades personalizadas.
 - Fotografías opcionales por instalación.
 - Campos fundamentales protegidos: nombre, descripción, categoría, precio y estado.
