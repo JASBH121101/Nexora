@@ -1,12 +1,17 @@
 @extends('layouts.app')
 
-@section('title', 'Instalación · NEXORA')
+@section('title', __('setup.page_title'))
 
 @section('content')
     <section class="panel">
         <p class="muted" style="margin:0;font-size:12px;font-weight:800;letter-spacing:.12em">NEXORA SETUP ENGINE</p>
-        <h1>Prepara tu catálogo</h1>
-        <p class="muted">Primero validamos el VPS y después configuramos el negocio, la cuenta propietaria, las monedas y la plantilla.</p>
+        <h1>{{ __('setup.heading') }}</h1>
+        @if ($installationMode === 'demo')
+            <div class="note" role="status" style="margin-top:12px;border:1px solid #e7d7a8;background:#fff8e6;color:#775b17;font-weight:700">
+                {{ __('setup.demo_notice') }}
+            </div>
+        @endif
+        <p class="muted">{{ __('setup.intro') }}</p>
 
         <div class="checks">
             @foreach ($checks as $check)
@@ -16,7 +21,7 @@
                         <small>{{ $check['detail'] }}</small>
                     </div>
                     <span class="status {{ $check['passed'] ? 'ok' : 'fail' }}">
-                        {{ $check['passed'] ? 'Correcto' : 'Revisar' }}
+                        {{ $check['passed'] ? __('setup.correct') : __('setup.review') }}
                     </span>
                 </div>
             @endforeach
@@ -34,107 +39,104 @@
             @endif
             @if ($databaseConnected)
                 <div class="note">
-                    La conexión a la base de datos funciona. NEXORA puede crear sus tablas automáticamente.
-                    Se aplicarán únicamente las migraciones pendientes; no se ejecutará ninguna eliminación de tablas.
+                    {{ __('setup.database_ready') }}
                 </div>
                 <form method="POST" action="{{ route('setup.prepare-database') }}">
                     @csrf
-                    <button class="primary-button" type="submit">Preparar base de datos automáticamente</button>
+                    <button class="primary-button" type="submit">{{ __('setup.database_prepare') }}</button>
                 </form>
             @else
                 <div class="note">
-                    Antes de crear las tablas, configura PostgreSQL en el entorno del VPS. EthioDeploy inyecta DATABASE_URL automáticamente.
-                    Para una conexión manual, puedes definir DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME y DB_PASSWORD.
-                    Usa una base de datos exclusiva para NEXORA y vuelve a cargar esta página para comprobar la conexión.
+                    {{ __('setup.database_setup_help') }}
                 </div>
             @endif
         @elseif (! $requirementsPassed)
-            <div class="note">Corrige los requisitos marcados antes de continuar. No se creará ninguna cuenta mientras falte una condición obligatoria.</div>
+            <div class="note">{{ __('setup.requirements_blocked') }}</div>
         @else
             @if ($errors->any())
                 <div class="note" style="background:#fff0ee;color:#963b32">
-                    <strong>Revisa los datos del formulario.</strong>
+                    <strong>{{ __('setup.validation_heading') }}</strong>
                     <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
                 </div>
             @endif
 
-            <form id="nexora-setup-form" method="POST" action="{{ route('setup.store') }}" enctype="multipart/form-data" novalidate>
+            <form id="nexora-setup-form" method="POST" action="{{ route('setup.store', ['locale' => $defaultLocale, 'country_code' => old('country_code', $defaultCountryCode)]) }}" enctype="multipart/form-data" novalidate>
                 @csrf
                 <div class="wizard-progress">
-                    <span class="wizard-current" id="wizard-current">Paso 1 de 5</span>
+                    <span class="wizard-current" id="wizard-current">{{ __('setup.wizard_step', ['current' => 1, 'total' => 5]) }}</span>
                     <div class="wizard-track"><span id="wizard-progress-bar"></span></div>
                 </div>
 
                 <section class="wizard-step" data-step="0" aria-labelledby="regional-step-title">
-                    <h2 id="regional-step-title">1. Idioma y país</h2>
-                    <p class="muted">Primero establece el idioma de la instalación y el país donde opera el negocio. La sugerencia inicial se basa en el idioma preferido del navegador; puedes cambiarla.</p>
+                    <h2 id="regional-step-title">{{ __('setup.step_1_title') }}</h2>
+                    <p class="muted">{{ __('setup.step_1_description') }}</p>
                     <div class="field-grid">
-                        <label>Idioma principal
+                        <label>{{ __('setup.primary_language') }}
                             <select id="setup-locale" name="locale" required>
                                 @foreach ($languages as $code => $label)
                                     <option value="{{ $code }}" @selected(old('locale', $defaultLocale) === $code)>{{ $label }} ({{ $code }})</option>
                                 @endforeach
                             </select>
                         </label>
-                        <label>País del negocio
+                        <label>{{ __('setup.business_country') }}
                             <select id="country-code" name="country_code" required data-selected-country="{{ old('country_code', $defaultCountryCode) }}">
-                                <option value="">Selecciona un país</option>
+                                <option value="">{{ __('setup.business_country') }}</option>
                             </select>
                         </label>
                     </div>
-                    <p class="muted small">El país utiliza el código estándar ISO 3166-1 de dos letras. Esta selección no modifica la moneda principal, que se configura en el siguiente paso.</p>
+                    <p class="muted small">{{ __('setup.country_iso_note') }}</p>
                 </section>
 
                 <section class="wizard-step" data-step="1">
-                    <h2>2. Negocio y propietario</h2>
-                    <label>Nombre comercial
-                        <input name="business_name" maxlength="120" required value="{{ old('business_name') }}" placeholder="Ej. Mi tienda">
+                    <h2>{{ __('setup.step_2_title') }}</h2>
+                    <label>{{ __('setup.business_name') }}
+                        <input name="business_name" maxlength="120" required value="{{ old('business_name') }}" placeholder="{{ __('setup.business_name_placeholder') }}">
                     </label>
-                    <label>Tipo de negocio
+                    <label>{{ __('setup.business_type') }}
                         <select name="business_type" required>
-                            <option value="">Selecciona una plantilla</option>
+                            <option value="">{{ __('setup.select_template') }}</option>
                             @foreach ($templates as $key => $label)
                                 <option value="{{ $key }}" @selected(old('business_type') === $key)>{{ $label }}</option>
                             @endforeach
                         </select>
                     </label>
-                    <label>Nombre del propietario
+                    <label>{{ __('setup.owner_name') }}
                         <input name="owner_name" maxlength="100" required value="{{ old('owner_name') }}" autocomplete="name">
                     </label>
-                    <label>Nombre de usuario
+                    <label>{{ __('setup.username') }}
                         <input name="owner_username" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]+" required value="{{ old('owner_username') }}" autocomplete="username">
                     </label>
-                    <label>Correo del propietario (para recuperación)
+                    <label>{{ __('setup.owner_email') }}
 
                         <input name="owner_email" type="email" maxlength="255" required value="{{ old('owner_email') }}" autocomplete="email">
                     </label>
                     <div class="field-grid">
-                        <label>Contraseña
+                        <label>{{ __('setup.password') }}
                             <div class="password-control">
                                 <input id="owner-password" name="owner_password" type="password" minlength="8" required autocomplete="new-password">
                                 <button type="button" class="password-toggle" data-password-toggle aria-controls="owner-password" aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button>
                             </div>
                         </label>
-                        <label>Confirmar contraseña
+                        <label>{{ __('setup.confirm_password') }}
                             <div class="password-control">
                                 <input id="owner-password-confirmation" name="owner_password_confirmation" type="password" minlength="8" required autocomplete="new-password">
                                 <button type="button" class="password-toggle" data-password-toggle aria-controls="owner-password-confirmation" aria-label="Mostrar confirmación de contraseña" aria-pressed="false">Mostrar</button>
                             </div>
                         </label>
                     </div>
-                    <p class="muted small">Usa al menos 8 caracteres. Puedes mostrar u ocultar cada campo para revisar lo que escribiste. La contraseña se almacenará con el hasher de Laravel.</p>
+                    <p class="muted small">{{ __('setup.password_help') }}</p>
                 </section>
 
                 <section class="wizard-step" data-step="2" hidden>
-                    <h2>3. Identidad y monedas</h2>
-                    <label>Descripción del negocio
-                        <textarea name="description" maxlength="700" rows="3" placeholder="Describe brevemente tu negocio">{{ old('description') }}</textarea>
+                    <h2>{{ __('setup.step_3_title') }}</h2>
+                    <label>{{ __('setup.business_description') }}
+                        <textarea name="description" maxlength="700" rows="3" placeholder="{{ __('setup.business_description_placeholder') }}">{{ old('description') }}</textarea>
                     </label>
                     <div class="field-grid">
-                        <label>Color principal
+                        <label>{{ __('setup.primary_color') }}
                             <input name="primary_color" type="color" required value="{{ old('primary_color', '#89a92f') }}">
                         </label>
-                        <label>Moneda principal
+                        <label>{{ __('setup.primary_currency') }}
                             <select id="primary-currency" name="primary_currency" required data-selected-currency="{{ old('primary_currency', $defaultPrimaryCurrency) }}">
                                 @foreach ($currencies as $currency)
                                     <option value="{{ $currency }}" @selected(old('primary_currency', $defaultPrimaryCurrency) === $currency)>{{ $currency }}</option>
@@ -142,69 +144,69 @@
                             </select>
                         </label>
                     </div>
-                    <p class="muted small">La moneda local se sugiere según el país seleccionado. Puedes cambiarla manualmente; las demás monedas se agregan una por una.</p>
+                    <p class="muted small">{{ __('setup.currency_help') }}</p>
                     <div class="currency-add-row">
-                        <label for="additional-currency-picker">Añadir otra moneda
+                        <label for="additional-currency-picker">{{ __('setup.add_currency') }}
                             <select id="additional-currency-picker">
-                                <option value="">Seleccionar moneda…</option>
+                                <option value="">{{ __('setup.select_currency') }}</option>
                             </select>
                         </label>
-                        <button type="button" class="secondary-button" id="add-currency">Añadir</button>
+                        <button type="button" class="secondary-button" id="add-currency">{{ __('setup.add') }}</button>
                     </div>
                     <div id="additional-currency-list" class="selected-currencies" aria-live="polite"></div>
 
                     <div class="section-separator">
                         <div class="section-heading">
-                            <div><h3>Contactos del negocio</h3><p class="muted small">Hasta cinco teléfonos. Puedes ocultar un contacto del sitio público.</p></div>
-                            <button type="button" class="secondary-button" id="add-phone">Añadir teléfono</button>
+                            <div><h3>{{ __('setup.business_contacts') }}</h3><p class="muted small">{{ __('setup.contact_help') }}</p></div>
+                            <button type="button" class="secondary-button" id="add-phone">{{ __('setup.add_phone') }}</button>
                         </div>
                         <div id="phone-list"></div>
                     </div>
                     <div class="section-separator">
                         <div class="section-heading">
-                            <div><h3>Horarios de atención</h3><p class="muted small">Opcional. Añade los días y las horas en que atiende el negocio.</p></div>
-                            <button type="button" class="secondary-button" id="add-business-hours">Añadir horario</button>
+                            <div><h3>{{ __('setup.business_hours') }}</h3><p class="muted small">{{ __('setup.hours_help') }}</p></div>
+                            <button type="button" class="secondary-button" id="add-business-hours">{{ __('setup.add_hours') }}</button>
                         </div>
                         <div id="business-hours-list" class="business-hours-list"></div>
                     </div>
                     <input type="hidden" name="photos_enabled" value="0">
-                    <label class="toggle-row"><input type="checkbox" name="photos_enabled" value="1" checked> Permitir fotografías en el catálogo</label>
+                    <label class="toggle-row"><input type="checkbox" name="photos_enabled" value="1" checked> {{ __('setup.allow_photos') }}</label>
                     <div class="field-grid">
-                        <label>Logotipo (opcional)
+                        <label>{{ __('setup.logo') }}
                             <input type="file" name="logo" accept="image/png,image/jpeg,image/webp">
                         </label>
-                        <label>Portada (opcional)
+                        <label>{{ __('setup.cover') }}
                             <input type="file" name="cover" accept="image/png,image/jpeg,image/webp">
                         </label>
                     </div>
-                    <p class="muted small">Las imágenes se guardan en el VPS. Si desactivas las fotografías, el catálogo no aceptará imágenes de productos.</p>
+                    <p class="muted small">{{ __('setup.photos_help') }}</p>
                 </section>
 
                 <section class="wizard-step" data-step="3" hidden>
-                    <h2>4. Plantilla y catálogo</h2>
-                    <p class="muted">La plantilla cargará categorías y campos iniciales editables. Podrás cambiar sus etiquetas, agregar campos y reorganizar grupos desde el panel.</p>
-                    <div class="template-summary" id="template-summary" aria-live="polite">Selecciona un tipo de negocio en el paso 2 para ver su plantilla.</div>
-                    <div class="note">Los campos dinámicos se guardarán como definiciones y valores relacionados. NEXORA no creará columnas SQL por cada campo personalizado.</div>
+                    <h2>{{ __('setup.step_4_title') }}</h2>
+                    <p class="muted">{{ __('setup.template_description') }}</p>
+                    <div class="template-summary" id="template-summary" aria-live="polite">{{ __('setup.template_empty') }}</div>
+                    <div class="note">{{ __('setup.template_note') }}</div>
                 </section>
 
                 <section class="wizard-step" data-step="4" hidden>
-                    <h2>5. Revisión y confirmación</h2>
+                    <h2>{{ __('setup.step_5_title') }}</h2>
                     <div class="review-list" id="setup-review"></div>
-                    <div class="note">Los datos de este asistente permanecen en el formulario y no se guardan como negocio ni como propietario hasta pulsar «Crear instalación». Esa acción sí completa la instalación y no se puede repetir en la misma base de datos.</div>
+                    <div class="note">{{ __('setup.final_note') }}</div>
                 </section>
 
             </form>
             <div class="wizard-cancel-row">
-                <form id="nexora-cancel-form" method="POST" action="{{ route('setup.cancel') }}">
+                <form id="nexora-cancel-form" method="POST" action="{{ route('setup.cancel', ['locale' => $defaultLocale, 'country_code' => old('country_code', $defaultCountryCode)]) }}">
                     @csrf
-                    <button type="submit" class="cancel-button" id="wizard-cancel">Cancelar prueba</button>
+                    <button type="submit" class="cancel-button" id="wizard-cancel">{{ __('setup.cancel') }}</button>
                 </form>
-                <span class="muted small">Cancelar no envía los datos del formulario ni crea registros.</span>
+                <span class="muted small">{{ __('setup.cancel_note') }}</span>
             </div>
             <div class="wizard-actions">
-                <button type="button" class="secondary-button" id="wizard-prev" hidden>Volver</button>
-                <button type="button" class="primary-button" id="wizard-next">Continuar</button>
-                <button type="submit" class="primary-button" id="wizard-submit" form="nexora-setup-form" hidden>Crear instalación</button>
+                <button type="button" class="secondary-button" id="wizard-prev" hidden>{{ __('setup.back') }}</button>
+                <button type="button" class="primary-button" id="wizard-next">{{ __('setup.continue') }}</button>
+                <button type="submit" class="primary-button" id="wizard-submit" form="nexora-setup-form" hidden>{{ __('setup.create_installation') }}</button>
             </div>
         @endif
     </section>
