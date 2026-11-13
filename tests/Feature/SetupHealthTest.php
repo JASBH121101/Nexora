@@ -57,6 +57,39 @@ class SetupHealthTest extends TestCase
             ->assertSee('"other"', false);
     }
 
+    public function test_every_template_seeds_category_scoped_groups_with_unique_field_keys(): void
+    {
+        $catalog = app(TemplateCatalog::class);
+
+        foreach (array_keys($catalog->all()) as $type) {
+            ProductFieldValue::query()->delete();
+            ProductFieldDefinition::query()->delete();
+            CatalogGroup::query()->delete();
+            CatalogCategory::query()->delete();
+
+            $catalog->seed($type);
+
+            $categories = CatalogCategory::query()
+                ->with(['groups.fields'])
+                ->orderBy('sort_order')
+                ->get();
+
+            $this->assertCount(count($catalog->previews()[$type]['categories']), $categories);
+
+            foreach ($categories as $category) {
+                $this->assertNotEmpty($category->groups);
+
+                foreach ($category->groups as $group) {
+                    $this->assertSame($category->id, $group->category_id);
+                    $this->assertNotEmpty($group->fields);
+                }
+            }
+
+            $fieldKeys = ProductFieldDefinition::query()->pluck('field_key');
+            $this->assertCount($fieldKeys->unique()->count(), $fieldKeys);
+        }
+    }
+
     public function test_every_template_preview_groups_fields_under_a_real_category(): void
     {
         $catalog = app(TemplateCatalog::class);
