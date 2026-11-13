@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: nexora-demo
+    runtime: docker
+    plan: free
+    region: ohio
+    branch: feature/nexora-configurable-catalog
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /up
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: APP_NAME
+        value: "NEXORA Demo"
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_LOCALE
+        value: es
+      - key: APP_FALLBACK_LOCALE
+        value: es
+      - key: APP_TIMEZONE
+        value: America/Managua
+      - key: NEXORA_INSTALLATION_MODE
+        value: demo
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_STORE
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: FILESYSTEM_DISK
+        value: local
