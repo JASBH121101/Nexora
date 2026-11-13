@@ -435,18 +435,18 @@ final class SetupController
 
         if (is_dir($target) === false) {
             if (mkdir($target, 0755, true) === false && is_dir($target) === false) {
-                return 'No se pudo preparar el directorio de imágenes. Revisa los permisos de storage/app.';
+                return __('setup.media_directory_error');
             }
         }
 
         if (is_link($link)) {
             return realpath($link) === realpath($target)
                 ? null
-                : 'Ya existe un enlace public/storage hacia otra ubicación. NEXORA no lo modificó; revisa el enlace antes de publicar fotografías.';
+                : __('setup.media_link_conflict');
         }
 
         if (file_exists($link)) {
-            return 'Ya existe public/storage como archivo o carpeta. No se modificó para proteger tus datos; solicita revisar la ruta de almacenamiento.';
+            return __('setup.media_path_conflict');
         }
 
         try {
@@ -463,6 +463,6 @@ final class SetupController
             report($exception);
         }
 
-        return 'El VPS no permitió crear el enlace de imágenes. Los archivos se guardan, pero para mostrarlos debe existir public/storage apuntando a storage/app/public.';
+        return __('setup.media_link_failed');
     }
 }
