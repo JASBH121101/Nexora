@@ -1177,10 +1177,10 @@ class SetupHealthTest extends TestCase
 
         $response->assertOk()
             ->assertSee('changeLocaleWithoutReload', false)
-            ->assertSee("fetch(url.toString()", false)
-            ->assertSee("window.history.replaceState", false)
+            ->assertSee('fetch(url.toString()', false)
+            ->assertSee('window.history.replaceState', false)
             ->assertSee("localeSelect.addEventListener('change', changeLocaleWithoutReload)", false)
-            ->assertDontSee("window.location.assign(url.toString())", false);
+            ->assertDontSee('window.location.assign(url.toString())', false);
     }
 
     public function test_setup_validation_messages_follow_the_selected_english_language(): void
