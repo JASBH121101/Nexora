@@ -1,13 +1,13 @@
 <?php
 
-namespace App\\Http\\Middleware;
+namespace App\Http\Middleware;
 
-use App\\Models\\InstallationSettings;
-use App\\Modules\\Setup\\Services\\LanguageCatalog;
+use App\Models\InstallationSettings;
+use App\Modules\Setup\Services\LanguageCatalog;
 use Closure;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\App;
-use Symfony\\Component\\HttpFoundation\\Response;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 final class ApplyInstallationLocale
