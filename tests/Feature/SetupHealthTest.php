@@ -42,7 +42,7 @@ class SetupHealthTest extends TestCase
         $response = $this->get('/setup?locale=es');
 
         $response->assertOk()
-            ->assertSee('const templatePreviews =', false)
+            ->assertSee('let templatePreviews = localeData.templatePreviews;', false)
             ->assertSee('Plantilla seleccionada:', false)
             ->assertSee('Perfumes', false)
             ->assertSee('Body mist', false)
