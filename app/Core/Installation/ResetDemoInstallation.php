@@ -92,6 +92,6 @@ final class ResetDemoInstallation
             return false;
         }
 
-        return ! preg_match('/^[a-zA-Z]:[\\\\\/]/', $path);
+        return preg_match('/^[a-zA-Z]:/', $path) !== 1;
     }
 }
