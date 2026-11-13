@@ -17,7 +17,7 @@
                 @foreach ($contacts as $contact)
                     <a href="https://wa.me/{{ preg_replace('/\D+/', '', $contact->phone) }}" target="_blank" rel="noopener noreferrer">
                         <span>{{ $contact->is_primary ? 'Contacto principal' : 'WhatsApp' }}</span>
-                        <strong>{{ $contact->phone }}</strong>
+                        <strong>{{ $contact->formatted_phone }}</strong>
                     </a>
                 @endforeach
             </div>
