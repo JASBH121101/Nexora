@@ -1155,7 +1155,6 @@ class SetupHealthTest extends TestCase
         $this->assertAuthenticatedAs(User::query()->where('email', 'owner@example.com')->firstOrFail());
     }
 
-
     public function test_setup_page_renders_the_entire_installer_in_english_when_selected(): void
     {
         config(['nexora.installation_mode' => 'demo']);
