@@ -2,7 +2,6 @@
 
 use App\Core\Installation\ResetDemoInstallation;
 use Illuminate\Support\Facades\Artisan;
-use RuntimeException;
 
 Artisan::command('nexora:status', function (): void {
     $this->info('NEXORA application bootstrap is available.');
