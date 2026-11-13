@@ -10,6 +10,7 @@ use App\Models\BusinessCurrency;
 use App\Models\InstallationSettings;
 use App\Models\User;
 use App\Modules\Setup\Services\CountryCatalog;
+use App\Modules\Setup\Services\CountryDialingCodeCatalog;
 use App\Modules\Setup\Services\CountryCurrencyCatalog;
 use App\Modules\Setup\Services\CurrencyCatalog;
 use App\Modules\Setup\Services\LanguageCatalog;
@@ -51,6 +52,7 @@ final class SetupController
             'templatePreviews' => $templates->previews(),
             'currencies' => CurrencyCatalog::codes(),
             'countryCurrencies' => CountryCurrencyCatalog::all(),
+            'countryDialingCodes' => CountryDialingCodeCatalog::all(),
             'defaultPrimaryCurrency' => CountryCurrencyCatalog::forCountry($this->detectCountryCode($request)) ?? 'USD',
             'countryCodes' => CountryCatalog::codes(),
             'languages' => LanguageCatalog::all(),
@@ -136,7 +138,7 @@ final class SetupController
         $phones = array_values(array_filter(
             (array) $request->input('phones', []),
             static fn ($phone): bool => is_array($phone)
-                && trim((string) ($phone['number'] ?? '')) !== '',
+                && preg_replace('/\\D+/', '', (string) ($phone['number'] ?? '')) !== '',
         ));
 
         $request->merge(['phones' => $phones]);
@@ -169,7 +171,8 @@ final class SetupController
             'business_hours.*.open' => ['required', 'date_format:H:i'],
             'business_hours.*.close' => ['required', 'date_format:H:i'],
             'phones' => ['sometimes', 'array', 'max:5'],
-            'phones.*.number' => ['required', 'string', 'max:20', 'regex:/^[0-9+()\\-\\s]{7,20}$/'],
+            'phones.*.country_calling_code' => ['required', 'string', 'max:4', 'regex:/^\\+[1-9][0-9]{0,2}$/'],
+            'phones.*.number' => ['required', 'string', 'max:20', 'regex:/^[0-9().\\-\\s]{6,20}$/'],
             'phones.*.show_public' => ['nullable', 'boolean'],
             'primary_phone' => ['nullable', 'integer', 'min:0', 'max:4'],
             'photos_enabled' => ['sometimes', 'boolean'],
@@ -191,6 +194,25 @@ final class SetupController
             ],
         ]);
 
+        $normalizedPhones = [];
+
+        foreach ($validated['phones'] ?? [] as $index => $phone) {
+            $callingCode = preg_replace('/\\D+/', '', $phone['country_calling_code']) ?? '';
+            $nationalNumber = preg_replace('/\\D+/', '', $phone['number']) ?? '';
+            $internationalNumber = $callingCode.$nationalNumber;
+
+            if (strlen($nationalNumber) < 6 || strlen($internationalNumber) > 15) {
+                throw ValidationException::withMessages([
+                    "phones.{$index}.number" => 'El número debe tener entre 6 y 15 dígitos internacionales contando el código del país.',
+                ]);
+            }
+
+            $normalizedPhones[] = [
+                'phone' => '+'.$internationalNumber,
+                'show_public' => (bool) ($phone['show_public'] ?? false),
+            ];
+        }
+
         $enabledCurrencies = array_values(array_unique(array_merge(
             [$validated['primary_currency']],
             array_filter(
@@ -208,6 +230,7 @@ final class SetupController
                 $validated,
                 $enabledCurrencies,
                 $photosEnabled,
+                $normalizedPhones,
                 $templates,
                 &$storedFiles,
             ): User {
@@ -284,14 +307,14 @@ final class SetupController
                     ]);
                 }
 
-                $phoneRows = array_values($validated['phones'] ?? []);
+                $phoneRows = $normalizedPhones;
                 $mainPhoneIndex = isset($validated['primary_phone'])
                     ? (int) $validated['primary_phone']
                     : 0;
 
                 foreach ($phoneRows as $index => $phone) {
                     BusinessContact::query()->create([
-                        'phone' => trim($phone['number']),
+                        'phone' => $phone['phone'],
                         'is_primary' => $index === $mainPhoneIndex,
                         'show_public' => (bool) ($phone['show_public'] ?? false),
                         'sort_order' => $index,
