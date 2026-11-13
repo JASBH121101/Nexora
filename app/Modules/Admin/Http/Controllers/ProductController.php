@@ -157,7 +157,13 @@ final class ProductController
             'product' => $product,
             'settings' => $settings,
             'categories' => CatalogCategory::query()
-                ->where('is_active', true)
+                ->where(function ($query) use ($product): void {
+                    $query->where('is_active', true);
+
+                    if ($product?->category_id !== null) {
+                        $query->orWhere('id', $product->category_id);
+                    }
+                })
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get(),
