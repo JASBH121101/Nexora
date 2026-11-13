@@ -108,14 +108,7 @@ return [
         'disabled' => 'Disabled',
         'cancel_confirm' => 'Cancel this test? The owner, business and categories will not be created. The empty table structure will remain so you can repeat the test.',
         'show_password_button' => 'Show',
-    
-    'show_password_confirmation_button_aria' => 'Show password confirmation',
-    'demo_reset_disabled' => 'Demo reset is disabled. Set NEXORA_INSTALLATION_MODE=demo in the isolated demo environment.',
-    'demo_reset_not_demo_installation' => 'The database does not contain a completed installation explicitly marked as demo. Nothing was changed.',
-    'demo_reset_confirmation_required' => 'Reset cancelled. Run this command only after reviewing the target database and pass --confirm=RESET-DEMO-DATA.',
-    'demo_reset_completed' => 'Demo data was removed. The database schema and migrations were preserved; you can run the setup wizard again.',
-    'demo_reset_failed' => 'Demo reset failed: :error',
-    'show_password_button_aria' => 'Show password',
+
         'show_password' => 'Show',
         'hide_password' => 'Hide',
         'show_password_aria' => 'Show password',
@@ -160,6 +153,11 @@ return [
     'media_link_conflict' => 'public/storage already points to another location. NEXORA did not modify it; verify the link before publishing photos.',
     'media_path_conflict' => 'public/storage already exists as a file or directory. It was not modified to protect your data.',
     'media_link_failed' => 'The VPS did not allow creating the image link. Files are stored, but public/storage must point to storage/app/public to display them.',
+    'demo_reset_disabled' => 'Demo reset is disabled. Set NEXORA_INSTALLATION_MODE=demo in the isolated demo environment.',
+    'demo_reset_not_demo_installation' => 'The database does not contain a completed installation explicitly marked as demo. Nothing was changed.',
+    'demo_reset_confirmation_required' => 'Reset cancelled. Run this command only after reviewing the target database and pass --confirm=RESET-DEMO-DATA.',
+    'demo_reset_completed' => 'Demo data was removed. The database schema and migrations were preserved; you can run the setup wizard again.',
+    'demo_reset_failed' => 'Demo reset failed: :error',
 
     'days' => [
         'monday' => 'Monday', 'tuesday' => 'Tuesday', 'wednesday' => 'Wednesday',
