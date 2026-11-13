@@ -30,14 +30,17 @@ final class DatabaseInstaller
         $schema = $connection->getSchemaBuilder();
         $tables = $schema->getTableListing();
 
-        if (! $schema->hasTable('migrations') && $tables !== []) {
+        if ($schema->hasTable('migrations') === false && count($tables) > 0) {
             throw new RuntimeException(
                 'La base de datos seleccionada no está vacía. Crea una base de datos exclusiva para NEXORA.',
             );
         }
 
         if ($schema->hasTable('migrations')) {
-            $knownMigrations = collect(glob(database_path('migrations/*.php')) ?: [])
+            $migrationFiles = glob(database_path('migrations/*.php'));
+            $migrationFiles = $migrationFiles === false ? [] : $migrationFiles;
+
+            $knownMigrations = collect($migrationFiles)
                 ->map(static fn (string $path): string => pathinfo($path, PATHINFO_FILENAME))
                 ->all();
 
