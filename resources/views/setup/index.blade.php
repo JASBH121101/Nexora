@@ -80,7 +80,7 @@
                         </label>
                         <label>{{ __('setup.business_country') }}
                             <select id="country-code" name="country_code" required data-selected-country="{{ old('country_code', $defaultCountryCode) }}">
-                                <option value="">{{ __('setup.business_country') }}</option>
+                                <option value="">{{ __('setup.select_country') }}</option>
                             </select>
                         </label>
                     </div>
@@ -114,13 +114,13 @@
                         <label>{{ __('setup.password') }}
                             <div class="password-control">
                                 <input id="owner-password" name="owner_password" type="password" minlength="8" required autocomplete="new-password">
-                                <button type="button" class="password-toggle" data-password-toggle aria-controls="owner-password" aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button>
+                                <button type="button" class="password-toggle" data-password-toggle aria-controls="owner-password" aria-label="{{ __('setup.show_password_button_aria') }}" aria-pressed="false">{{ __('setup.show_password_button') }}</button>
                             </div>
                         </label>
                         <label>{{ __('setup.confirm_password') }}
                             <div class="password-control">
                                 <input id="owner-password-confirmation" name="owner_password_confirmation" type="password" minlength="8" required autocomplete="new-password">
-                                <button type="button" class="password-toggle" data-password-toggle aria-controls="owner-password-confirmation" aria-label="Mostrar confirmación de contraseña" aria-pressed="false">Mostrar</button>
+                                <button type="button" class="password-toggle" data-password-toggle aria-controls="owner-password-confirmation" aria-label="{{ __('setup.show_password_button_aria') }}" aria-pressed="false">{{ __('setup.show_password_button') }}</button>
                             </div>
                         </label>
                     </div>
@@ -362,7 +362,7 @@
             };
             const day = document.createElement('select');
             day.name = 'business_hours[' + index + '][day]';
-            day.setAttribute('aria-label', 'Día de atención');
+            day.setAttribute('aria-label', copy.day);
             weekDays.forEach((key) => {
                 const option = document.createElement('option');
                 option.value = key;
