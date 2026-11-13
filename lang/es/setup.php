@@ -108,14 +108,7 @@ return [
         'disabled' => 'Deshabilitadas',
         'cancel_confirm' => '¿Cancelar esta prueba? No se creará el propietario, el negocio ni las categorías. La estructura vacía de tablas se conservará para repetir la prueba.',
         'show_password_button' => 'Mostrar',
-    
-    'show_password_confirmation_button_aria' => 'Mostrar confirmación de contraseña',
-    'demo_reset_disabled' => 'El reinicio demo está deshabilitado. Configura NEXORA_INSTALLATION_MODE=demo en el entorno de demostración aislado.',
-    'demo_reset_not_demo_installation' => 'La base de datos no contiene una instalación completada marcada expresamente como demo. No se modificó nada.',
-    'demo_reset_confirmation_required' => 'Reinicio cancelado. Ejecuta este comando solo después de revisar la base de datos de destino y utiliza --confirm=RESET-DEMO-DATA.',
-    'demo_reset_completed' => 'Se eliminaron los datos demo. Se conservaron el esquema y las migraciones; ya puedes ejecutar nuevamente el asistente.',
-    'demo_reset_failed' => 'Falló el reinicio demo: :error',
-    'show_password_button_aria' => 'Mostrar contraseña',
+
         'show_password' => 'Mostrar',
         'hide_password' => 'Ocultar',
         'show_password_aria' => 'Mostrar contraseña',
@@ -160,6 +153,11 @@ return [
     'media_link_conflict' => 'Ya existe un enlace public/storage hacia otra ubicación. NEXORA no lo modificó; revisa el enlace antes de publicar fotografías.',
     'media_path_conflict' => 'Ya existe public/storage como archivo o carpeta. No se modificó para proteger tus datos.',
     'media_link_failed' => 'El VPS no permitió crear el enlace de imágenes. Los archivos se guardan, pero public/storage debe apuntar a storage/app/public para mostrarlos.',
+    'demo_reset_disabled' => 'El reinicio demo está deshabilitado. Configura NEXORA_INSTALLATION_MODE=demo en el entorno de demostración aislado.',
+    'demo_reset_not_demo_installation' => 'La base de datos no contiene una instalación completada marcada expresamente como demo. No se modificó nada.',
+    'demo_reset_confirmation_required' => 'Reinicio cancelado. Ejecuta este comando solo después de revisar la base de datos de destino y utiliza --confirm=RESET-DEMO-DATA.',
+    'demo_reset_completed' => 'Se eliminaron los datos demo. Se conservaron el esquema y las migraciones; ya puedes ejecutar nuevamente el asistente.',
+    'demo_reset_failed' => 'Falló el reinicio demo: :error',
 
     'days' => [
         'monday' => 'Lunes', 'tuesday' => 'Martes', 'wednesday' => 'Miércoles',
