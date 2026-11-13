@@ -20,7 +20,7 @@
     <main class="wrap">
         <div class="brand">NEXORA<span>.</span></div>
         @yield('content')
-        <div class="footer">NEXORA · Catálogo digital configurable</div>
+        <div class="footer">{{ __('setup.footer') }}</div>
     </main>
     @stack('scripts')
 </body>
