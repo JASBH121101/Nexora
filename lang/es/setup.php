@@ -123,6 +123,14 @@ return [
         'show_password_confirmation_aria' => 'Mostrar confirmación de contraseña',
         'hide_password_confirmation_aria' => 'Ocultar confirmación de contraseña',
         'review_field_group' => 'Campos iniciales · :category · :group',
+        'validation' => [
+            'required' => 'Este campo es obligatorio.',
+            'email' => 'Introduce una dirección de correo válida.',
+            'min_length' => 'Utiliza al menos :min caracteres.',
+            'max_length' => 'Utiliza como máximo :max caracteres.',
+            'pattern' => 'El formato del valor no es válido.',
+            'invalid' => 'Introduce un valor válido.',
+        ],
     ],
 
     'footer' => 'NEXORA · Catálogo digital configurable',
