@@ -1180,6 +1180,8 @@ class SetupHealthTest extends TestCase
             ->assertSee('fetch(url.toString()', false)
             ->assertSee('window.history.replaceState', false)
             ->assertSee('syncLocalizedText(currentFooter, translatedFooter)', false)
+            ->assertSee('syncPhoneRowLabels();', false)
+            ->assertSee('syncPasswordToggleLabels();', false)
             ->assertSee("localeSelect.addEventListener('change', changeLocaleWithoutReload)", false)
             ->assertDontSee('window.location.assign(url.toString())', false);
     }
