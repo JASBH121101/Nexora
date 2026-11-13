@@ -11,7 +11,7 @@ final class DatabaseInstaller
     public function prepare(InstallationState $installation): void
     {
         if ($installation->isCompleted()) {
-            throw new RuntimeException('Esta instalación ya está completada.');
+            throw new RuntimeException(__('setup.database_already_completed'));
         }
 
         $connection = DB::connection();
@@ -22,7 +22,7 @@ final class DatabaseInstaller
 
         if ($supportedDriver === false) {
             throw new RuntimeException(
-                'NEXORA requiere PostgreSQL para instalaciones reales. SQLite solo se admite en pruebas automatizadas.',
+                __('setup.database_requires_postgres'),
             );
         }
 
@@ -33,7 +33,7 @@ final class DatabaseInstaller
 
         if ($schema->hasTable('migrations') === false && count($tables) > 0) {
             throw new RuntimeException(
-                'La base de datos seleccionada no está vacía. Crea una base de datos exclusiva para NEXORA.',
+                __('setup.database_not_empty'),
             );
         }
 
@@ -51,7 +51,7 @@ final class DatabaseInstaller
 
             if ($unknownMigrations->isNotEmpty()) {
                 throw new RuntimeException(
-                    'La base de datos contiene migraciones ajenas a NEXORA. Utiliza una base de datos exclusiva.',
+                    __('setup.database_foreign_migrations'),
                 );
             }
         }
@@ -60,7 +60,7 @@ final class DatabaseInstaller
 
         if ($exitCode !== 0 || $installation->hasSchema() === false) {
             throw new RuntimeException(
-                'No se pudo preparar toda la estructura de NEXORA. Revisa permisos del usuario de base de datos y vuelve a intentarlo.',
+                __('setup.database_migration_failed'),
             );
         }
     }
