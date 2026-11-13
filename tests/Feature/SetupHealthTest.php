@@ -165,6 +165,23 @@ class SetupHealthTest extends TestCase
         $this->assertSame('employee', $employee->role);
         $this->assertTrue($employee->must_change_password);
         $this->assertTrue(Hash::check($temporaryPassword, $employee->password));
+
+        $this->post('/admin/logout')->assertRedirect(route('admin.login'));
+
+        $this->post('/admin/login', [
+            'username' => 'empleado01',
+            'password' => $temporaryPassword,
+        ])->assertRedirect(route('admin.home'));
+
+        $this->get('/admin')->assertRedirect(route('admin.password.change'));
+
+        $this->post('/admin/password/change', [
+            'current_password' => $temporaryPassword,
+            'password' => 'Employee-New-Password-2026!',
+            'password_confirmation' => 'Employee-New-Password-2026!',
+        ])->assertRedirect(route('admin.home'));
+
+        $this->assertFalse($employee->fresh()->must_change_password);
     }
 
     public function test_owner_can_log_in_again_after_logout(): void
