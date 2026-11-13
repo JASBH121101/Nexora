@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use RuntimeException;
 use Throwable;
 
 final class SetupController
@@ -59,11 +60,15 @@ final class SetupController
 
         try {
             $databaseInstaller->prepare($installation);
+        } catch (RuntimeException $exception) {
+            return back()->withErrors([
+                'database' => $exception->getMessage(),
+            ]);
         } catch (Throwable $exception) {
             report($exception);
 
             return back()->withErrors([
-                'database' => $exception->getMessage(),
+                'database' => 'No se pudo conectar o preparar la base de datos. Revisa las credenciales y los permisos de MySQL/MariaDB.',
             ]);
         }
 

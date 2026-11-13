@@ -18,8 +18,10 @@ final class DatabaseInstaller
         $connection = DB::connection();
         $driver = $connection->getDriverName();
 
-        if (! in_array($driver, ['mysql', 'mariadb'], true)
-            && ! (app()->environment('testing') && $driver === 'sqlite')) {
+        $supportedDriver = in_array($driver, ['mysql', 'mariadb'], true)
+            || (app()->environment('testing') && $driver === 'sqlite');
+
+        if (! $supportedDriver) {
             throw new RuntimeException('NEXORA requiere MySQL o MariaDB para la instalación.');
         }
 
