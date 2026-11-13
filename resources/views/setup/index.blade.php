@@ -223,7 +223,7 @@
     .wizard-step h2{margin:8px 0 15px}.wizard-step[hidden]{display:none}.wizard-actions{display:flex;justify-content:space-between;gap:10px;margin-top:14px}.wizard-cancel-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px}.cancel-button{padding:7px 0;border:0;background:transparent;color:#7a453e;font:inherit;font-size:12px;font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
     .primary-button,.secondary-button{min-height:42px;padding:0 17px;border:0;border-radius:10px;font:inherit;font-weight:750;cursor:pointer}.primary-button{background:#20271f;color:#fff}.secondary-button{background:#eef1e9;color:#35402b}
     .currency-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.currency-options label,.toggle-row{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #e7ebdf;border-radius:9px}.currency-options input,.toggle-row input{width:16px;height:16px}
-    .section-separator{margin-top:22px;padding-top:17px;border-top:1px solid #edf0e9}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.section-heading h3{margin:0;font-size:15px}.section-heading p{margin:5px 0}.phone-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #edf0e9}.phone-row label{margin:4px 0}.phone-input-grid{display:grid;grid-template-columns:minmax(105px,.36fr) minmax(0,1fr);gap:9px}.phone-input-grid label{min-width:0;font-size:11px}.phone-input-grid input{font-variant-numeric:tabular-nums;letter-spacing:.035em}.phone-options{display:flex;gap:12px;flex-wrap:wrap;font-size:12px}.phone-options label{display:flex;align-items:center;gap:6px}
+    .section-separator{margin-top:22px;padding-top:17px;border-top:1px solid #edf0e9}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.section-heading h3{margin:0;font-size:15px}.section-heading p{margin:5px 0}.phone-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #edf0e9}.phone-row label{margin:4px 0}.phone-input-grid{display:grid;grid-template-columns:minmax(105px,.36fr) minmax(0,1fr);gap:9px}.phone-input-grid label{min-width:0;font-size:11px}.phone-input-grid input{font-variant-numeric:tabular-nums;letter-spacing:.035em}.phone-options{display:flex;gap:12px;flex-wrap:wrap;font-size:12px}.phone-options label{display:flex;align-items:center;gap:6px}
     .template-summary,.review-list{padding:15px;border-radius:11px;background:#f4f6ef;font-size:13px;line-height:1.7}.template-summary{display:grid;gap:12px}.template-summary__section{display:grid;gap:7px;padding-top:10px;border-top:1px solid #e2e8d9}.template-summary__items{display:flex;flex-wrap:wrap;gap:7px}.template-summary__chip{padding:4px 9px;border:1px solid #e0e7d6;border-radius:999px;background:#fff;font-size:12px}.template-summary__fields{color:#4e5846}.review-list div{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #e7ebdf}.review-list div:last-child{border:0}
     .section-heading .secondary-button{white-space:nowrap}
     @media(max-width:560px){.field-grid{grid-template-columns:1fr;gap:0}.phone-row{grid-template-columns:1fr}.wizard-actions button{flex:1}.wizard-cancel-row{align-items:flex-start;flex-direction:column;gap:4px}.section-heading{align-items:flex-start;flex-direction:column}.currency-add-row{grid-template-columns:minmax(0,1fr) auto}.business-hours-row{grid-template-columns:1fr 1fr;align-items:center}.business-hours-row label:first-child{grid-column:1/-1}.business-hours-remove{grid-column:1/-1;width:100%}}
@@ -247,6 +247,7 @@
     const countrySelect = document.getElementById('country-code');
     const countryCodes = @json($countryCodes);
     const countryCurrencies = @json($countryCurrencies);
+    const countryDialingCodes = @json($countryDialingCodes);
     const currencies = @json($currencies);
     const preferredCountry = countrySelect.dataset.selectedCountry || 'NI';
     const currencySelect = document.getElementById('primary-currency');
@@ -517,7 +518,7 @@
     const defaultPhoneCallingCode = () => countryDialingCodes[countrySelect.value] || '';
 
     const formatPhoneNumber = (value) => {
-        const digits = String(value || '').replace(/\\D/g, '').slice(0, 15);
+        const digits = String(value || '').replace(/\D/g, '').slice(0, 15);
 
         if (digits.length <= 4) return digits;
         if (digits.length <= 8) return digits.slice(0, 4) + '-' + digits.slice(4);
@@ -568,7 +569,7 @@
         codeInput.dataset.manual = initial.country_calling_code && initial.country_calling_code !== suggestedCode ? 'true' : 'false';
         codeInput.addEventListener('input', () => {
             codeInput.dataset.manual = 'true';
-            codeInput.value = codeInput.value.replace(/[^+0-9]/g, '').replace(/(?!^)\\+/g, '').slice(0, 4);
+            codeInput.value = codeInput.value.replace(/[^+0-9]/g, '').replace(/(?!^)\+/g, '').slice(0, 4);
         });
         codeLabel.append(codeInput);
 
