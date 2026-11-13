@@ -90,6 +90,31 @@ class SetupHealthTest extends TestCase
         }
     }
 
+    public function test_template_seed_is_idempotent_and_preserves_owner_field_customizations(): void
+    {
+        $catalog = app(TemplateCatalog::class);
+        $catalog->seed('perfumery');
+
+        $categoryCount = CatalogCategory::query()->count();
+        $groupCount = CatalogGroup::query()->count();
+        $fieldCount = ProductFieldDefinition::query()->count();
+
+        $perfumeType = ProductFieldDefinition::query()
+            ->where('field_key', 'perfume_type')
+            ->firstOrFail();
+        $perfumeType->forceFill(['label' => 'Clasificación comercial personalizada'])->save();
+
+        $catalog->seed('perfumery');
+
+        $this->assertSame($categoryCount, CatalogCategory::query()->count());
+        $this->assertSame($groupCount, CatalogGroup::query()->count());
+        $this->assertSame($fieldCount, ProductFieldDefinition::query()->count());
+        $this->assertSame(
+            'Clasificación comercial personalizada',
+            $perfumeType->fresh()->label,
+        );
+    }
+
     public function test_every_template_preview_groups_fields_under_a_real_category(): void
     {
         $catalog = app(TemplateCatalog::class);
