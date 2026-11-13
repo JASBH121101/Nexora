@@ -67,21 +67,29 @@ final class TemplateCatalog
         $categoryOrder = 0;
 
         foreach ($template['categories'] as $categoryName => $categoryGroups) {
-            $category = CatalogCategory::query()->create([
-                'name' => $categoryName,
-                'slug' => Str::slug($categoryName),
-                'sort_order' => $categoryOrder++,
-                'is_active' => true,
-            ]);
+            $category = CatalogCategory::query()->firstOrCreate(
+                ['slug' => Str::slug($categoryName)],
+                [
+                    'name' => $categoryName,
+                    'sort_order' => $categoryOrder++,
+                    'is_active' => true,
+                ],
+            );
 
             foreach ($categoryGroups as $groupIndex => $groupDefinition) {
-                $group = CatalogGroup::query()->create([
-                    'category_id' => $category->id,
-                    'name' => $groupDefinition['name'],
-                    'sort_order' => $groupIndex,
-                ]);
+                $group = CatalogGroup::query()->firstOrCreate(
+                    [
+                        'category_id' => $category->id,
+                        'name' => $groupDefinition['name'],
+                    ],
+                    ['sort_order' => $groupIndex],
+                );
 
                 foreach ($groupDefinition['fields'] as $fieldIndex => $field) {
+                    if (ProductFieldDefinition::query()->where('field_key', $field['key'])->exists()) {
+                        continue;
+                    }
+
                     ProductFieldDefinition::query()->create([
                         'group_id' => $group->id,
                         'field_key' => $field['key'],
