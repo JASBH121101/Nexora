@@ -616,7 +616,7 @@
             showStep(current);
         } catch (error) {
             localeSelect.value = document.documentElement.lang || 'es';
-            window.alert(error.message || 'Could not change the language.');
+            window.alert(copy.locale_change_failed);
         } finally {
             localeSelect.disabled = false;
         }
