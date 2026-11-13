@@ -283,6 +283,7 @@ final class SetupController
                         'hours' => array_values($validated['business_hours'] ?? []),
                     ],
                     'template' => $validated['business_type'],
+                    'templateVersion' => $templates->version(),
                     'website' => [
                         'editorMode' => 'basic',
                         'draft' => true,
