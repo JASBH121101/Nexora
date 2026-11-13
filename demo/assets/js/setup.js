@@ -139,12 +139,16 @@
     const blocks=state.groups.map((g)=>{
       const visible=g.fields.filter((f)=>f.showPublic);if(!visible.length)return null;
       const section=document.createElement("section");section.className="preview-section";
-      const title=document.createElement("h4");title.textContent=g.name;section.append(title);
+      const title=document.createElement("h4");title.textContent=g.name;
+      const fields=document.createElement("div");fields.className="preview-fields";
       visible.forEach((f)=>{
         const line=document.createElement("div");line.className="preview-field";
+        if(f.width==="full")line.classList.add("is-full");
         const name=document.createElement("span");name.textContent=f.label;
-        const value=document.createElement("strong");value.textContent=f.type==="number"&&f.unit?"— "+f.unit:"—";line.append(name,value);section.append(line);
-      });return section;
+        const value=document.createElement("strong");value.textContent=f.type==="number"&&f.unit?"— "+f.unit:"—";
+        line.append(name,value);fields.append(line);
+      });
+      section.append(title,fields);return section;
     }).filter(Boolean);
     if(state.photosEnabled){const photo=document.createElement("div");photo.className="preview-photo";photo.textContent="＋ Fotografías del producto habilitadas";blocks.unshift(photo);}
     if(!blocks.length){const empty=document.createElement("div");empty.className="preview-photo";empty.textContent="Los campos básicos del producto se mantienen. No hay campos adicionales visibles.";blocks.push(empty);}
