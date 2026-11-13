@@ -102,7 +102,7 @@ Al eliminar una definición con valores, solicitar confirmación y permitir expo
 - `product_field_values` tiene unicidad por producto y definición.
 - Valor dinámico almacenado en un formato tipado/JSON validado por Laravel. No interpolar nombres de tablas o columnas a partir de campos del usuario.
 - `product_prices` se relaciona con códigos ISO 4217 y solo admite monedas habilitadas.
-- Cada unidad pertenece a una dimensión (masa, volumen, longitud, cantidad, área); los selectores solo muestran unidades de la dimensión correspondiente.
+- Cada unidad pertenece a una dimensión (masa, volumen, longitud, cantidad, capacidad digital o área); los selectores solo muestran unidades de la dimensión correspondiente.
 - Las unidades personalizadas se guardan dentro de su dimensión y no alteran la biblioteca global de otras instalaciones.
 - El límite de cinco teléfonos se aplica en validación de servidor y en restricciones de datos compatibles.
 
@@ -124,7 +124,7 @@ Al eliminar una definición con valores, solicitar confirmación y permitir expo
 - Versión inicial: captura manual de un precio por moneda. No convertir automáticamente importes.
 - Conversión automática necesitaría proveedor de tasas, frecuencia, fecha de actualización y manejo de errores; es una integración opcional con costo potencial.
 - La unidad es un atributo de campo numérico (por ejemplo, volumen/ml o masa/kg) o de presentación, según configuración.
-- No presentar litros en campos de peso ni unidades de masa en una dimensión de volumen.
+- No presentar litros en campos de peso ni unidades de masa en una dimensión de volumen. No mezclar GB/TB con unidades de conteo.
 
 ## 8. Fotografías
 
