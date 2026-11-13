@@ -257,6 +257,13 @@ class SetupHealthTest extends TestCase
         $this->assertDatabaseHas('product_field_definitions', ['field_key' => 'perfume_type']);
         $this->assertDatabaseHas('product_field_definitions', ['field_key' => 'inspired_by']);
         $this->assertDatabaseHas('product_field_definitions', ['field_key' => 'olfactory_family']);
+
+        $perfumeType = ProductFieldDefinition::query()->where('field_key', 'perfume_type')->firstOrFail();
+        $referenceFragrance = ProductFieldDefinition::query()->where('field_key', 'inspired_by')->firstOrFail();
+
+        $this->assertSame(['Original', 'Inspiración', 'Genérico'], $perfumeType->options);
+        $this->assertTrue($referenceFragrance->is_public);
+        $this->assertFalse($referenceFragrance->is_required);
         $this->assertDatabaseHas('product_field_definitions', ['field_key' => 'body_mist_aroma']);
         $this->assertDatabaseHas('product_field_definitions', ['field_key' => 'set_contents']);
         $this->assertSame(2, data_get(InstallationSettings::query()->findOrFail(1)->configuration, 'templateVersion'));
