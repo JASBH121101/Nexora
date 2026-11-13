@@ -5,6 +5,8 @@ on:
     branches: [main, 'feature/**']
     paths:
       - "demo/**"
+      - "docs/**"
+      - "README.md"
       - "app/**"
       - "bootstrap/**"
       - "config/**"
@@ -26,6 +28,8 @@ on:
     branches: [main, 'feature/**']
     paths:
       - "demo/**"
+      - "docs/**"
+      - "README.md"
       - "app/**"
       - "bootstrap/**"
       - "config/**"
