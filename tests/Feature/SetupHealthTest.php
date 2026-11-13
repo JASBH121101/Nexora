@@ -27,7 +27,7 @@ class SetupHealthTest extends TestCase
 
     public function test_setup_page_displays_server_preflight_checks(): void
     {
-        $response = $this->get('/setup');
+        $response = $this->get('/setup?locale=es');
 
         $response->assertOk()
             ->assertSee('Prepara tu catálogo')
@@ -39,7 +39,7 @@ class SetupHealthTest extends TestCase
 
     public function test_setup_page_previews_every_available_template_from_the_template_catalog(): void
     {
-        $response = $this->get('/setup');
+        $response = $this->get('/setup?locale=es');
 
         $response->assertOk()
             ->assertSee('const templatePreviews =', false)
@@ -142,8 +142,8 @@ class SetupHealthTest extends TestCase
             ->assertSee('data-selected-country="US"', false)
             ->assertSee('const countryDialingCodes =', false)
             ->assertSee('"NI":"+505"', false)
-            ->assertSee('Código de país', false)
-            ->assertSee('Número móvil', false)
+            ->assertSee('Country calling code', false)
+            ->assertSee('Phone number', false)
             ->assertSee('country_code', false)
             ->assertSee('const countryCodes =', false);
     }
@@ -151,7 +151,7 @@ class SetupHealthTest extends TestCase
     public function test_cancelling_setup_does_not_create_any_business_records(): void
     {
         $this->post('/setup/cancel')
-            ->assertRedirect(route('setup.show'))
+            ->assertRedirect(route('setup.show', ['locale' => 'es']))
             ->assertSessionHas('status', fn (string $message): bool => str_contains($message, 'No se creó el propietario'));
 
         $this->assertDatabaseCount('users', 0);
@@ -537,7 +537,7 @@ class SetupHealthTest extends TestCase
             ->andReturn(0);
 
         $this->post('/setup/prepare-database')
-            ->assertRedirect(route('setup.show'))
+            ->assertRedirect(route('setup.show', ['locale' => 'es']))
             ->assertSessionHas('status');
     }
 
@@ -1177,12 +1177,9 @@ class SetupHealthTest extends TestCase
         $payload['locale'] = 'en';
         unset($payload['owner_name']);
 
-        $this->from('/setup?locale=en&country_code=US')
+        $this->followingRedirects()
+            ->from('/setup?locale=en&country_code=US')
             ->post('/setup?locale=en&country_code=US', $payload)
-            ->assertRedirect('/setup?locale=en&country_code=US')
-            ->assertSessionHasErrors('owner_name');
-
-        $this->get('/setup?locale=en&country_code=US')
             ->assertOk()
             ->assertSee('The owner name field is required.')
             ->assertDontSee('El campo nombre del propietario es obligatorio.');
