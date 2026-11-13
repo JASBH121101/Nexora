@@ -1247,10 +1247,29 @@ class SetupHealthTest extends TestCase
         $this->assertDatabaseCount('catalog_categories', 0);
         $this->assertDatabaseCount('catalog_groups', 0);
         $this->assertDatabaseCount('product_field_definitions', 0);
+        $this->assertDatabaseCount('products', 0);
+        $this->assertDatabaseCount('product_field_values', 0);
+        $this->assertDatabaseCount('product_prices', 0);
+        $this->assertDatabaseCount('business_contacts', 0);
+        $this->assertDatabaseCount('business_currencies', 0);
+        $this->assertDatabaseCount('migrations', 4);
         $this->assertTrue(app(InstallationState::class)->hasSchema());
         $this->assertFalse(app(InstallationState::class)->isCompleted());
 
         $this->get('/setup?locale=en')->assertOk()->assertSee('Get your catalog ready');
+    }
+
+    public function test_demo_reset_requires_the_exact_confirmation_argument(): void
+    {
+        config(['nexora.installation_mode' => 'demo']);
+
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $exitCode = Artisan::call('nexora:demo:reset');
+
+        $this->assertSame(1, $exitCode);
+        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseCount('installation_settings', 1);
     }
 
     public function test_demo_reset_is_blocked_in_production_even_with_confirmation(): void
