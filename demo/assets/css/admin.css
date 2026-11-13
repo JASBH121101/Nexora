@@ -185,3 +185,16 @@
     letter-spacing: 0;
   }
 }
+
+/* Dynamic catalog fields loaded from the local NEXORA Studio prototype. */
+.dynamic-product-fields { display:grid; gap:12px; padding:2px 0 4px; }
+.dynamic-product-group { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:12px; border:1px solid #e8ece4; border-radius:9px; background:#fafbf8; }
+.dynamic-product-group h3 { grid-column:1/-1; margin:0; color:#4a5647; font:700 11px Manrope,sans-serif; }
+.dynamic-product-group label { min-width:0; display:grid; gap:6px; color:#667064; font-size:9px; font-weight:700; }
+.dynamic-product-group label.is-full { grid-column:1/-1; }
+.dynamic-product-group input,.dynamic-product-group select,.dynamic-product-group textarea { width:100%; min-width:0; min-height:36px; padding:0 10px; border:1px solid #e1e6dc; border-radius:7px; outline:none; color:var(--ink); background:#fff; font-size:10px; }
+.dynamic-product-group textarea { min-height:65px; padding:9px 10px; resize:vertical; }
+.dynamic-product-group input:focus,.dynamic-product-group select:focus,.dynamic-product-group textarea:focus { border-color:#a8be73; box-shadow:0 0 0 3px rgba(166,201,64,.13); }
+.dynamic-field-unit { color:#899384; font-size:8px; font-weight:600; }
+.dynamic-empty { padding:10px; border:1px dashed #dce3d5; border-radius:8px; color:#8b9587; font-size:9px; line-height:1.5; }
+@media(max-width:430px) { .dynamic-product-group { grid-template-columns:1fr; } .dynamic-product-group label.is-full { grid-column:auto; } }
