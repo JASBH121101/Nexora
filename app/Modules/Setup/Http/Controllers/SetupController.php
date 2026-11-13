@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Modules\Setup\Services\TemplateCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -271,6 +272,8 @@ final class SetupController
         Auth::login($owner);
         $request->session()->regenerate();
 
+        $mediaMessage = $this->ensurePublicStorageLink();
+
         $verificationMessage = 'Configura SMTP para recibir el enlace de verificación del correo.';
 
         if (config('mail.default') === 'smtp' && filled(config('mail.mailers.smtp.host'))) {
@@ -284,6 +287,49 @@ final class SetupController
 
         return redirect()->route('admin.home')
             ->with('status', 'NEXORA quedó configurado y la cuenta propietaria fue creada.')
-            ->with('verification_message', $verificationMessage);
+            ->with('verification_message', $verificationMessage)
+            ->with('media_message', $mediaMessage);
+    }
+
+    private function ensurePublicStorageLink(): ?string
+    {
+        if (app()->environment('testing')) {
+            return null;
+        }
+
+        $link = public_path('storage');
+        $target = storage_path('app/public');
+
+        if (is_dir($target) === false) {
+            if (mkdir($target, 0755, true) === false && is_dir($target) === false) {
+                return 'No se pudo preparar el directorio de imágenes. Revisa los permisos de storage/app.';
+            }
+        }
+
+        if (is_link($link)) {
+            return realpath($link) === realpath($target)
+                ? null
+                : 'Ya existe un enlace public/storage hacia otra ubicación. NEXORA no lo modificó; revisa el enlace antes de publicar fotografías.';
+        }
+
+        if (file_exists($link)) {
+            return 'Ya existe public/storage como archivo o carpeta. No se modificó para proteger tus datos; solicita revisar la ruta de almacenamiento.';
+        }
+
+        try {
+            $exitCode = Artisan::call('storage:link');
+
+            if (
+                $exitCode === 0
+                && is_link($link)
+                && realpath($link) === realpath($target)
+            ) {
+                return null;
+            }
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+
+        return 'El VPS no permitió crear el enlace de imágenes. Los archivos se guardan, pero para mostrarlos debe existir public/storage apuntando a storage/app/public.';
     }
 }

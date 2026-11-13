@@ -5,6 +5,7 @@
 <div class="dashboard-heading"><div><p class="muted eyebrow">NEXORA ADMIN</p><h1>{{$settings->business_name}}</h1><p class="muted">{{auth()->user()->isOwner()?'Panel privado del propietario':'Panel de empleado'}}</p></div><form method="POST" action="{{route('admin.logout')}}">@csrf<button class="secondary-button">Cerrar sesión</button></form></div>
 @if(session('status'))<div class="notice success" role="status">{{session('status')}}</div>@endif
 @if(session('verification_message'))<div class="notice">{{session('verification_message')}}</div>@endif
+@if(session('media_message'))<div class="notice warning" role="status">{{session('media_message')}}</div>@endif
 @if(auth()->user()->isOwner()&&!auth()->user()->hasVerifiedEmail())<div class="notice warning">El correo del propietario todavía no está verificado.<form method="POST" action="{{route('verification.send')}}">@csrf<button class="text-button">Solicitar enlace de verificación</button></form></div>@endif
 <nav class="shortcuts">
 @if(auth()->user()->hasPermission('catalog.view'))<a href="{{route('admin.products.index')}}">Productos <span>{{$productCount}}</span></a>@endif
