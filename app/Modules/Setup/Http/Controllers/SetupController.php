@@ -69,7 +69,7 @@ final class SetupController
             'countryDialingCodes' => CountryDialingCodeCatalog::all(),
             'defaultPrimaryCurrency' => CountryCurrencyCatalog::forCountry($defaultCountryCode) ?? 'USD',
             'countryCodes' => CountryCatalog::codes(),
-            'languages' => LanguageCatalog::all(),
+            'languages' => LanguageCatalog::all($locale),
             'defaultLocale' => $locale,
             'installationMode' => config('nexora.installation_mode', 'production'),
             'defaultCountryCode' => $defaultCountryCode,
@@ -81,6 +81,8 @@ final class SetupController
         InstallationState $installation,
         DatabaseInstaller $databaseInstaller,
     ): RedirectResponse {
+        $this->applyRequestLocale($request);
+
         if ($installation->isCompleted()) {
             return redirect()->route('admin.login');
         }
@@ -107,6 +109,8 @@ final class SetupController
 
     public function cancel(Request $request, InstallationState $installation): RedirectResponse
     {
+        $this->applyRequestLocale($request);
+
         if ($installation->isCompleted()) {
             return redirect()->route('admin.login');
         }
@@ -376,6 +380,22 @@ final class SetupController
             ->with('status', __('setup.created'))
             ->with('verification_message', $verificationMessage)
             ->with('media_message', $mediaMessage);
+    }
+
+    private function applyRequestLocale(Request $request): string
+    {
+        $locale = strtolower(trim((string) $request->input(
+            'locale',
+            $request->query('locale', config('app.locale', 'es')),
+        )));
+
+        if (! array_key_exists($locale, LanguageCatalog::all())) {
+            $locale = 'es';
+        }
+
+        App::setLocale($locale);
+
+        return $locale;
     }
 
     private function setupRouteParameters(Request $request): array
