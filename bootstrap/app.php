@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\ApplyInstallationLocale;
 use App\Http\Middleware\AdminAccess;
 use App\Http\Middleware\OwnerOnly;
 use App\Http\Middleware\RequirePasswordChange;
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
+        $middleware->web(append: [ApplyInstallationLocale::class]);
 
         $middleware->alias([
             'admin.access' => AdminAccess::class,
