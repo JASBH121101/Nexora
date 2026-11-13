@@ -69,7 +69,7 @@ final class SetupController
             report($exception);
 
             return back()->withErrors([
-                'database' => 'No se pudo conectar o preparar la base de datos. Revisa las credenciales y los permisos de MySQL/MariaDB.',
+                'database' => 'No se pudo conectar o preparar la base de datos. Revisa DATABASE_URL o DB_URL y los permisos del usuario de PostgreSQL.',
             ]);
         }
 

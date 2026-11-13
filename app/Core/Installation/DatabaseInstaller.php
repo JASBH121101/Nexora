@@ -17,11 +17,13 @@ final class DatabaseInstaller
         $connection = DB::connection();
         $driver = $connection->getDriverName();
 
-        $supportedDriver = in_array($driver, ['mysql', 'mariadb'], true)
+        $supportedDriver = $driver === 'pgsql'
             || (app()->environment('testing') && $driver === 'sqlite');
 
         if ($supportedDriver === false) {
-            throw new RuntimeException('NEXORA requiere MySQL o MariaDB para la instalación.');
+            throw new RuntimeException(
+                'NEXORA requiere PostgreSQL para instalaciones reales. SQLite solo se admite en pruebas automatizadas.',
+            );
         }
 
         $connection->getPdo();

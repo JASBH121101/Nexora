@@ -43,7 +43,8 @@
                 </form>
             @else
                 <div class="note">
-                    Antes de crear las tablas, configura las credenciales MySQL/MariaDB de esta instalación en el entorno del VPS.
+                    Antes de crear las tablas, configura PostgreSQL en el entorno del VPS. EthioDeploy inyecta DATABASE_URL automáticamente.
+                    Para una conexión manual, puedes definir DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME y DB_PASSWORD.
                     Usa una base de datos exclusiva para NEXORA y vuelve a cargar esta página para comprobar la conexión.
                 </div>
             @endif

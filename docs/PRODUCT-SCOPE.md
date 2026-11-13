@@ -142,7 +142,7 @@ Los campos dinámicos se modelan como metadatos/valores; nunca crean tablas SQL 
 9. En móvil los campos se apilan sin desbordamiento horizontal ni superposición.
 10. La autenticación, autorización, persistencia y carga de archivos reales ocurren en Laravel, no en JavaScript del navegador.
 11. Una instalación no puede leer los datos de otra instalación.
-12. Los cambios permanecen al cambiar de dispositivo, porque se guardan en MariaDB/MySQL.
+12. Los cambios permanecen al cambiar de dispositivo, porque se guardan en PostgreSQL.
 
 ## 11. Estado de implementación
 

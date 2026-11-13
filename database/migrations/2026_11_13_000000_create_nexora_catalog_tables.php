@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('business_name', 120);
             $table->string('business_type', 40)->default('other');
             $table->foreignId('owner_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->json('configuration')->nullable();
+            $table->jsonb('configuration')->nullable();
             $table->timestamp('setup_completed_at')->nullable();
             $table->timestamps();
         });
@@ -57,7 +57,7 @@ return new class extends Migration
             $table->string('field_key', 80)->unique();
             $table->string('label', 100);
             $table->string('field_type', 24);
-            $table->json('options')->nullable();
+            $table->jsonb('options')->nullable();
             $table->string('unit_dimension', 32)->nullable();
             $table->string('unit_code', 24)->nullable();
             $table->boolean('is_required')->default(false);
@@ -88,7 +88,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
             $table->foreignId('field_definition_id')->constrained('product_field_definitions')->cascadeOnDelete();
-            $table->json('value')->nullable();
+            $table->jsonb('value')->nullable();
             $table->unique(['product_id', 'field_definition_id']);
         });
 

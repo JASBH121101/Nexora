@@ -32,11 +32,22 @@ final class ServerRequirements
 
     private function checkRequiredExtensions(): array
     {
+        $driver = (string) config('database.connections.'.config('database.default').'.driver', config('database.default'));
+        $pdoExtension = match ($driver) {
+            'pgsql' => 'pdo_pgsql',
+            'sqlite' => 'pdo_sqlite',
+            default => null,
+        };
+
         $required = [
             'ctype', 'curl', 'dom', 'fileinfo', 'filter', 'hash',
             'mbstring', 'openssl', 'pcre', 'pdo', 'session',
-            'tokenizer', 'xml', 'pdo_mysql',
+            'tokenizer', 'xml',
         ];
+
+        if ($pdoExtension !== null) {
+            $required[] = $pdoExtension;
+        }
         $missing = array_values(array_filter(
             $required,
             static fn (string $extension): bool => ! extension_loaded($extension),
@@ -47,7 +58,7 @@ final class ServerRequirements
             'label' => 'Extensiones PHP',
             'passed' => $missing === [],
             'detail' => $missing === []
-                ? 'Todas las extensiones obligatorias están disponibles.'
+                ? 'Todas las extensiones obligatorias para el motor configurado están disponibles.'
                 : 'Faltan: '.implode(', ', $missing).'.',
         ];
     }

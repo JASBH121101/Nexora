@@ -1,7 +1,7 @@
 # NEXORA — Arquitectura del catálogo configurable
 
 **Modelo:** código fuente reutilizable + una instalación independiente por negocio.  
-**Backend objetivo:** Laravel / PHP + MariaDB Community o MySQL Community.  
+**Backend objetivo:** Laravel 13 / PHP 8.3+ + PostgreSQL (PostgreSQL 16 en el entorno de referencia).  
 **Interfaz:** Blade, HTML, CSS y JavaScript.  
 **Alcance:** catálogo web configurable; no ERP y no SaaS centralizado multiempresa.
 
@@ -102,7 +102,7 @@ Al eliminar una definición con valores, solicitar confirmación y permitir expo
 - Claves foráneas y restricciones de unicidad para evitar valores huérfanos.
 - `product_field_definitions.key` es estable, única dentro de la instalación y no depende de la etiqueta visible.
 - `product_field_values` tiene unicidad por producto y definición.
-- Valor dinámico almacenado en un formato tipado/JSON validado por Laravel. No interpolar nombres de tablas o columnas a partir de campos del usuario.
+- Valor dinámico almacenado en columnas JSONB y validado por Laravel. No interpolar nombres de tablas o columnas a partir de campos del usuario.
 - `product_prices` se relaciona con códigos ISO 4217 y solo admite monedas habilitadas.
 - Cada unidad pertenece a una dimensión (masa, volumen, desplazamiento del motor, longitud, cantidad, capacidad digital o área); los selectores solo muestran unidades de la dimensión correspondiente.
 - Las unidades personalizadas se guardan dentro de su dimensión y no alteran la biblioteca global de otras instalaciones.
@@ -166,7 +166,7 @@ El cliente contrata el VPS y decide cómo accederá a la instalación: con un do
 
 La aplicación se instala con:
 1. Requisitos PHP/extensiones, Composer y servidor web.
-2. Crear base de datos y usuario con privilegios mínimos.
+2. Crear una base de datos PostgreSQL y un usuario con privilegios mínimos.
 3. Configurar `.env`.
 4. Ejecutar migraciones y seeders de biblioteca/plantillas.
 5. Ejecutar el asistente de primer inicio y crear al propietario al confirmar.
@@ -186,7 +186,7 @@ La versión compatible exacta de Laravel/PHP se fija al seleccionar el entorno m
 
 ## 13. Estado actual del repositorio
 
-La demo estática contiene un prototipo del asistente y constructor en `demo/setup.html`. Los datos se guardan en `localStorage` y se limitan al navegador. No hay autenticación real, backend, verificación por correo, MySQL/MariaDB ni almacenamiento seguro. La aplicación Laravel de producción sigue pendiente.
+La demo estática contiene un prototipo del asistente y constructor en `demo/setup.html`. Los datos se guardan en `localStorage` y se limitan al navegador. No hay autenticación real, backend, verificación por correo, PostgreSQL ni almacenamiento seguro. La aplicación Laravel de producción sigue pendiente.
 
 
 ## 14. NEXORA Site Engine — personalización de la página pública

@@ -42,9 +42,11 @@ Plantillas previstas: perfumería, ropa y calzado, tecnología, gimnasio y fitne
 
 - Código fuente común, instalación independiente por negocio.
 - Laravel / PHP.
-- MariaDB Community o MySQL Community.
+- PostgreSQL 16 como motor principal de base de datos.
 - Blade, HTML, CSS y JavaScript.
-- Fotografías almacenadas en el servidor; la base de datos conserva rutas y metadatos.
+- Fotografías almacenadas en el disco configurado; la base de datos conserva rutas y metadatos.
+- PostgreSQL es el motor oficial. Los atributos configurables se guardan en columnas JSONB.
+- En EthioDeploy, DATABASE_URL se inyecta automáticamente; NEXORA la utiliza mediante el fallback DB_URL de Laravel.
 - Migraciones reproducibles, validación de servidor y pruebas automatizadas.
 - Entrega objetivo: ZIP instalable, `.env.example`, migraciones y documentación.
 - VPS, dominio y alojamiento contratados por cada cliente.
