@@ -184,6 +184,7 @@
     const primaryColor = studioConfig?.identity?.primaryColor;
     if (studioMode && /^#[0-9a-f]{6}$/i.test(String(primaryColor || ""))) {
       document.documentElement.style.setProperty("--lime", primaryColor);
+      document.documentElement.style.setProperty("--lime-dark", primaryColor);
     }
     const logo = studioConfig?.identity?.logoUrl;
     const brandMark = document.querySelector(".site-header .brand-mark");
