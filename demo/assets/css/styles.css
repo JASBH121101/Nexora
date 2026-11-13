@@ -202,3 +202,12 @@ img { max-width: 100%; display: block; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+/* Optional product imagery and configurable detail groups. */
+.product-image.is-no-photo { display:grid; place-items:center; border:1px dashed #cbd4c2; color:#899581; background:linear-gradient(135deg,#f0f3eb,#e7ecdf); }
+.product-image.is-no-photo span { padding:8px 12px; border:1px solid rgba(130,146,112,.2); border-radius:30px; background:rgba(255,255,255,.7); font-size:9px; font-weight:700; }
+.dialog-media[hidden], #product-image-field[hidden] { display:none !important; }
+.attribute-group { margin:10px 0; padding:10px 12px; border:1px solid #e9ede5; border-radius:8px; background:#fbfcf9; }
+.attribute-group h4 { margin:0 0 7px; color:#68745f; font:700 9px Manrope,sans-serif; text-transform:uppercase; letter-spacing:.08em; }
+.attribute-line { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:6px 0; border-top:1px solid #edf0e9; font-size:9px; }
+.attribute-line span { min-width:0; color:#90988d; overflow-wrap:anywhere; }
+.attribute-line strong { min-width:0; color:#465244; text-align:right; overflow-wrap:anywhere; }
