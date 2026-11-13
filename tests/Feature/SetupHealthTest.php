@@ -11,6 +11,8 @@ use App\Models\Product;
 use App\Models\ProductFieldDefinition;
 use App\Models\ProductFieldValue;
 use App\Models\User;
+use App\Modules\Setup\Services\CountryCatalog;
+use App\Modules\Setup\Services\CountryDialingCodeCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
@@ -81,6 +83,17 @@ class SetupHealthTest extends TestCase
         $this->assertDatabaseCount('business_currencies', 0);
         $this->assertDatabaseCount('catalog_categories', 0);
         $this->assertDatabaseCount('catalog_groups', 0);
+    }
+
+    public function test_country_dialing_code_catalog_covers_all_installer_countries(): void
+    {
+        $dialingCodes = CountryDialingCodeCatalog::all();
+
+        $this->assertCount(count(CountryCatalog::codes()), $dialingCodes);
+        $this->assertSame('+505', CountryDialingCodeCatalog::forCountry('NI'));
+        $this->assertSame('+1', CountryDialingCodeCatalog::forCountry('US'));
+        $this->assertSame('+502', CountryDialingCodeCatalog::forCountry('GT'));
+        $this->assertSame('+44', CountryDialingCodeCatalog::forCountry('GB'));
     }
 
     public function test_setup_normalizes_split_phone_fields_to_international_e164_format(): void
@@ -190,6 +203,9 @@ class SetupHealthTest extends TestCase
             ->assertSee('const showStep =', false)
             ->assertSee('minlength="8"', false)
             ->assertSee('data-password-toggle', false)
+            ->assertSee('data-phone-calling-code', false)
+            ->assertSee('updateDefaultPhoneCallingCodes', false)
+            ->assertSee('formatPhoneNumber', false)
             ->assertSee('aria-controls="owner-password"', false)
             ->assertSee('aria-controls="owner-password-confirmation"', false);
     }
