@@ -9,6 +9,8 @@ use App\Models\BusinessContact;
 use App\Models\BusinessCurrency;
 use App\Models\InstallationSettings;
 use App\Models\User;
+use App\Modules\Setup\Services\CountryCatalog;
+use App\Modules\Setup\Services\LanguageCatalog;
 use App\Modules\Setup\Services\TemplateCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,6 +31,7 @@ final class SetupController
     ];
 
     public function __invoke(
+        Request $request,
         InstallationState $installation,
         ServerRequirements $requirements,
         TemplateCatalog $templates,
@@ -49,6 +52,10 @@ final class SetupController
             'templates' => $templates->all(),
             'templatePreviews' => $templates->previews(),
             'currencies' => self::CURRENCIES,
+            'countryCodes' => CountryCatalog::codes(),
+            'languages' => LanguageCatalog::all(),
+            'defaultLocale' => $request->getPreferredLanguage(array_keys(LanguageCatalog::all())) ?? 'es',
+            'defaultCountryCode' => $this->detectCountryCode($request),
         ]);
     }
 
@@ -80,6 +87,22 @@ final class SetupController
         );
     }
 
+    public function cancel(Request $request, InstallationState $installation): RedirectResponse
+    {
+        if ($installation->isCompleted()) {
+            return redirect()->route('admin.login');
+        }
+
+        // No business data is written before setup.store. Discard only form/error state;
+        // keep the prepared schema so the installer can be tested again safely.
+        $request->session()->forget(['_old_input', 'errors']);
+
+        return redirect()->route('setup.show')->with(
+            'status',
+            'Prueba cancelada. No se creó el propietario, el negocio ni las categorías. La estructura vacía de tablas se conserva para continuar probando.',
+        );
+    }
+
     public function store(
         Request $request,
         InstallationState $installation,
@@ -106,6 +129,8 @@ final class SetupController
         $request->merge([
             'owner_username' => strtolower(trim((string) $request->input('owner_username'))),
             'owner_email' => strtolower(trim((string) $request->input('owner_email'))),
+            'country_code' => strtoupper(trim((string) $request->input('country_code'))),
+            'locale' => strtolower(trim((string) $request->input('locale'))),
         ]);
 
         $phones = array_values(array_filter(
@@ -117,6 +142,8 @@ final class SetupController
         $request->merge(['phones' => $phones]);
 
         $validated = $request->validate([
+            'country_code' => ['required', 'string', Rule::in(CountryCatalog::codes())],
+            'locale' => ['required', 'string', Rule::in(array_keys(LanguageCatalog::all()))],
             'business_name' => ['required', 'string', 'max:120'],
             'business_type' => ['required', 'string', Rule::in(array_keys($templates->all()))],
             'owner_name' => ['required', 'string', 'max:100'],
@@ -208,6 +235,10 @@ final class SetupController
                 }
 
                 $configuration = [
+                    'regional' => [
+                        'countryCode' => $validated['country_code'],
+                        'locale' => $validated['locale'],
+                    ],
                     'identity' => [
                         'description' => $validated['description'] ?? '',
                         'primaryColor' => $validated['primary_color'],
@@ -290,6 +321,21 @@ final class SetupController
             ->with('status', 'NEXORA quedó configurado y la cuenta propietaria fue creada.')
             ->with('verification_message', $verificationMessage)
             ->with('media_message', $mediaMessage);
+    }
+
+    private function detectCountryCode(Request $request): string
+    {
+        foreach ($request->getLanguages() as $language) {
+            if (preg_match('/^[a-z]{2,3}[-_]([a-z]{2})(?:[-_].*)?$/i', $language, $matches) === 1) {
+                $countryCode = strtoupper($matches[1]);
+
+                if (in_array($countryCode, CountryCatalog::codes(), true)) {
+                    return $countryCode;
+                }
+            }
+        }
+
+        return 'NI';
     }
 
     private function ensurePublicStorageLink(): ?string
