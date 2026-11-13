@@ -90,13 +90,19 @@
                     </label>
                     <div class="field-grid">
                         <label>Contraseña
-                            <input name="owner_password" type="password" minlength="12" required autocomplete="new-password">
+                            <div class="password-control">
+                                <input id="owner-password" name="owner_password" type="password" minlength="8" required autocomplete="new-password">
+                                <button type="button" class="password-toggle" data-password-toggle aria-controls="owner-password" aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button>
+                            </div>
                         </label>
                         <label>Confirmar contraseña
-                            <input name="owner_password_confirmation" type="password" minlength="12" required autocomplete="new-password">
+                            <div class="password-control">
+                                <input id="owner-password-confirmation" name="owner_password_confirmation" type="password" minlength="8" required autocomplete="new-password">
+                                <button type="button" class="password-toggle" data-password-toggle aria-controls="owner-password-confirmation" aria-label="Mostrar confirmación de contraseña" aria-pressed="false">Mostrar</button>
+                            </div>
                         </label>
                     </div>
-                    <p class="muted small">La instalación permite una sola cuenta propietaria. La contraseña se almacenará con el hasher de Laravel.</p>
+                    <p class="muted small">Usa al menos 8 caracteres. Puedes mostrar u ocultar cada campo para revisar lo que escribiste. La contraseña se almacenará con el hasher de Laravel.</p>
                 </section>
 
                 <section class="wizard-step" data-step="1" hidden>
@@ -175,7 +181,7 @@
     input,select,textarea{width:100%;min-width:0;border:1px solid #dfe5d8;border-radius:10px;padding:11px 12px;background:#fff;color:#20271f;font:inherit}
     input:focus,select:focus,textarea:focus{outline:2px solid #c7d89b;outline-offset:1px}
     input[type=color]{height:44px;padding:4px}input[type=checkbox],input[type=radio]{width:16px;height:16px;accent-color:#6c8d28}
-    .field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.small{font-size:12px}.wizard-progress{margin:22px 0}.wizard-current{font-size:12px;font-weight:800}.wizard-track{height:5px;margin-top:9px;border-radius:10px;background:#e9eee2;overflow:hidden}.wizard-track span{display:block;width:25%;height:100%;background:#89a92f;transition:width .2s}
+    .field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.password-control{display:flex;align-items:center;gap:8px}.password-control input{flex:1;min-width:0}.password-toggle{flex:none;min-height:42px;padding:0 12px;border:1px solid #dfe5d8;border-radius:10px;background:#f4f6ef;color:#35402b;font:inherit;font-size:12px;font-weight:750;cursor:pointer}.password-toggle:focus-visible{outline:2px solid #89a92f;outline-offset:2px}.small{font-size:12px}.wizard-progress{margin:22px 0}.wizard-current{font-size:12px;font-weight:800}.wizard-track{height:5px;margin-top:9px;border-radius:10px;background:#e9eee2;overflow:hidden}.wizard-track span{display:block;width:25%;height:100%;background:#89a92f;transition:width .2s}
     .wizard-step h2{margin:8px 0 15px}.wizard-step[hidden]{display:none}.wizard-actions{display:flex;justify-content:space-between;gap:10px;margin-top:22px}
     .primary-button,.secondary-button{min-height:42px;padding:0 17px;border:0;border-radius:10px;font:inherit;font-weight:750;cursor:pointer}.primary-button{background:#20271f;color:#fff}.secondary-button{background:#eef1e9;color:#35402b}
     .currency-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.currency-options label,.toggle-row{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #e7ebdf;border-radius:9px}.currency-options input,.toggle-row input{width:16px;height:16px}
@@ -199,6 +205,20 @@
     const progress = document.getElementById('wizard-progress-bar');
     const phoneList = document.getElementById('phone-list');
     let current = 0;
+
+    form.querySelectorAll('[data-password-toggle]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const input = document.getElementById(button.getAttribute('aria-controls'));
+
+            if (!input) return;
+
+            const shouldShow = input.type === 'password';
+            input.type = shouldShow ? 'text' : 'password';
+            button.textContent = shouldShow ? 'Ocultar' : 'Mostrar';
+            button.setAttribute('aria-label', shouldShow ? 'Ocultar contraseña' : 'Mostrar contraseña');
+            button.setAttribute('aria-pressed', String(shouldShow));
+        });
+    });
 
     const showStep = (index) => {
         current = index;

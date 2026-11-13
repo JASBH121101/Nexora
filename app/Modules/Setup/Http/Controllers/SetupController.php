@@ -128,7 +128,7 @@ final class SetupController
                 'unique:users,username',
             ],
             'owner_email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'owner_password' => ['required', 'string', 'min:12', 'confirmed'],
+            'owner_password' => ['required', 'string', 'min:8', 'confirmed'],
             'description' => ['nullable', 'string', 'max:700'],
             'primary_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'primary_currency' => ['required', 'string', Rule::in(self::CURRENCIES)],

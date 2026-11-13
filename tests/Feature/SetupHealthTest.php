@@ -44,7 +44,11 @@ class SetupHealthTest extends TestCase
         $response->assertOk()
             ->assertSee('.field-grid', false)
             ->assertSee('@media(max-width:560px)', false)
-            ->assertSee('const showStep =', false);
+            ->assertSee('const showStep =', false)
+            ->assertSee('minlength="8"', false)
+            ->assertSee('data-password-toggle', false)
+            ->assertSee('aria-controls="owner-password"', false)
+            ->assertSee('aria-controls="owner-password-confirmation"', false);
     }
 
     public function test_database_schema_can_be_prepared_from_the_setup_screen(): void
@@ -106,6 +110,34 @@ class SetupHealthTest extends TestCase
         ]);
 
         $this->get('/setup')->assertRedirect(route('admin.login'));
+    }
+
+    public function test_setup_accepts_an_owner_password_with_exactly_eight_characters(): void
+    {
+        $payload = $this->validSetupPayload();
+        $payload['owner_password'] = 'Prueba89';
+        $payload['owner_password_confirmation'] = 'Prueba89';
+
+        $this->post('/setup', $payload)
+            ->assertRedirect(route('admin.home'));
+
+        $owner = User::query()->where('email', 'owner@example.com')->firstOrFail();
+
+        $this->assertTrue(Hash::check('Prueba89', $owner->password));
+    }
+
+    public function test_setup_rejects_an_owner_password_shorter_than_eight_characters(): void
+    {
+        $payload = $this->validSetupPayload();
+        $payload['owner_password'] = 'Prueba8';
+        $payload['owner_password_confirmation'] = 'Prueba8';
+
+        $this->from('/setup')
+            ->post('/setup', $payload)
+            ->assertRedirect('/setup')
+            ->assertSessionHasErrors('owner_password');
+
+        $this->assertDatabaseCount('users', 0);
     }
 
     public function test_setup_creates_one_owner_and_seeds_the_selected_template_atomically(): void
