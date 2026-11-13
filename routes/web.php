@@ -1,22 +1,22 @@
 <?php
 
-use App\Http\Middleware\AdminAccess;
-use App\Http\Middleware\OwnerOnly;
-use App\Http\Middleware\RequirePasswordChange;
-use App\Modules\Admin\Http\Controllers\AccessRequestController;
-use App\Modules\Admin\Http\Controllers\CategoryController;
-use App\Modules\Admin\Http\Controllers\DashboardController;
-use App\Modules\Admin\Http\Controllers\FieldDefinitionController;
-use App\Modules\Admin\Http\Controllers\EmployeeController;
-use App\Modules\Admin\Http\Controllers\LoginController;
-use App\Modules\Admin\Http\Controllers\LoginHelpController;
-use App\Modules\Admin\Http\Controllers\PasswordController;
-use App\Modules\Admin\Http\Controllers\ProductController;
-use App\Modules\Admin\Http\Controllers\VerifyEmailController;
-use App\Modules\Setup\Http\Controllers\SetupController;
-use App\Modules\Site\Http\Controllers\PublicSiteController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use App\\Http\\Middleware\\AdminAccess;
+use App\\Http\\Middleware\\OwnerOnly;
+use App\\Http\\Middleware\\RequirePasswordChange;
+use App\\Modules\\Admin\\Http\\Controllers\\AccessRequestController;
+use App\\Modules\\Admin\\Http\\Controllers\\CategoryController;
+use App\\Modules\\Admin\\Http\\Controllers\\DashboardController;
+use App\\Modules\\Admin\\Http\\Controllers\\EmployeeController;
+use App\\Modules\\Admin\\Http\\Controllers\\FieldDefinitionController;
+use App\\Modules\\Admin\\Http\\Controllers\\LoginController;
+use App\\Modules\\Admin\\Http\\Controllers\\LoginHelpController;
+use App\\Modules\\Admin\\Http\\Controllers\\PasswordController;
+use App\\Modules\\Admin\\Http\\Controllers\\ProductController;
+use App\\Modules\\Admin\\Http\\Controllers\\VerifyEmailController;
+use App\\Modules\\Setup\\Http\\Controllers\\SetupController;
+use App\\Modules\\Site\\Http\\Controllers\\PublicSiteController;
+use Illuminate\\Http\\Request;
+use Illuminate\\Support\\Facades\\Route;
 
 Route::get('/setup', SetupController::class)->name('setup.show');
 Route::post('/setup', [SetupController::class, 'store'])
