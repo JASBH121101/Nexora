@@ -14,6 +14,7 @@
         .checks{display:grid;gap:10px;margin:18px 0}.check{display:flex;justify-content:space-between;gap:16px;padding:13px 14px;border:1px solid #e6eae2;border-radius:11px}.check strong{font-size:13px}.check small{display:block;margin-top:4px;color:#6f796b}.status{flex:none;font-size:11px;font-weight:800}.ok{color:#347b43}.fail{color:#b33a3a}.note{padding:12px 14px;border-radius:10px;background:#f4f6ef;color:#56614d;font-size:13px}code{font-size:.92em;overflow-wrap:anywhere}
         @media(max-width:560px){.wrap{padding:25px 0}.panel{padding:19px}.check{align-items:flex-start;flex-direction:column;gap:8px}}
     </style>
+    @stack('head')
 </head>
 <body>
     <main class="wrap">
@@ -21,5 +22,6 @@
         @yield('content')
         <div class="footer">NEXORA · Catálogo digital configurable</div>
     </main>
+    @stack('scripts')
 </body>
 </html>
