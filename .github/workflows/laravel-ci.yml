@@ -102,10 +102,8 @@ jobs:
             git push
           fi
 
-      - name: Diagnose Laravel coding style
-        run: |
-          ./vendor/bin/pint
-          git --no-pager diff -- app/Modules/Setup/Http/Controllers/SetupController.php
+      - name: Verify Laravel coding style
+        run: composer lint
 
       - name: Run Laravel feature tests on SQLite
         run: composer test
