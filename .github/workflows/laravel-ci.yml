@@ -72,6 +72,11 @@ jobs:
             composer update --no-interaction --prefer-dist --no-progress
           fi
 
+      - name: Prepare isolated CI environment
+        run: |
+          if [ ! -f .env ]; then cp .env.example .env; fi
+          php artisan key:generate --force
+
       - name: Save Composer lockfile on the feature branch
         if: github.event_name == 'push' && github.ref != 'refs/heads/main'
         run: |
