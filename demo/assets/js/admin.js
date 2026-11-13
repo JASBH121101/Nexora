@@ -171,7 +171,7 @@
   };
   const collectDynamicValues = () => {
     const attributes = {};
-    for (const control of $("[data-custom-field]", dynamicFields)) {
+    for (const control of queryAll("[data-custom-field]", dynamicFields)) {
       const key = control.dataset.customField;
       if (control.dataset.customType === "boolean") attributes[key] = control.checked;
       else if (control.dataset.customType === "multiselect") attributes[key] = [...control.selectedOptions].map((option) => option.value);
