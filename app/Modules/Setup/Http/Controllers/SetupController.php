@@ -64,6 +64,12 @@ final class SetupController
             'databaseConnected' => (bool) (collect($checks)->firstWhere('key', 'database')['passed'] ?? false),
             'templates' => $templates->all($locale),
             'templatePreviews' => $templates->previews($locale),
+            'localeData' => [
+                'copy' => __('setup.javascript'),
+                'days' => __('setup.days'),
+                'templatePreviews' => $templates->previews($locale),
+                'creatingInstallation' => __('setup.creating_installation'),
+            ],
             'currencies' => CurrencyCatalog::codes(),
             'countryCurrencies' => CountryCurrencyCatalog::all(),
             'countryDialingCodes' => CountryDialingCodeCatalog::all(),
