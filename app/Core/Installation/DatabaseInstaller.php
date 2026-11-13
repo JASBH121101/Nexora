@@ -21,7 +21,7 @@ final class DatabaseInstaller
         $supportedDriver = in_array($driver, ['mysql', 'mariadb'], true)
             || (app()->environment('testing') && $driver === 'sqlite');
 
-        if (! $supportedDriver) {
+        if ($supportedDriver === false) {
             throw new RuntimeException('NEXORA requiere MySQL o MariaDB para la instalación.');
         }
 
@@ -54,7 +54,7 @@ final class DatabaseInstaller
 
         $exitCode = Artisan::call('migrate', ['--force' => true]);
 
-        if ($exitCode !== 0 || ! $installation->hasSchema()) {
+        if ($exitCode !== 0 || $installation->hasSchema() === false) {
             throw new RuntimeException(
                 'No se pudo preparar toda la estructura de NEXORA. Revisa permisos del usuario de base de datos y vuelve a intentarlo.',
             );
