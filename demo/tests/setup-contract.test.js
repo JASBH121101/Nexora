@@ -55,7 +55,7 @@ test("measurement units are separated by dimension", () => {
   assert.ok(js.includes('field("Memoria RAM","number",{unitGroup:"digital",unit:"GB"})'));
   assert.ok(js.includes('field("Cilindraje","number",{unitGroup:"displacement",unit:"cc"})'));
   assert.ok(js.includes('displacement:["cc"]'));
-  assert.match(js, /volume:\\["L","ml","gal","fl oz"\\]/);
+  assert.ok(js.includes('volume:["L","ml","gal","fl oz"]'));
   assert.ok(html.includes('<option value="displacement">Cilindraje de motor</option>'));
 });
 
