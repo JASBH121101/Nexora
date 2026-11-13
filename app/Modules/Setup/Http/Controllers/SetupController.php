@@ -10,6 +10,8 @@ use App\Models\BusinessCurrency;
 use App\Models\InstallationSettings;
 use App\Models\User;
 use App\Modules\Setup\Services\CountryCatalog;
+use App\Modules\Setup\Services\CountryCurrencyCatalog;
+use App\Modules\Setup\Services\CurrencyCatalog;
 use App\Modules\Setup\Services\LanguageCatalog;
 use App\Modules\Setup\Services\TemplateCatalog;
 use Illuminate\Http\RedirectResponse;
@@ -26,10 +28,6 @@ use Throwable;
 
 final class SetupController
 {
-    private const CURRENCIES = [
-        'USD', 'NIO', 'EUR', 'GTQ', 'HNL', 'CRC', 'PAB', 'COP', 'MXN', 'CAD', 'GBP',
-    ];
-
     public function __invoke(
         Request $request,
         InstallationState $installation,
@@ -51,7 +49,9 @@ final class SetupController
             'databaseConnected' => (bool) (collect($checks)->firstWhere('key', 'database')['passed'] ?? false),
             'templates' => $templates->all(),
             'templatePreviews' => $templates->previews(),
-            'currencies' => self::CURRENCIES,
+            'currencies' => CurrencyCatalog::codes(),
+            'countryCurrencies' => CountryCurrencyCatalog::all(),
+            'defaultPrimaryCurrency' => CountryCurrencyCatalog::forCountry($this->detectCountryCode($request)) ?? 'USD',
             'countryCodes' => CountryCatalog::codes(),
             'languages' => LanguageCatalog::all(),
             'defaultLocale' => $request->getPreferredLanguage(array_keys(LanguageCatalog::all())) ?? 'es',
@@ -159,9 +159,15 @@ final class SetupController
             'owner_password' => ['required', 'string', 'min:8', 'confirmed'],
             'description' => ['nullable', 'string', 'max:700'],
             'primary_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
-            'primary_currency' => ['required', 'string', Rule::in(self::CURRENCIES)],
+            'primary_currency' => ['required', 'string', Rule::in(CurrencyCatalog::codes())],
             'additional_currencies' => ['sometimes', 'array', 'max:10'],
-            'additional_currencies.*' => ['string', 'distinct', Rule::in(self::CURRENCIES)],
+            'additional_currencies.*' => ['string', 'distinct', Rule::in(CurrencyCatalog::codes())],
+            'business_hours' => ['sometimes', 'array', 'max:14'],
+            'business_hours.*.day' => ['required', 'string', Rule::in([
+                'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
+            ])],
+            'business_hours.*.open' => ['required', 'date_format:H:i'],
+            'business_hours.*.close' => ['required', 'date_format:H:i'],
             'phones' => ['sometimes', 'array', 'max:5'],
             'phones.*.number' => ['required', 'string', 'max:20', 'regex:/^[0-9+()\\-\\s]{7,20}$/'],
             'phones.*.show_public' => ['nullable', 'boolean'],
@@ -249,6 +255,9 @@ final class SetupController
                     'pricing' => [
                         'primaryCurrency' => $validated['primary_currency'],
                         'enabledCurrencies' => $enabledCurrencies,
+                    ],
+                    'operation' => [
+                        'hours' => array_values($validated['business_hours'] ?? []),
                     ],
                     'template' => $validated['business_type'],
                     'website' => [
