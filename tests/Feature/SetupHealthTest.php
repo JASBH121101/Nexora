@@ -150,13 +150,21 @@ class SetupHealthTest extends TestCase
             'email' => 'employee@example.com',
         ]);
 
-        $response->assertRedirect();
-        $credentials = $response->getSession()->get('employee_credentials_once');
-        $this->assertNotEmpty($credentials['password'] ?? null);
+        $temporaryPassword = null;
+
+        $response->assertRedirect()->assertSessionHas(
+            'employee_credentials_once',
+            function (array $credentials) use (&$temporaryPassword): bool {
+                $temporaryPassword = $credentials['password'] ?? null;
+
+                return filled($temporaryPassword);
+            },
+        );
+
         $employee = User::query()->where('username', 'empleado01')->firstOrFail();
         $this->assertSame('employee', $employee->role);
         $this->assertTrue($employee->must_change_password);
-        $this->assertTrue(Hash::check($credentials['password'], $employee->password));
+        $this->assertTrue(Hash::check($temporaryPassword, $employee->password));
     }
 
     public function test_owner_can_log_in_again_after_logout(): void
