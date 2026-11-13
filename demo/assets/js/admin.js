@@ -251,7 +251,7 @@
       image: photoUploadsEnabled() ? $("#product-image").value.trim() : (products.find((item) => item.id === id)?.image || ""),
       detail: Object.entries(attributes).filter(([,value]) => value !== "" && value !== null && value !== false && !(Array.isArray(value) && !value.length)).map(([key,value]) => {
         const definition = schemaGroups().flatMap((item) => item.fields || []).find((field) => field.id === key);
-        return definition ? definition.label + ": " + (Array.isArray(value) ? value.join(", ") : String(value)) : "";
+        return definition?.showPublic ? definition.label + ": " + (Array.isArray(value) ? value.join(", ") : String(value)) : "";
       }).filter(Boolean).join(" · ").slice(0,180),
       attributes,
       tag: "Demo",
