@@ -5,7 +5,7 @@
     <label>Grupo
         <select name="group_id" required>
             @foreach ($groups as $group)
-                <option value="{{ $group->id }}" @selected((string) old('group_id', $field?->group_id) === (string) $group->id)>{{ $group->name }}</option>
+                <option value="{{ $group->id }}" @selected((string) old('group_id', $field?->group_id) === (string) $group->id)>{{ $group->name }} · {{ $group->category?->name ?? 'Todas las categorías' }}</option>
             @endforeach
         </select>
     </label>
