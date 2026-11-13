@@ -19,6 +19,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/setup', SetupController::class)->name('setup.show');
+Route::post('/setup/cancel', [SetupController::class, 'cancel'])
+    ->middleware('throttle:10,1')
+    ->name('setup.cancel');
 Route::post('/setup', [SetupController::class, 'store'])
     ->middleware('throttle:5,1')
     ->name('setup.store');
