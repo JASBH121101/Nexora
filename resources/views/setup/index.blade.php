@@ -65,8 +65,28 @@
                     <div class="wizard-track"><span id="wizard-progress-bar"></span></div>
                 </div>
 
-                <section class="wizard-step" data-step="0">
-                    <h2>1. Negocio y propietario</h2>
+                <section class="wizard-step" data-step="0" aria-labelledby="regional-step-title">
+                    <h2 id="regional-step-title">1. Idioma y país</h2>
+                    <p class="muted">Primero establece el idioma de la instalación y el país donde opera el negocio. La sugerencia inicial se basa en el idioma preferido del navegador; puedes cambiarla.</p>
+                    <div class="field-grid">
+                        <label>Idioma principal
+                            <select id="setup-locale" name="locale" required>
+                                @foreach ($languages as $code => $label)
+                                    <option value="{{ $code }}" @selected(old('locale', $defaultLocale) === $code)>{{ $label }} ({{ $code }})</option>
+                                @endforeach
+                            </select>
+                        </label>
+                        <label>País del negocio
+                            <select id="country-code" name="country_code" required data-selected-country="{{ old('country_code', $defaultCountryCode) }}">
+                                <option value="">Selecciona un país</option>
+                            </select>
+                        </label>
+                    </div>
+                    <p class="muted small">El país utiliza el código estándar ISO 3166-1 de dos letras. Esta selección no modifica la moneda principal, que se configura en el siguiente paso.</p>
+                </section>
+
+                <section class="wizard-step" data-step="1">
+                    <h2>2. Negocio y propietario</h2>
                     <label>Nombre comercial
                         <input name="business_name" maxlength="120" required value="{{ old('business_name') }}" placeholder="Ej. Mi tienda">
                     </label>
@@ -105,8 +125,8 @@
                     <p class="muted small">Usa al menos 8 caracteres. Puedes mostrar u ocultar cada campo para revisar lo que escribiste. La contraseña se almacenará con el hasher de Laravel.</p>
                 </section>
 
-                <section class="wizard-step" data-step="1" hidden>
-                    <h2>2. Identidad y monedas</h2>
+                <section class="wizard-step" data-step="2" hidden>
+                    <h2>3. Identidad y monedas</h2>
                     <label>Descripción del negocio
                         <textarea name="description" maxlength="700" rows="3" placeholder="Describe brevemente tu negocio">{{ old('description') }}</textarea>
                     </label>
@@ -152,19 +172,23 @@
                     <p class="muted small">Las imágenes se guardan en el VPS. Si desactivas las fotografías, el catálogo no aceptará imágenes de productos.</p>
                 </section>
 
-                <section class="wizard-step" data-step="2" hidden>
-                    <h2>3. Plantilla y catálogo</h2>
+                <section class="wizard-step" data-step="3" hidden>
+                    <h2>4. Plantilla y catálogo</h2>
                     <p class="muted">La plantilla cargará categorías y campos iniciales editables. Podrás cambiar sus etiquetas, agregar campos y reorganizar grupos desde el panel.</p>
                     <div class="template-summary" id="template-summary" aria-live="polite">Selecciona un tipo de negocio en el paso 1 para ver su plantilla.</div>
                     <div class="note">Los campos dinámicos se guardarán como definiciones y valores relacionados. NEXORA no creará columnas SQL por cada campo personalizado.</div>
                 </section>
 
-                <section class="wizard-step" data-step="3" hidden>
-                    <h2>4. Revisión y confirmación</h2>
+                <section class="wizard-step" data-step="4" hidden>
+                    <h2>5. Revisión y confirmación</h2>
                     <div class="review-list" id="setup-review"></div>
-                    <div class="note">Al confirmar, NEXORA creará el propietario, guardará la configuración, sembrará la plantilla y bloqueará este asistente. Esta acción no se puede repetir en la misma instalación.</div>
+                    <div class="note">Los datos de este asistente permanecen en el formulario y no se guardan como negocio ni como propietario hasta pulsar «Crear instalación». Esa acción sí completa la instalación y no se puede repetir en la misma base de datos.</div>
                 </section>
 
+                <div class="wizard-cancel-row">
+                    <button type="submit" class="cancel-button" id="wizard-cancel" formnovalidate formaction="{{ route('setup.cancel') }}" formmethod="POST">Cancelar prueba</button>
+                    <span class="muted small">Cancelar no crea ni elimina datos del negocio.</span>
+                </div>
                 <div class="wizard-actions">
                     <button type="button" class="secondary-button" id="wizard-prev" hidden>Volver</button>
                     <button type="button" class="primary-button" id="wizard-next">Continuar</button>
@@ -182,13 +206,13 @@
     input:focus,select:focus,textarea:focus{outline:2px solid #c7d89b;outline-offset:1px}
     input[type=color]{height:44px;padding:4px}input[type=checkbox],input[type=radio]{width:16px;height:16px;accent-color:#6c8d28}
     .field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.password-control{display:flex;align-items:center;gap:8px}.password-control input{flex:1;min-width:0}.password-toggle{flex:none;min-height:42px;padding:0 12px;border:1px solid #dfe5d8;border-radius:10px;background:#f4f6ef;color:#35402b;font:inherit;font-size:12px;font-weight:750;cursor:pointer}.password-toggle:focus-visible{outline:2px solid #89a92f;outline-offset:2px}.small{font-size:12px}.wizard-progress{margin:22px 0}.wizard-current{font-size:12px;font-weight:800}.wizard-track{height:5px;margin-top:9px;border-radius:10px;background:#e9eee2;overflow:hidden}.wizard-track span{display:block;width:25%;height:100%;background:#89a92f;transition:width .2s}
-    .wizard-step h2{margin:8px 0 15px}.wizard-step[hidden]{display:none}.wizard-actions{display:flex;justify-content:space-between;gap:10px;margin-top:22px}
+    .wizard-step h2{margin:8px 0 15px}.wizard-step[hidden]{display:none}.wizard-actions{display:flex;justify-content:space-between;gap:10px;margin-top:14px}.wizard-cancel-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px}.cancel-button{padding:7px 0;border:0;background:transparent;color:#7a453e;font:inherit;font-size:12px;font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
     .primary-button,.secondary-button{min-height:42px;padding:0 17px;border:0;border-radius:10px;font:inherit;font-weight:750;cursor:pointer}.primary-button{background:#20271f;color:#fff}.secondary-button{background:#eef1e9;color:#35402b}
     .currency-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.currency-options label,.toggle-row{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #e7ebdf;border-radius:9px}.currency-options input,.toggle-row input{width:16px;height:16px}
     .section-separator{margin-top:22px;padding-top:17px;border-top:1px solid #edf0e9}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.section-heading h3{margin:0;font-size:15px}.section-heading p{margin:5px 0}.phone-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #edf0e9}.phone-row label{margin:4px 0}.phone-options{display:flex;gap:12px;flex-wrap:wrap;font-size:12px}.phone-options label{display:flex;align-items:center;gap:6px}
     .template-summary,.review-list{padding:15px;border-radius:11px;background:#f4f6ef;font-size:13px;line-height:1.7}.template-summary{display:grid;gap:12px}.template-summary__section{display:grid;gap:7px;padding-top:10px;border-top:1px solid #e2e8d9}.template-summary__items{display:flex;flex-wrap:wrap;gap:7px}.template-summary__chip{padding:4px 9px;border:1px solid #e0e7d6;border-radius:999px;background:#fff;font-size:12px}.template-summary__fields{color:#4e5846}.review-list div{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #e7ebdf}.review-list div:last-child{border:0}
     .section-heading .secondary-button{white-space:nowrap}
-    @media(max-width:560px){.field-grid{grid-template-columns:1fr;gap:0}.currency-options{grid-template-columns:repeat(3,minmax(0,1fr))}.phone-row{grid-template-columns:1fr}.wizard-actions button{flex:1}.section-heading{align-items:flex-start;flex-direction:column}}
+    @media(max-width:560px){.field-grid{grid-template-columns:1fr;gap:0}.currency-options{grid-template-columns:repeat(3,minmax(0,1fr))}.phone-row{grid-template-columns:1fr}.wizard-actions button{flex:1}.wizard-cancel-row{align-items:flex-start;flex-direction:column;gap:4px}.section-heading{align-items:flex-start;flex-direction:column}}
 </style>
 @endpush
 
@@ -204,7 +228,49 @@
     const counter = document.getElementById('wizard-current');
     const progress = document.getElementById('wizard-progress-bar');
     const phoneList = document.getElementById('phone-list');
+    const cancel = document.getElementById('wizard-cancel');
+    const localeSelect = document.getElementById('setup-locale');
+    const countrySelect = document.getElementById('country-code');
+    const countryCodes = @json($countryCodes);
+    const preferredCountry = countrySelect.dataset.selectedCountry || 'NI';
     let current = 0;
+
+    const renderCountryOptions = () => {
+        const locale = localeSelect.value || 'es';
+        let displayNames = null;
+
+        try {
+            displayNames = typeof Intl !== 'undefined' && Intl.DisplayNames
+                ? new Intl.DisplayNames([locale], { type: 'region' })
+                : null;
+        } catch (error) {
+            displayNames = null;
+        }
+
+        const options = countryCodes.map((code) => ({
+            code,
+            label: displayNames?.of(code) || code,
+        })).sort((a, b) => a.label.localeCompare(b.label, locale));
+
+        const selected = countrySelect.value || preferredCountry;
+        countrySelect.replaceChildren(...options.map(({ code, label }) => {
+            const option = document.createElement('option');
+            option.value = code;
+            option.textContent = label + ' (' + code + ')';
+            return option;
+        }));
+
+        countrySelect.value = countryCodes.includes(selected) ? selected : 'NI';
+    };
+
+    renderCountryOptions();
+    localeSelect.addEventListener('change', renderCountryOptions);
+
+    cancel.addEventListener('click', (event) => {
+        if (!window.confirm('¿Cancelar esta prueba? No se creará el propietario, el negocio ni las categorías. La estructura vacía de tablas se conservará para repetir la prueba.')) {
+            event.preventDefault();
+        }
+    });
 
     form.querySelectorAll('[data-password-toggle]').forEach((button) => {
         button.addEventListener('click', () => {
@@ -228,8 +294,8 @@
         submit.hidden = index !== steps.length - 1;
         counter.textContent = 'Paso ' + (index + 1) + ' de ' + steps.length;
         progress.style.width = (((index + 1) / steps.length) * 100) + '%';
-        if (index === 2) renderTemplate();
-        if (index === 3) renderReview();
+        if (index === 3) renderTemplate();
+        if (index === 4) renderReview();
     };
 
     const validateStep = () => {
@@ -371,6 +437,8 @@
         );
         const phones = [...phoneList.querySelectorAll('[data-phone-number]')].map(x => x.value).filter(Boolean);
         const rows = [
+            ['Idioma principal', localeSelect.selectedOptions[0]?.textContent || getValue('locale')],
+            ['País del negocio', countrySelect.selectedOptions[0]?.textContent || getValue('country_code')],
             ['Negocio', getValue('business_name')],
             ['Plantilla', form.elements.business_type.selectedOptions[0]?.textContent || ''],
             ['Propietario', getValue('owner_name')],
@@ -396,6 +464,8 @@
     });
     prev.addEventListener('click', () => showStep(Math.max(current - 1, 0)));
     form.addEventListener('submit', (event) => {
+        if (event.submitter?.id === 'wizard-cancel') return;
+
         if (!validateStep()) {
             event.preventDefault();
             return;
