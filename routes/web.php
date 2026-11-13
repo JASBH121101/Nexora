@@ -20,6 +20,10 @@ Route::post('/setup', [SetupController::class, 'store'])
     ->middleware('throttle:5,1')
     ->name('setup.store');
 
+Route::post('/setup/prepare-database', [SetupController::class, 'prepareDatabase'])
+    ->middleware('throttle:3,1')
+    ->name('setup.prepare-database');
+
 Route::get('/email/verify/{id}/{hash}', VerifyEmailController::class)
     ->middleware(['auth', 'signed', 'throttle:6,1'])
     ->name('verification.verify');

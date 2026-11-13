@@ -2,6 +2,7 @@
 
 namespace App\Modules\Setup\Http\Controllers;
 
+use App\Core\Installation\DatabaseInstaller;
 use App\Core\Installation\InstallationState;
 use App\Core\Installation\ServerRequirements;
 use App\Models\BusinessContact;
@@ -42,9 +43,34 @@ final class SetupController
                 static fn (array $check): bool => $check['passed'],
             ),
             'schemaReady' => $installation->hasSchema(),
+            'databaseConnected' => (bool) (collect($checks)->firstWhere('key', 'database')['passed'] ?? false),
             'templates' => $templates->all(),
             'currencies' => self::CURRENCIES,
         ]);
+    }
+
+    public function prepareDatabase(
+        InstallationState $installation,
+        DatabaseInstaller $databaseInstaller,
+    ): RedirectResponse {
+        if ($installation->isCompleted()) {
+            return redirect()->route('admin.login');
+        }
+
+        try {
+            $databaseInstaller->prepare($installation);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return back()->withErrors([
+                'database' => $exception->getMessage(),
+            ]);
+        }
+
+        return redirect()->route('setup.show')->with(
+            'status',
+            'La estructura de la base de datos de NEXORA quedó preparada. Ya puedes continuar con el asistente.',
+        );
     }
 
     public function store(

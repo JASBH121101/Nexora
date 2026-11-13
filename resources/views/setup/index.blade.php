@@ -22,11 +22,31 @@
             @endforeach
         </div>
 
+        @if (session('status'))
+            <div class="note" style="background:#edf7ed;color:#286536" role="status">{{ session('status') }}</div>
+        @endif
+
         @if (! $schemaReady)
-            <div class="note">
-                La base de datos está conectada, pero el esquema todavía no existe. Ejecuta
-                <code>php artisan migrate --force</code> después de configurar la conexión.
-            </div>
+            @if ($errors->has('database'))
+                <div class="note" style="background:#fff0ee;color:#963b32" role="alert">
+                    {{ $errors->first('database') }}
+                </div>
+            @endif
+            @if ($databaseConnected)
+                <div class="note">
+                    La conexión a la base de datos funciona. NEXORA puede crear sus tablas automáticamente.
+                    Se aplicarán únicamente las migraciones pendientes; no se ejecutará ninguna eliminación de tablas.
+                </div>
+                <form method="POST" action="{{ route('setup.prepare-database') }}">
+                    @csrf
+                    <button class="primary-button" type="submit">Preparar base de datos automáticamente</button>
+                </form>
+            @else
+                <div class="note">
+                    Antes de crear las tablas, configura las credenciales MySQL/MariaDB de esta instalación en el entorno del VPS.
+                    Usa una base de datos exclusiva para NEXORA y vuelve a cargar esta página para comprobar la conexión.
+                </div>
+            @endif
         @elseif (! $requirementsPassed)
             <div class="note">Corrige los requisitos marcados antes de continuar. No se creará ninguna cuenta mientras falte una condición obligatoria.</div>
         @else

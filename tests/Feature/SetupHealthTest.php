@@ -6,6 +6,7 @@ use App\Models\InstallationSettings;
 use App\Models\LoginHelpRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -28,6 +29,34 @@ class SetupHealthTest extends TestCase
     public function test_public_site_redirects_to_setup_before_installation_is_completed(): void
     {
         $this->get('/')->assertRedirect(route('setup.show'));
+    }
+
+    public function test_database_schema_can_be_prepared_from_the_setup_screen(): void
+    {
+        Artisan::shouldReceive('call')
+            ->once()
+            ->with('migrate', ['--force' => true])
+            ->andReturn(0);
+
+        $this->post('/setup/prepare-database')
+            ->assertRedirect(route('setup.show'))
+            ->assertSessionHas('status');
+    }
+
+    public function test_database_preparation_is_blocked_after_installation_is_completed(): void
+    {
+        InstallationSettings::query()->create([
+            'id' => 1,
+            'business_name' => 'Tienda de prueba',
+            'business_type' => 'other',
+            'configuration' => [],
+            'setup_completed_at' => now(),
+        ]);
+
+        Artisan::shouldReceive('call')->never();
+
+        $this->post('/setup/prepare-database')
+            ->assertRedirect(route('admin.login'));
     }
 
     public function test_completed_installation_displays_public_site_placeholder(): void
