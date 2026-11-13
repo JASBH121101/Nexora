@@ -86,7 +86,8 @@ class SetupHealthTest extends TestCase
             ->assertSee('data-selected-country="NI"', false)
             ->assertSee('data-selected-currency="NIO"', false)
             ->assertSee('NIO', false)
-            ->assertSee('"NI":"NIO"', false);
+            ->assertSee('"NI":"NIO"', false)
+            ->assertSee('"GH":"GHS"', false);
     }
 
     public function test_setup_persists_primary_and_additional_currencies_and_business_hours(): void
