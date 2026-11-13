@@ -182,6 +182,56 @@ class SetupHealthTest extends TestCase
         ])->assertRedirect(route('admin.home'));
 
         $this->assertFalse($employee->fresh()->must_change_password);
+        $this->get('/admin/employees')->assertForbidden();
+        $this->get('/admin/access-requests')->assertForbidden();
+    }
+
+    public function test_owner_can_process_employee_access_request_with_one_time_password(): void
+    {
+        $this->post('/setup', $this->validSetupPayload())->assertRedirect(route('admin.home'));
+
+        $this->post('/admin/employees', [
+            'name' => 'Empleado de prueba',
+            'username' => 'empleado01',
+            'email' => 'employee@example.com',
+        ])->assertRedirect();
+
+        $employee = User::query()->where('username', 'empleado01')->firstOrFail();
+
+        $this->post('/admin/logout')->assertRedirect(route('admin.login'));
+
+        $this->post('/admin/login/help', [
+            'username' => 'empleado01',
+            'reason' => 'forgot_password',
+            'details' => 'No recuerdo mi contraseña.',
+        ])->assertRedirect(route('admin.login'));
+
+        $this->post('/admin/login', [
+            'username' => 'jaredadmin',
+            'password' => 'Strong-Password-2026!',
+        ])->assertRedirect(route('admin.home'));
+
+        $request = \App\Models\LoginHelpRequest::query()->firstOrFail();
+        $response = $this->post(route('admin.access-requests.temporary-password', $request));
+
+        $temporaryPassword = null;
+
+        $response->assertRedirect()->assertSessionHas(
+            'temporary_password_once',
+            function (array $credentials) use (&$temporaryPassword): bool {
+                $temporaryPassword = $credentials['password'] ?? null;
+
+                return filled($temporaryPassword);
+            },
+        );
+
+        $this->assertTrue(Hash::check($temporaryPassword, $employee->fresh()->password));
+        $this->assertTrue($employee->fresh()->must_change_password);
+        $this->assertDatabaseHas('login_help_requests', [
+            'id' => $request->id,
+            'status' => 'resolved',
+            'handled_by' => auth()->id(),
+        ]);
     }
 
     public function test_owner_can_log_in_again_after_logout(): void
