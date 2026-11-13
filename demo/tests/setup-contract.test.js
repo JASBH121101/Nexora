@@ -105,6 +105,19 @@ test("product photo controls follow the optional-photo setting", () => {
   assert.match(publicCss, /\.dialog-media\[hidden\]/);
 });
 
+test("the configured setup profile drives the public site and hides the sector demo switcher", () => {
+  assert.ok(publicJs.includes('id: "studio-config"'));
+  assert.ok(publicJs.includes("studioConfig.identity?.description"));
+  assert.ok(publicJs.includes("studioConfig.identity?.coverUrl"));
+  assert.ok(publicJs.includes("phone.showPublic"));
+  assert.ok(publicJs.includes("renderContactTargets"));
+  assert.ok(publicJs.includes('document.documentElement.style.setProperty("--lime", primaryColor)'));
+  assert.ok(adminJs.includes('id: "studio-config"'));
+  assert.ok(adminJs.includes('businessSelect.closest("label")?.setAttribute("hidden", "")'));
+  assert.ok(adminHtml.includes('id="admin-business-select"'));
+  assert.ok(read("../index.html").includes('id="contact-phone-select"'));
+});
+
 test("the public product detail renders only fields marked as public", () => {
   assert.ok(publicJs.includes("field.showPublic"));
   assert.ok(publicJs.includes("product.attributes[field.id]"));

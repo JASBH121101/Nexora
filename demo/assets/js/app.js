@@ -30,7 +30,33 @@
   const emptyState = $("#empty-state");
   const toast = $("#toast");
   const dialog = $("#product-dialog");
-  let business = demos.find((item) => item.id === businessSelect?.value) || demos[0];
+  const studioMode = Boolean(studioConfig);
+  const studioTypeLabels = {
+    perfumery: "PERFUMERÍA",
+    fashion: "ROPA Y CALZADO",
+    technology: "TECNOLOGÍA",
+    gym: "GIMNASIO Y FITNESS",
+    automotive: "REPUESTOS Y VEHÍCULOS",
+    grocery: "ALIMENTOS Y ABARROTES",
+    other: "CATÁLOGO PERSONALIZADO"
+  };
+  const visiblePhones = (studioConfig?.business?.phones || []).filter((phone) => phone.showPublic && /^\\d{8,15}$/.test(String(phone.number || "")));
+  const primaryPhone = visiblePhones.find((phone) => phone.isMain) || visiblePhones[0];
+  const studioBusiness = studioMode ? {
+    id: "studio-config",
+    name: studioConfig.business.name || "Mi negocio",
+    tagline: studioTypeLabels[studioConfig.business.type] || studioTypeLabels.other,
+    headline: ["Descubre", "nuestro catálogo."],
+    description: studioConfig.identity?.description || "Consulta los productos y comunícate directamente con el negocio.",
+    heroImage: studioConfig.identity?.coverUrl || "assets/img/product-placeholder.svg",
+    featureLabel: "Catálogo del negocio",
+    whatsapp: primaryPhone?.number || "",
+    contact: "Consulta directamente con el negocio por WhatsApp.",
+    categories: [],
+    products: []
+  } : null;
+  let business = studioBusiness || demos.find((item) => item.id === businessSelect?.value) || demos[0];
+  if (studioMode && businessSelect) businessSelect.closest("label")?.setAttribute("hidden", "");
   let settings = business ? NexoraStore.getSettings(business) : {};
   let products = business ? NexoraStore.getProducts(business) : [];
   let activeCategory = "all";
@@ -146,16 +172,56 @@
     const headline = $("#hero-title");
     const secondLine = make("span", business.headline[1]);
     headline.replaceChildren(document.createTextNode(business.headline[0]), document.createElement("br"), secondLine);
-    $("#hero-description").textContent = business.description;
-    $("#hero-image").src = safeImageSource(business.heroImage);
+    $("#hero-description").textContent = studioMode
+      ? (studioConfig.identity?.description || business.description)
+      : business.description;
+    const coverUrl = studioMode ? (studioConfig.identity?.coverUrl || business.heroImage) : business.heroImage;
+    $("#hero-image").src = safeImageSource(coverUrl);
     $("#hero-image").alt = "Imagen ilustrativa de " + settings.name;
     $("#hero-feature-label").textContent = business.featureLabel;
     $("#hero-total").textContent = String(products.length).padStart(2, "0");
     $("#business-contact-copy").textContent = settings.contact;
-    setWhatsAppLink($("#header-whatsapp"), "Hola, me gustaría recibir más información de " + settings.name + ".");
-    setWhatsAppLink($("#main-whatsapp"), "Hola, me gustaría recibir más información del catálogo de " + settings.name + ".");
+    const primaryColor = studioConfig?.identity?.primaryColor;
+    if (studioMode && /^#[0-9a-f]{6}$/i.test(String(primaryColor || ""))) {
+      document.documentElement.style.setProperty("--lime", primaryColor);
+    }
+    const logo = studioConfig?.identity?.logoUrl;
+    const brandMark = document.querySelector(".site-header .brand-mark");
+    if (studioMode && brandMark) {
+      if (logo && /^https?:\/\//i.test(logo)) {
+        const image = make("img");
+        image.src = safeImageSource(logo);
+        image.alt = "Logotipo de " + settings.name;
+        brandMark.replaceChildren(image);
+        brandMark.classList.add("has-logo");
+      } else {
+        brandMark.textContent = "N";
+      }
+    }
+    renderContactTargets();
     renderCategories();
     renderProducts();
+  };
+
+  const renderContactTargets = () => {
+    const picker = $("#contact-phone-select");
+    const wrapper = $("#contact-phone-switch");
+    if (!picker || !wrapper) return;
+    if (!studioMode) {
+      wrapper.hidden = true;
+      return;
+    }
+    picker.replaceChildren(...visiblePhones.map((phone, index) => {
+      const option = make("option", phone.number);
+      option.value = phone.number;
+      option.selected = phone.number === settings.whatsapp || (!settings.whatsapp && index === 0);
+      return option;
+    }));
+    wrapper.hidden = visiblePhones.length < 2;
+    if (visiblePhones.length) settings.whatsapp = picker.value || primaryPhone?.number || "";
+    else settings.whatsapp = "";
+    setWhatsAppLink($("#header-whatsapp"), "Hola, me gustaría recibir más información de " + settings.name + ".");
+    setWhatsAppLink($("#main-whatsapp"), "Hola, me gustaría recibir más información del catálogo de " + settings.name + ".");
   };
 
   const openProduct = (id) => {
@@ -210,9 +276,16 @@
     dialog.showModal();
   };
 
-  businessSelect.addEventListener("change", () => {
-    business = demos.find((item) => item.id === businessSelect.value) || demos[0];
-    renderBusiness();
+  if (!studioMode) {
+    businessSelect.addEventListener("change", () => {
+      business = demos.find((item) => item.id === businessSelect.value) || demos[0];
+      renderBusiness();
+    });
+  }
+  $("#contact-phone-select")?.addEventListener("change", (event) => {
+    settings.whatsapp = event.target.value;
+    setWhatsAppLink($("#header-whatsapp"), "Hola, me gustaría recibir más información de " + settings.name + ".");
+    setWhatsAppLink($("#main-whatsapp"), "Hola, me gustaría recibir más información del catálogo de " + settings.name + ".");
   });
   categoryList.addEventListener("click", (event) => {
     const button = event.target.closest("[data-category]");

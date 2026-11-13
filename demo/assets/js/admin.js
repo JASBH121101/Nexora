@@ -33,7 +33,28 @@
   const studioConfig = readStudioConfig();
   const photoUploadsEnabled = () => studioConfig ? Boolean(studioConfig.catalog.photosEnabled) : true;
   const schemaGroups = () => studioConfig?.catalog?.groups || [];
-  let business = demos.find((item) => item.id === businessSelect?.value) || demos[0];
+  const studioTypeLabels = {
+    perfumery: "Perfumería",
+    fashion: "Ropa y calzado",
+    technology: "Tecnología",
+    gym: "Gimnasio y fitness",
+    automotive: "Repuestos y vehículos",
+    grocery: "Alimentos y abarrotes",
+    other: "Catálogo personalizado"
+  };
+  const studioPhone = (studioConfig?.business?.phones || []).find((phone) => phone.isMain && phone.showPublic)
+    || (studioConfig?.business?.phones || []).find((phone) => phone.showPublic);
+  const studioBusiness = studioConfig ? {
+    id: "studio-config",
+    name: studioConfig.business.name || "Mi negocio",
+    tagline: studioTypeLabels[studioConfig.business.type] || studioTypeLabels.other,
+    categories: [],
+    products: [],
+    whatsapp: studioPhone?.number || "",
+    contact: "Consulta directamente con el negocio por WhatsApp."
+  } : null;
+  let business = studioBusiness || demos.find((item) => item.id === businessSelect?.value) || demos[0];
+  if (studioConfig && businessSelect) businessSelect.closest("label")?.setAttribute("hidden", "");
   let products = business ? NexoraStore.getProducts(business) : [];
   let toastTimer;
 
