@@ -37,6 +37,16 @@ class SetupHealthTest extends TestCase
         $this->get('/')->assertRedirect(route('setup.show'));
     }
 
+    public function test_setup_view_renders_its_pushed_styles_and_scripts(): void
+    {
+        $response = $this->get('/setup');
+
+        $response->assertOk()
+            ->assertSee('.field-grid', false)
+            ->assertSee('@media(max-width:560px)', false)
+            ->assertSee('const showStep =', false);
+    }
+
     public function test_database_schema_can_be_prepared_from_the_setup_screen(): void
     {
         Artisan::shouldReceive('call')
