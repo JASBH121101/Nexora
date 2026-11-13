@@ -123,6 +123,14 @@ return [
         'show_password_confirmation_aria' => 'Show password confirmation',
         'hide_password_confirmation_aria' => 'Hide password confirmation',
         'review_field_group' => 'Initial fields · :category · :group',
+        'validation' => [
+            'required' => 'This field is required.',
+            'email' => 'Enter a valid email address.',
+            'min_length' => 'Use at least :min characters.',
+            'max_length' => 'Use no more than :max characters.',
+            'pattern' => 'The value format is invalid.',
+            'invalid' => 'Enter a valid value.',
+        ],
     ],
 
     'footer' => 'NEXORA · Configurable digital catalog',
