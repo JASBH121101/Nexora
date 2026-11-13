@@ -9,6 +9,8 @@ return [
     'distinct' => 'The :attribute field has a duplicate value.',
     'email' => 'The :attribute field must be a valid email address.',
     'image' => 'The :attribute field must be an image.',
+    'integer' => 'The :attribute field must be an integer.',
+    'file' => 'The :attribute field must be a file.',
     'in' => 'The selected :attribute is invalid.',
     'max' => [
         'array' => 'The :attribute field must not have more than :max items.',
@@ -39,6 +41,9 @@ return [
         'owner_username' => 'username',
         'owner_email' => 'owner email',
         'owner_password' => 'password',
+        'primary_phone' => 'primary phone',
+        'photos_enabled' => 'catalog photos',
+        'additional_currencies.*' => 'additional currency',
         'primary_color' => 'primary color',
         'primary_currency' => 'primary currency',
         'additional_currencies' => 'additional currencies',
