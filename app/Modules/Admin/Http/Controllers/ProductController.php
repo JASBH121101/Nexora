@@ -185,15 +185,7 @@ final class ProductController
     {
         $categoryId = filter_var($request->input('category_id'), FILTER_VALIDATE_INT);
         $definitions = ProductFieldDefinition::query()
-            ->whereHas('group', static function ($query) use ($categoryId): void {
-                $query->where(function ($scope) use ($categoryId): void {
-                    $scope->whereNull('category_id');
-
-                    if ($categoryId !== false && $categoryId !== null) {
-                        $scope->orWhere('category_id', $categoryId);
-                    }
-                });
-            })
+            ->availableForCategory($categoryId !== false && $categoryId > 0 ? $categoryId : null)
             ->orderBy('sort_order')
             ->get();
         $currencies = BusinessCurrency::query()
@@ -309,15 +301,7 @@ final class ProductController
     private function syncProductData(Product $product, array $validated): void
     {
         $definitions = ProductFieldDefinition::query()
-            ->whereHas('group', static function ($query) use ($product): void {
-                $query->where(function ($scope) use ($product): void {
-                    $scope->whereNull('category_id');
-
-                    if ($product->category_id !== null) {
-                        $scope->orWhere('category_id', $product->category_id);
-                    }
-                });
-            })
+            ->availableForCategory($product->category_id)
             ->get()
             ->keyBy('field_key');
 
