@@ -236,18 +236,64 @@
         if (rows.length >= 5) return;
         const row = document.createElement('div');
         row.className = 'phone-row';
-        row.setAttribute('data-phone-row', '');
-        row.innerHTML =
-            '<div><label>Teléfono de contacto' +
-            '<input data-phone-number type="tel" inputmode="tel" maxlength="20" placeholder="+505 8888 8888" required></label>' +
-            '<div class="phone-options"><label><input data-phone-primary type="radio" name="primary_phone" value="0" ' +
-            (rows.length === 0 ? 'checked' : '') + '> Principal</label>' +
-            '<label><input data-phone-show-hidden type="hidden" value="0"><input data-phone-show type="checkbox" value="1" checked> Mostrar públicamente</label></div></div>' +
-            '<button type="button" class="secondary-button" data-remove-phone>Quitar</button>';
-        row.querySelector('[data-remove-phone]').addEventListener('click', () => {
+        row.dataset.phoneRow = '';
+
+        const details = document.createElement('div');
+        const phoneLabel = document.createElement('label');
+        phoneLabel.append(document.createTextNode('Teléfono de contacto'));
+
+        const phoneInput = document.createElement('input');
+        phoneInput.dataset.phoneNumber = '';
+        phoneInput.type = 'tel';
+        phoneInput.inputMode = 'tel';
+        phoneInput.maxLength = 20;
+        phoneInput.placeholder = '+505 8888 8888';
+        phoneInput.required = true;
+        phoneLabel.append(phoneInput);
+
+        const phoneOptions = document.createElement('div');
+        phoneOptions.className = 'phone-options';
+
+        const primaryLabel = document.createElement('label');
+        const primaryInput = document.createElement('input');
+        primaryInput.dataset.phonePrimary = '';
+        primaryInput.type = 'radio';
+        primaryInput.name = 'primary_phone';
+        primaryInput.value = '0';
+        primaryInput.checked = rows.length === 0;
+        primaryLabel.append(primaryInput, document.createTextNode(' Principal'));
+
+        const publicLabel = document.createElement('label');
+        const hiddenVisibilityInput = document.createElement('input');
+        hiddenVisibilityInput.dataset.phoneShowHidden = '';
+        hiddenVisibilityInput.type = 'hidden';
+        hiddenVisibilityInput.value = '0';
+
+        const publicVisibilityInput = document.createElement('input');
+        publicVisibilityInput.dataset.phoneShow = '';
+        publicVisibilityInput.type = 'checkbox';
+        publicVisibilityInput.value = '1';
+        publicVisibilityInput.checked = true;
+        publicLabel.append(
+            hiddenVisibilityInput,
+            publicVisibilityInput,
+            document.createTextNode(' Mostrar públicamente'),
+        );
+
+        phoneOptions.append(primaryLabel, publicLabel);
+        details.append(phoneLabel, phoneOptions);
+
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'secondary-button';
+        removeButton.dataset.removePhone = '';
+        removeButton.textContent = 'Quitar';
+        removeButton.addEventListener('click', () => {
             row.remove();
             reindexPhones();
         });
+
+        row.append(details, removeButton);
         phoneList.append(row);
         reindexPhones();
     });
