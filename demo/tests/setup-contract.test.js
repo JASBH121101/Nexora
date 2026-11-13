@@ -68,7 +68,7 @@ test("the dynamic product preview has responsive layout rules", () => {
 });
 
 test("the product scope keeps dynamic definitions in application data rather than dynamic SQL", () => {
-  assert.match(scope, /No crear tablas SQL arbitrarias/i);
+  assert.match(scope, /nunca crean tablas SQL arbitrarias/i);
   assert.match(scope, /product_field_definitions/);
   assert.match(scope, /product_field_values/);
 });
