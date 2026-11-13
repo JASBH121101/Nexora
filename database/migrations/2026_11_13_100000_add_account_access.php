@@ -31,7 +31,7 @@ final class NexoraAddAccountAccess extends Migration
 
             while (isset($used[$username])) {
                 $ending = (string) $suffix++;
-                $username = substr($base, 0, 32 - strlen($ending)) . $ending;
+                $username = sprintf('%s%s', substr($base, 0, 32 - strlen($ending)), $ending);
             }
 
             $used[$username] = true;
