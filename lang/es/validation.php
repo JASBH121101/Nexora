@@ -9,6 +9,8 @@ return [
     'distinct' => 'El campo :attribute contiene un valor duplicado.',
     'email' => 'El campo :attribute debe ser una dirección de correo válida.',
     'image' => 'El campo :attribute debe ser una imagen.',
+    'integer' => 'El campo :attribute debe ser un número entero.',
+    'file' => 'El campo :attribute debe ser un archivo.',
     'in' => 'El valor seleccionado para :attribute no es válido.',
     'max' => [
         'array' => 'El campo :attribute no debe contener más de :max elementos.',
@@ -39,6 +41,9 @@ return [
         'owner_username' => 'nombre de usuario',
         'owner_email' => 'correo del propietario',
         'owner_password' => 'contraseña',
+        'primary_phone' => 'teléfono principal',
+        'photos_enabled' => 'fotografías del catálogo',
+        'additional_currencies.*' => 'moneda adicional',
         'primary_color' => 'color principal',
         'primary_currency' => 'moneda principal',
         'additional_currencies' => 'monedas adicionales',
