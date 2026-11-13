@@ -233,12 +233,7 @@
 @endpush
 
 @push('scripts')
-<script type="application/json" id="setup-locale-data">@json([
-    'copy' => __('setup.javascript'),
-    'days' => __('setup.days'),
-    'templatePreviews' => $templatePreviews,
-    'creatingInstallation' => __('setup.creating_installation'),
-])</script>
+<script type="application/json" id="setup-locale-data">@json($localeData)</script>
 
 <script>
 (() => {
