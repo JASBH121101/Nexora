@@ -95,6 +95,7 @@ test("the admin product form consumes the selected dynamic template", () => {
 test("product photo controls follow the optional-photo setting", () => {
   assert.ok(adminJs.includes("photoField.hidden = !photoUploadsEnabled()"));
   assert.ok(adminJs.includes('(products.find((item) => item.id === id)?.image || "")'));
+  assert.ok(adminJs.includes('photoUploadsEnabled() && product.image ? safeImageSource(product.image)'));
   assert.ok(adminJs.includes('if (!photoUploadsEnabled()) $("#product-image").value = ""'));
   assert.ok(publicJs.includes("media.hidden = !(photosEnabled && product.image)"));
   assert.match(publicCss, /\.dialog-media\[hidden\]/);
