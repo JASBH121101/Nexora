@@ -108,6 +108,7 @@ return [
         'enabled' => 'Enabled',
         'disabled' => 'Disabled',
         'cancel_confirm' => 'Cancel this test? The owner, business and categories will not be created. The empty table structure will remain so you can repeat the test.',
+        'locale_change_failed' => 'We could not change the language. Please try again.',
         'show_password_button' => 'Show',
 
         'show_password' => 'Show',
