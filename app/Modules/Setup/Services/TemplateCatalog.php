@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 
 final class TemplateCatalog
 {
-    public const VERSION = 2;
+    public const VERSION = 3;
 
     public function all(string $locale = 'es'): array
     {
