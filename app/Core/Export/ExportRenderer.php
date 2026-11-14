@@ -8,7 +8,7 @@ use RuntimeException;
 final class ExportRenderer
 {
     /**
-     * @param array<int, array<string, mixed>> $products
+     * @param  array<int, array<string, mixed>>  $products
      */
     public static function json(array $products): string
     {
@@ -23,7 +23,7 @@ final class ExportRenderer
     }
 
     /**
-     * @param array<int, array<string, mixed>> $products
+     * @param  array<int, array<string, mixed>>  $products
      */
     public static function csv(array $products): string
     {
@@ -69,14 +69,14 @@ final class ExportRenderer
     }
 
     /**
-     * @param array<int, array<string, mixed>> $products
+     * @param  array<int, array<string, mixed>>  $products
      */
     public static function xml(array $products): string
     {
         $xml = '<?xml version="1.0" encoding="UTF-8"?>'.PHP_EOL.'<catalog>'.PHP_EOL;
 
         foreach ($products as $product) {
-            $xml .= "  <product id=\"".(int) ($product['id'] ?? 0)."\">".PHP_EOL;
+            $xml .= '  <product id="'.(int) ($product['id'] ?? 0).'">'.PHP_EOL;
             foreach (['name', 'slug', 'category', 'status', 'description', 'quantity_available', 'image_path'] as $key) {
                 if (($product[$key] ?? null) !== null) {
                     $xml .= '    <'.str_replace('_', '-', $key).'>'
@@ -89,14 +89,14 @@ final class ExportRenderer
                 $xml .= '    <is-featured>'.($product['is_featured'] ? 'true' : 'false').'</is-featured>'.PHP_EOL;
             }
 
-            $xml .= "    <prices>".PHP_EOL;
+            $xml .= '    <prices>'.PHP_EOL;
             foreach (($product['prices'] ?? []) as $currency => $amount) {
                 $xml .= '      <price currency="'.self::escapeXml((string) $currency).'">'
                     .self::escapeXml((string) $amount).'</price>'.PHP_EOL;
             }
-            $xml .= "    </prices>".PHP_EOL;
+            $xml .= '    </prices>'.PHP_EOL;
 
-            $xml .= "    <fields>".PHP_EOL;
+            $xml .= '    <fields>'.PHP_EOL;
             foreach (($product['fields'] ?? []) as $key => $value) {
                 if ($value === null || is_array($value) || is_object($value)) {
                     continue;
@@ -105,8 +105,8 @@ final class ExportRenderer
                     .self::escapeXml(is_bool($value) ? ($value ? 'true' : 'false') : (string) $value)
                     .'</field>'.PHP_EOL;
             }
-            $xml .= "    </fields>".PHP_EOL;
-            $xml .= "  </product>".PHP_EOL;
+            $xml .= '    </fields>'.PHP_EOL;
+            $xml .= '  </product>'.PHP_EOL;
         }
 
         return $xml.'</catalog>'.PHP_EOL;
