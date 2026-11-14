@@ -1,6 +1,14 @@
 @extends('layouts.app')
 
 @section('title', $product->name.' · '.$settings->business_name)
+@section('meta_description', \Illuminate\Support\Str::limit(trim(strip_tags((string) ($product->description ?: $product->name.' · '.$settings->business_name))), 160))
+@section('canonical_url', route('site.product', $product->slug))
+@section('og_type', 'product')
+@section('og_title', $product->name.' · '.$settings->business_name)
+@section('og_description', \Illuminate\Support\Str::limit(trim(strip_tags((string) ($product->description ?: $product->name.' · '.$settings->business_name))), 160))
+@if ($photosEnabled && $product->image_path)
+    @section('og_image', asset('storage/'.$product->image_path))
+@endif
 
 @section('content')
 <section class="detail-shell">
