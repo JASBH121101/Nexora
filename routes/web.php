@@ -67,6 +67,9 @@ Route::middleware(['auth', AdminAccess::class, RequirePasswordChange::class])
         Route::post('/products', [ProductController::class, 'store'])
             ->middleware(['permission:products.view', 'permission:products.create'])
             ->name('admin.products.store');
+        Route::patch('/products/{product}/inventory', [ProductController::class, 'updateInventoryQuantity'])
+            ->middleware('permission:inventory.edit_quantity')
+            ->name('admin.products.inventory.update');
         Route::get('/products/{product}/edit', [ProductController::class, 'edit'])
             ->middleware(['permission:products.view', 'permission:products.edit'])
             ->name('admin.products.edit');
