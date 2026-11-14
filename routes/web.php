@@ -116,7 +116,6 @@ Route::middleware(['auth', AdminAccess::class, RequirePasswordChange::class])
             ->name('admin.fields.destroy');
 
         Route::get('/exports', [ExportController::class, 'index'])
-            ->middleware('permission:exports.create')
             ->name('admin.exports.index');
         Route::post('/exports', [ExportController::class, 'store'])
             ->middleware(['permission:exports.create', 'permission:exports.download'])
