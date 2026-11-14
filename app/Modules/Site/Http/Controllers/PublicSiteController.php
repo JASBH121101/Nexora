@@ -10,6 +10,7 @@ use App\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 final class PublicSiteController
@@ -113,4 +114,46 @@ final class PublicSiteController
             'photosEnabled' => (bool) data_get($settings->configuration, 'identity.photosEnabled', true),
         ]);
     }
+    public function sitemap(InstallationState $installation): Response|RedirectResponse
+    {
+        if (! $installation->isCompleted()) {
+            return redirect()->route('setup.show');
+        }
+
+        $urls = collect([
+            ['loc' => route('site.home'), 'lastmod' => null],
+        ]);
+
+        Product::query()
+            ->published()
+            ->orderBy('slug')
+            ->get(['slug', 'updated_at'])
+            ->each(static function (Product $product) use ($urls): void {
+                $urls->push([
+                    'loc' => route('site.product', $product->slug),
+                    'lastmod' => $product->updated_at?->toAtomString(),
+                ]);
+            });
+
+        return response()
+            ->view('site.sitemap', ['urls' => $urls])
+            ->header('Content-Type', 'application/xml; charset=UTF-8')
+            ->header('Cache-Control', 'public, max-age=3600');
+    }
+
+    public function robots(): Response
+    {
+        $content = implode("\n", [
+            'User-agent: *',
+            'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /setup',
+            'Sitemap: '.route('site.sitemap'),
+            '',
+        ]);
+
+        return response($content)
+            ->header('Content-Type', 'text/plain; charset=UTF-8');
+    }
+
 }
