@@ -151,7 +151,7 @@ class SetupHealthTest extends TestCase
     public function test_cancelling_setup_does_not_create_any_business_records(): void
     {
         $this->post('/setup/cancel')
-            ->assertRedirect(route('setup.show', ['locale' => 'es']))
+            ->assertRedirect(route('setup.show', ['locale' => 'es-419']))
             ->assertSessionHas('status', fn (string $message): bool => str_contains($message, 'No se creó el propietario'));
 
         $this->assertDatabaseCount('users', 0);
@@ -537,7 +537,7 @@ class SetupHealthTest extends TestCase
             ->andReturn(0);
 
         $this->post('/setup/prepare-database')
-            ->assertRedirect(route('setup.show', ['locale' => 'es']))
+            ->assertRedirect(route('setup.show', ['locale' => 'es-419']))
             ->assertSessionHas('status');
     }
 
@@ -1317,6 +1317,27 @@ class SetupHealthTest extends TestCase
         $this->assertSame(1, $exitCode);
         $this->assertDatabaseCount('users', 1);
         $this->assertDatabaseCount('installation_settings', 1);
+    }
+
+
+    public function test_installer_exposes_es_419_as_the_canonical_spanish_locale(): void
+    {
+        $this->get('/setup?locale=es-419')
+            ->assertOk()
+            ->assertSee('<html lang="es-419">', false)
+            ->assertSee('value="es-419" selected', false)
+            ->assertSee('Prepara tu catálogo');
+    }
+
+    public function test_legacy_es_locale_is_normalized_to_es_419_on_installation(): void
+    {
+        $payload = $this->validSetupPayload();
+        $payload['locale'] = 'es';
+
+        $this->post('/setup', $payload)->assertRedirect(route('admin.home'));
+
+        $settings = InstallationSettings::query()->findOrFail(1);
+        $this->assertSame('es-419', data_get($settings->configuration, 'regional.locale'));
     }
 
     private function validSetupPayload(): array
