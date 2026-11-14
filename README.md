@@ -77,6 +77,7 @@ No introducir contraseñas reales, tokens ni datos personales en la demo.
 - [Especificación aprobada de mejoras](docs/APPROVED-UPGRADES-2026-11.md)
 - [Implementación Permission Engine v1](docs/PERMISSION-ENGINE-V1-IMPLEMENTATION.md)
 - [Guía del Site Engine](docs/SITE-ENGINE.md)
+- [NEXORA Site Engine — dominios, DNS y HTTPS](docs/SITE-DOMAIN-DNS-TLS.md)
 - [Guía de la demo](demo/README.md)
 
 ## Seguridad

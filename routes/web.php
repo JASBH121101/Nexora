@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AdminAccess;
+use App\Http\Middleware\EnforcePublishedSiteDomain;
 use App\Http\Middleware\OwnerOnly;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Modules\Admin\Http\Controllers\AccessRequestController;
@@ -14,6 +15,7 @@ use App\Modules\Admin\Http\Controllers\LoginHelpController;
 use App\Modules\Admin\Http\Controllers\PasswordController;
 use App\Modules\Admin\Http\Controllers\ProductController;
 use App\Modules\Admin\Http\Controllers\RoleController;
+use App\Modules\Admin\Http\Controllers\SiteDomainController;
 use App\Modules\Admin\Http\Controllers\VerifyEmailController;
 use App\Modules\Setup\Http\Controllers\SetupController;
 use App\Modules\Site\Http\Controllers\PublicSiteController;
@@ -122,6 +124,22 @@ Route::middleware(['auth', AdminAccess::class, RequirePasswordChange::class])
             ->name('admin.exports.store');
 
         Route::middleware(OwnerOnly::class)->group(function (): void {
+            Route::get('/site/domains', [SiteDomainController::class, 'index'])
+                ->name('admin.site-domains.index');
+            Route::post('/site/domains', [SiteDomainController::class, 'store'])
+                ->middleware('throttle:5,1')
+                ->name('admin.site-domains.store');
+            Route::post('/site/domains/{domainId}/diagnose', [SiteDomainController::class, 'diagnose'])
+                ->whereUuid('domainId')
+                ->middleware('throttle:2,1')
+                ->name('admin.site-domains.diagnose');
+            Route::post('/site/domains/{domainId}/primary', [SiteDomainController::class, 'makePrimary'])
+                ->whereUuid('domainId')
+                ->name('admin.site-domains.primary');
+            Route::delete('/site/domains/{domainId}', [SiteDomainController::class, 'destroy'])
+                ->whereUuid('domainId')
+                ->name('admin.site-domains.destroy');
+
             Route::get('/employees', [EmployeeController::class, 'index'])->name('admin.employees.index');
             Route::post('/employees', [EmployeeController::class, 'store'])->name('admin.employees.store');
             Route::post('/employees/{employee}/role', [EmployeeController::class, 'updateRole'])
@@ -147,7 +165,15 @@ Route::middleware(['auth', AdminAccess::class, RequirePasswordChange::class])
         });
     });
 
-Route::get('/sitemap.xml', [PublicSiteController::class, 'sitemap'])->name('site.sitemap');
-Route::get('/robots.txt', [PublicSiteController::class, 'robots'])->name('site.robots');
-Route::get('/producto/{slug}', [PublicSiteController::class, 'show'])->name('site.product');
-Route::get('/', PublicSiteController::class)->name('site.home');
+Route::get('/sitemap.xml', [PublicSiteController::class, 'sitemap'])
+    ->middleware(EnforcePublishedSiteDomain::class)
+    ->name('site.sitemap');
+Route::get('/robots.txt', [PublicSiteController::class, 'robots'])
+    ->middleware(EnforcePublishedSiteDomain::class)
+    ->name('site.robots');
+Route::get('/producto/{slug}', [PublicSiteController::class, 'show'])
+    ->middleware(EnforcePublishedSiteDomain::class)
+    ->name('site.product');
+Route::get('/', PublicSiteController::class)
+    ->middleware(EnforcePublishedSiteDomain::class)
+    ->name('site.home');
