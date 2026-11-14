@@ -33,23 +33,23 @@ final class ProductController
             ->paginate(20);
 
         $products->getCollection()->each(function (Product $product) use ($user): void {
-            if (! $user->canAccessField('products', 'image', 'view')) {
+            if (!$user->canAccessField('products', 'image', 'view')) {
                 $product->image_path = null;
             }
 
-            if (! $user->canAccessField('products', 'price', 'view')) {
+            if (!$user->canAccessField('products', 'price', 'view')) {
                 $product->setRelation('prices', collect());
             }
 
-            if (! $user->canAccessField('products', 'name', 'view')) {
+            if (!$user->canAccessField('products', 'name', 'view')) {
                 $product->name = 'Producto restringido';
             }
 
-            if (! $user->canAccessField('products', 'category_id', 'view')) {
+            if (!$user->canAccessField('products', 'category_id', 'view')) {
                 $product->setRelation('category', null);
             }
 
-            if (! $user->canAccessField('products', 'status', 'view')) {
+            if (!$user->canAccessField('products', 'status', 'view')) {
                 $product->status = 'restricted';
             }
         });
@@ -76,7 +76,7 @@ final class ProductController
         $this->assertSubmittedFieldsEditable($request);
 
         if ($request->input('status') === 'published'
-            && ! $request->user()->hasPermission('products.publish')) {
+            && !$request->user()->hasPermission('products.publish')) {
             abort(403);
         }
 
@@ -126,7 +126,7 @@ final class ProductController
 
         if ($request->input('status') === 'published'
             && $product->status !== 'published'
-            && ! $request->user()->hasPermission('products.publish')) {
+            && !$request->user()->hasPermission('products.publish')) {
             abort(403);
         }
 
@@ -284,22 +284,22 @@ final class ProductController
         ];
 
         foreach ($baseFields as $input => $field) {
-            if ($request->exists($input) && ! $user->canAccessField('products', $field, $fieldAction)) {
+            if ($request->exists($input) && !$user->canAccessField('products', $field, $fieldAction)) {
                 abort(403);
             }
         }
 
-        if ($request->hasFile('image') && ! $user->canAccessField('products', 'image', $fieldAction)) {
+        if ($request->hasFile('image') && !$user->canAccessField('products', 'image', $fieldAction)) {
             abort(403);
         }
 
         if ($request->boolean('remove_image')
-            && (! $user->canAccessField('products', 'image', 'view') || ! $user->hasPermission('media.delete'))) {
+            && (!$user->canAccessField('products', 'image', 'view') || !$user->hasPermission('media.delete'))) {
             abort(403);
         }
 
         foreach ((array) $request->input('fields', []) as $fieldKey => $value) {
-            if (! $user->canAccessField('products', (string) $fieldKey, $fieldAction)) {
+            if (!$user->canAccessField('products', (string) $fieldKey, $fieldAction)) {
                 abort(403);
             }
         }
@@ -340,21 +340,21 @@ final class ProductController
 
             $currentValue = $product->{$field};
 
-            if ($request->exists($input) && ! $this->valuesMatch($request->input($input), $currentValue)) {
+            if ($request->exists($input) && !$this->valuesMatch($request->input($input), $currentValue)) {
                 abort(403);
             }
 
             $request->merge([$input => $currentValue]);
         }
 
-        if (! $user->canAccessField('products', 'price', 'edit')) {
+        if (!$user->canAccessField('products', 'price', 'edit')) {
             $currentPrices = $product->prices()->pluck('amount', 'currency_code')->all();
             $submittedPrices = $request->input('prices');
 
             if (is_array($submittedPrices)) {
                 foreach ($submittedPrices as $currency => $amount) {
-                    if (! array_key_exists($currency, $currentPrices)
-                        || ! $this->valuesMatch($amount, $currentPrices[$currency])) {
+                    if (!array_key_exists($currency, $currentPrices)
+                        || !$this->valuesMatch($amount, $currentPrices[$currency])) {
                         abort(403);
                     }
                 }
@@ -363,12 +363,12 @@ final class ProductController
             $request->merge(['prices' => $currentPrices]);
         }
 
-        if ($request->hasFile('image') && ! $user->canAccessField('products', 'image', 'edit')) {
+        if ($request->hasFile('image') && !$user->canAccessField('products', 'image', 'edit')) {
             abort(403);
         }
 
         if ($request->boolean('remove_image')
-            && (! $user->canAccessField('products', 'image', 'view') || ! $user->hasPermission('media.delete'))) {
+            && (!$user->canAccessField('products', 'image', 'view') || !$user->hasPermission('media.delete'))) {
             abort(403);
         }
 
@@ -402,7 +402,7 @@ final class ProductController
             $currentValue = $currentValues[$fieldKey] ?? null;
 
             if (array_key_exists($fieldKey, $submittedFields)
-                && ! $this->valuesMatch($submittedFields[$fieldKey], $currentValue)) {
+                && !$this->valuesMatch($submittedFields[$fieldKey], $currentValue)) {
                 abort(403);
             }
 
@@ -553,7 +553,7 @@ final class ProductController
         foreach ($definitions as $definition) {
             $fieldKey = $definition->field_key;
 
-            if (! array_key_exists($fieldKey, $fieldValues)) {
+            if (!array_key_exists($fieldKey, $fieldValues)) {
                 continue;
             }
 

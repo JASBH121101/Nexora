@@ -5,7 +5,6 @@ namespace App\Modules\Admin\Http\Controllers;
 use App\Core\Authorization\PermissionCatalog;
 use App\Core\Authorization\RoleCatalog;
 use App\Models\ProductFieldDefinition;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

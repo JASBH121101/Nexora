@@ -204,7 +204,7 @@ final class PermissionCatalog
                 'description' => 'Administra las operaciones del negocio sin transferir la titularidad.',
                 'permissions' => array_values(array_filter(
                     $all,
-                    static fn (string $permission): bool => ! str_starts_with($permission, 'employees.'),
+                    static fn (string $permission): bool => !str_starts_with($permission, 'employees.'),
                 )),
             ],
             [
