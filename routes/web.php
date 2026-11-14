@@ -147,5 +147,7 @@ Route::middleware(['auth', AdminAccess::class, RequirePasswordChange::class])
         });
     });
 
+Route::get('/sitemap.xml', [PublicSiteController::class, 'sitemap'])->name('site.sitemap');
+Route::get('/robots.txt', [PublicSiteController::class, 'robots'])->name('site.robots');
 Route::get('/producto/{slug}', [PublicSiteController::class, 'show'])->name('site.product');
 Route::get('/', PublicSiteController::class)->name('site.home');

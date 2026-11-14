@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
 @section('title', $settings->business_name.' · Catálogo')
+@section('meta_description', \Illuminate\Support\Str::limit(trim(strip_tags((string) data_get($settings->configuration, 'identity.description'))) ?: 'Explora el catálogo de '.$settings->business_name.'.', 160))
+@section('canonical_url', route('site.home'))
+@section('og_title', $settings->business_name.' · Catálogo')
+@section('og_description', \Illuminate\Support\Str::limit(trim(strip_tags((string) data_get($settings->configuration, 'identity.description'))) ?: 'Explora el catálogo de '.$settings->business_name.'.', 160))
 
 @section('content')
 <section class="catalog-shell">
@@ -72,7 +76,7 @@
                         @endif
                         <div class="card-prices">
                             @foreach ($product->prices as $price)
-                                <span>{{ $price->currency_code }} {{ number_format((float) $price->amount, 2) }}</span>
+                                <span>{{ \App\Core\Library\Money\CurrencyCatalog::formatAmount((string) $price->amount, $price->currency_code, app()->getLocale()) ?? ($price->currency_code.' '.$price->amount) }}</span>
                             @endforeach
                         </div>
                         <span class="view-product">Ver producto <span aria-hidden="true">→</span></span>

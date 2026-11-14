@@ -32,10 +32,11 @@ Plantillas previstas: perfumería, ropa y calzado, tecnología, gimnasio y fitne
 - Campos fundamentales protegidos: nombre, descripción, categoría, precio y estado.
 
 ### Página pública y panel
-- Página de presentación y catálogo responsive.
+- Página de presentación y catálogo responsive, con búsqueda, filtros, detalle de producto y metadatos SEO.
 - Búsqueda y filtros.
 - Ficha de producto organizada por grupos.
 - Contacto directo con enlaces de WhatsApp generales y por producto.
+- Metadatos canonical/Open Graph, robots.txt y sitemap XML con productos publicados.
 - Panel privado con resumen, productos, categorías, configuración y editor de fichas.
 
 ## Arquitectura y entrega
@@ -75,6 +76,7 @@ No introducir contraseñas reales, tokens ni datos personales en la demo.
 - [Motor de catálogo configurable](docs/DYNAMIC-CATALOG-ENGINE.md)
 - [Especificación aprobada de mejoras](docs/APPROVED-UPGRADES-2026-11.md)
 - [Implementación Permission Engine v1](docs/PERMISSION-ENGINE-V1-IMPLEMENTATION.md)
+- [Guía del Site Engine](docs/SITE-ENGINE.md)
 - [Guía de la demo](demo/README.md)
 
 ## Seguridad

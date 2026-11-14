@@ -6,6 +6,16 @@
     <meta name="color-scheme" content="light">
     <meta name="theme-color" content="#f5f6f2">
     <title>@yield('title', 'NEXORA')</title>
+    <meta name="description" content="{{ trim($__env->yieldContent('meta_description', 'Catálogo digital configurable de NEXORA')) }}">
+    <link rel="canonical" href="{{ $__env->yieldContent('canonical_url', url()->current()) }}">
+    <meta property="og:type" content="{{ $__env->yieldContent('og_type', 'website') }}">
+    <meta property="og:title" content="{{ trim($__env->yieldContent('og_title', $__env->yieldContent('title', 'NEXORA'))) }}">
+    <meta property="og:description" content="{{ trim($__env->yieldContent('og_description', $__env->yieldContent('meta_description', 'Catálogo digital configurable de NEXORA'))) }}">
+    <meta property="og:url" content="{{ $__env->yieldContent('canonical_url', url()->current()) }}">
+    @if (trim($__env->yieldContent('og_image')) !== '')
+        <meta property="og:image" content="{{ $__env->yieldContent('og_image') }}">
+    @endif
+    <meta name="twitter:card" content="{{ trim($__env->yieldContent('og_image')) !== '' ? 'summary_large_image' : 'summary' }}">
     <style>
         :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#20271f;background:#f5f6f2;font-synthesis:none}
         *{box-sizing:border-box}body{margin:0;min-height:100vh}.wrap{width:min(920px,calc(100% - 32px));margin:0 auto;padding:42px 0}
