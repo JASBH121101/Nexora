@@ -77,6 +77,35 @@ class PermissionEngineTest extends TestCase
         $this->assertFalse($employee->canAccessField('products', 'name', 'edit'));
     }
 
+    public function test_unknown_permission_and_field_identifiers_are_denied_even_with_overrides(): void
+    {
+        $role = Role::query()->create([
+            'name' => 'Acceso limitado',
+            'slug' => 'acceso-limitado-unknown',
+            'permissions' => ['products.view', 'products.edit'],
+            'field_permissions' => [],
+            'is_system' => false,
+        ]);
+
+        $employee = $this->createEmployee($role, [
+            'permissions' => [
+                'unknown.module.action' => 'allow',
+            ],
+            'fields' => [
+                'products' => [
+                    'unknown_private_field' => [
+                        'view' => 'allow',
+                        'edit' => 'allow',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertFalse($employee->hasPermission('unknown.module.action'));
+        $this->assertFalse($employee->canAccessField('products', 'unknown_private_field', 'view'));
+        $this->assertFalse($employee->canAccessField('unknown_resource', 'name', 'view'));
+    }
+
     public function test_legacy_employee_permissions_remain_compatible(): void
     {
         $employee = User::query()->create([
