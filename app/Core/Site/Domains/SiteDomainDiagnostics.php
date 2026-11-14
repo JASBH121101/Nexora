@@ -51,7 +51,7 @@ final class SiteDomainDiagnostics
                 && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false,
         )));
 
-        $targetMatch = $this->intersects($publicAddresses, $expectedTargets);
+        $matchingAddresses = array_values(array_filter(\n            $publicAddresses,\n            fn (string $address): bool => $this->intersects([$address], $expectedTargets),\n        ));\n        $targetMatch = $matchingAddresses !== [];
 
         $empty['dns_addresses'] = $publicAddresses;
         $empty['expected_target_match'] = $targetMatch;
@@ -68,7 +68,7 @@ final class SiteDomainDiagnostics
             return ['status' => 'ownership_pending'] + $empty;
         }
 
-        $tls = $this->tls->inspect($hostname, $publicAddresses);
+        $tls = $this->tls->inspect($hostname, $matchingAddresses);
         $empty['tls'] = $tls;
 
         return [
