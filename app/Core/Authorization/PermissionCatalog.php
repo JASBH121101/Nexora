@@ -128,7 +128,7 @@ final class PermissionCatalog
     {
         if ($resource === 'products') {
             return array_key_exists($field, self::fieldDefinitions())
-                || \\App\\Models\\ProductFieldDefinition::query()
+                || \App\Models\ProductFieldDefinition::query()
                     ->where('field_key', $field)
                     ->exists();
         }
