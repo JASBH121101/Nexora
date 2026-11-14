@@ -126,46 +126,33 @@ final class PermissionCatalog
 
     public static function fieldPermissionFor(string $resource, string $field, string $action): ?string
     {
-        return match ([$resource, $field, $action]) {
-            ['products', 'image', 'view'] => 'media.view',
-            ['products', 'image', 'create'] => 'media.upload',
-            ['products', 'image', 'edit'] => 'media.replace',
-            ['products', 'price', 'view'],
-            ['products', 'name', 'view'],
-            ['products', 'description', 'view'],
-            ['products', 'category_id', 'view'],
-            ['products', 'status', 'view'],
-            ['products', 'is_featured', 'view'] => 'products.view',
-            ['products', 'price', 'create'],
-            ['products', 'name', 'create'],
-            ['products', 'description', 'create'],
-            ['products', 'category_id', 'create'],
-            ['products', 'status', 'create'],
-            ['products', 'is_featured', 'create'] => 'products.create',
-            ['products', 'price', 'edit'],
-            ['products', 'name', 'edit'],
-            ['products', 'description', 'edit'],
-            ['products', 'category_id', 'edit'],
-            ['products', 'status', 'edit'],
-            ['products', 'is_featured', 'edit'] => 'products.edit',
-            ['products', 'view', 'view'] => 'products.view',
-            ['products', 'create', 'create'] => 'products.create',
-            ['products', 'edit', 'edit'] => 'products.edit',
-            ['inventory', 'quantity', 'view'],
-            ['inventory', 'availability', 'view'] => 'inventory.view',
-            ['inventory', 'quantity', 'edit'],
-            ['inventory', 'availability', 'edit'],
-            ['inventory', 'quantity', 'create'],
-            ['inventory', 'availability', 'create'] => 'inventory.edit_quantity',
-            default => $resource === 'products'
-                ? match ($action) {
-                    'view' => 'products.view',
-                    'create' => 'products.create',
-                    'edit' => 'products.edit',
+        if ($resource === 'products') {
+            if ($field === 'image') {
+                return match ($action) {
+                    'view' => 'media.view',
+                    'create' => 'media.upload',
+                    'edit' => 'media.replace',
                     default => null,
-                }
-                : null,
-        };
+                };
+            }
+
+            return match ($action) {
+                'view' => 'products.view',
+                'create' => 'products.create',
+                'edit' => 'products.edit',
+                default => null,
+            };
+        }
+
+        if ($resource === 'inventory' && in_array($field, ['quantity', 'availability'], true)) {
+            return match ($action) {
+                'view' => 'inventory.view',
+                'create', 'edit' => 'inventory.edit_quantity',
+                default => null,
+            };
+        }
+
+        return null;
     }
 
     public static function legacyLabels(): array
@@ -204,7 +191,7 @@ final class PermissionCatalog
                 'description' => 'Administra las operaciones del negocio sin transferir la titularidad.',
                 'permissions' => array_values(array_filter(
                     $all,
-                    static fn (string $permission): bool => !str_starts_with($permission, 'employees.'),
+                    static fn (string $permission): bool => ! str_starts_with($permission, 'employees.'),
                 )),
             ],
             [
