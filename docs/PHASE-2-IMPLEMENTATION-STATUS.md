@@ -1,46 +1,54 @@
-# NEXORA and JB Expert QA — implementation status (2026-11-14)
+# NEXORA — estado de implementación Phase 2 (2026-11-14)
 
-## Implemented in isolated branches
+## Integrado en la cadena de ramas de trabajo
 
-### NEXORA — `feature/nexora-phase2-approved-upgrades`
+### Permission Engine v1
+- Roles personalizables con permisos por módulo y acción.
+- Excepciones por empleado: heredar, permitir y denegar.
+- Restricciones por campo para lectura y edición.
+- Denegación por defecto para empleados inactivos o sin asignación válida.
+- Compatibilidad con permisos heredados.
+- Verificación de autorización en el servidor y preservación de campos protegidos.
 
-- Shared Library Engine 0.2.0 ported into the canonical NEXORA repository, under `app/Core/Library`.
-- Setup catalog facades delegate to shared catalogs; setup locale and telephone normalization updated.
-- Canonical interface locales `es-419` and `en`; `es` remains a compatibility alias.
-- Currency-specific precision checks, ISO currency identifiers in display output, and `DECIMAL(16,4)` product prices.
-- Stable unit catalog references and localized unit labels, preserving legacy unit codes.
-- Additive migrations for unit catalog references and price precision; down migration refuses to discard meaningful extra precision.
-- Basic inventory quantity field and least-privilege inventory assistant role.
-- Permission-aware native CSV, JSON and XML exports; conditional ZIP including original photographs; export history.
-- Tests added for library, localization, inventory and exports.
+### Library Engine 0.2.0
+- Catálogos compartidos de país, moneda, código de llamada, idioma y unidades.
+- Normalización telefónica con código explícito.
+- Monedas y unidades con identificadores estables, etiquetas localizadas y precisión decimal.
+- Precios con cuatro decimales y migración aditiva compatible.
 
-### JB Expert QA — `feature/language-qa-engine`
+### Inventory Basic
+- Cantidad disponible persistida en producto.
+- Validación que rechaza cantidades negativas.
+- Permisos diferenciados para consultar y modificar cantidad.
+- Rol auxiliar con acceso mínimo.
+- No incluye libro de movimientos, órdenes de compra, almacenes, transferencias ni valoración contable.
 
-- Deterministic Language QA Engine for PHP/JSON translation resources.
-- `es-419` / `en` locale normalization, placeholder checks, glossary, review states and in-memory Translation Memory.
-- Read-only audit integrated into the project auditor and a dedicated CLI.
-- No paid service, no AI request and no translation resource is executed as PHP.
-- Draft PR #36 targets `integration/jb-expert-qa`.
+### Export Engine
+- CSV UTF-8 con BOM y neutralización de fórmulas.
+- JSON estructurado.
+- XML escapado.
+- ZIP condicional según disponibilidad de PHP ZipArchive, con medios originales validados.
+- Filtros, permisos por campo e historial de ejecuciones.
+- PDF y XLSX no están implementados.
 
-## Not certified yet
+## Validación automatizada
 
-Neither feature branch has a verified current-head green test run in the available session. Composer/PHPUnit/Pint could not be executed here. The new tests are committed but must run in a Composer-enabled environment before merge. Node Language QA regression tests also have not returned a recorded GitHub Actions run.
+- PR #7 — Library, Inventory y Export: Laravel Pint, PHPUnit sobre SQLite/PostgreSQL 16 y check de JB Expert QA aprobados antes de su merge en `feature/nexora-permission-engine-v1`.
+- PR #6 — Permission Engine + cadena Phase 2: la validación actual de Laravel Pint y PHPUnit está aprobada en el head de trabajo.
+- No se ha fusionado a `main` ni se ha desplegado a producción.
+- Revisión visual/manual del Setup y del panel, y una instalación desechable del paquete, siguen pendientes antes de producción.
 
-No branch has been merged or deployed. `main` and production remain unchanged.
+## Pendiente y no incluido en esta tanda
 
-## Not yet implemented / waiting for owner decisions
+- PDF/XLSX y selección de bibliotecas compatibles con el VPS.
+- Libro de movimientos, almacenes, transferencias, costeo y valoración de inventario.
+- MFA/TOTP y políticas de enrolamiento.
+- Gestión de sesiones activas y revocación individual.
+- Auditoría de actividad con política de retención/inmutabilidad.
+- Backups, cifrado, destino, retención y ensayo de restauración.
+- Firma y distribución del actualizador, claves del publicador y política de rollback.
+- NEXORA Site Engine: dominios, DNS, subdominios y HTTPS/TLS, reservado para la siguiente fase.
 
-- PDF and XLSX export dependencies and PHP/VPS compatibility.
-- Export history retention duration and export size policy.
-- Backup cadence, retention, destination, encryption key ownership and restore approval.
-- MFA enforcement policy (who must enroll and when).
-- Audit log retention and immutability policy.
-- Update signing keys, release channels, and package trust distribution.
-- Automatic application of updates, destructive migrations and rollback policy.
-- Shared deployment/package boundaries between Core, Admin and Site Engine.
+## Límites operativos
 
-The Site Engine domain/DNS/TLS improvements are deliberately deferred to the next work session, as requested.
-
-## Safety boundary
-
-All changes are isolated to the branches listed above. No change is committed to `main`, no PR is merged, no deployment is triggered and no paid service or package is enabled.
+Todo permanece en ramas de trabajo. No se introducen secretos, servicios externos de pago, ni dependencias para PDF/XLSX. La rama `main` y producción permanecen sin cambios.
