@@ -33,9 +33,9 @@
 
 ## Validación automatizada
 
-- PR #7 — Library, Inventory y Export: Laravel Pint, PHPUnit sobre SQLite/PostgreSQL 16 y check de JB Expert QA aprobados antes de su merge en `feature/nexora-permission-engine-v1`.
-- PR #6 — Permission Engine + cadena Phase 2: la validación actual de Laravel Pint y PHPUnit está aprobada en el head de trabajo.
-- No se ha fusionado a `main` ni se ha desplegado a producción.
+- PR #7 — Library, Inventory y Export: validado con Pint, 87 pruebas y 1,458 aserciones en SQLite y PostgreSQL 16; check de JB Expert QA aprobado. Fusionado en `feature/nexora-permission-engine-v1` mediante commit `0f80364ef3a2d997e4d6d58de3ec2c793194edc9`.
+- PR #6 — Permission Engine + cadena Phase 2: Pint aprobado; 87 pruebas y 1,458 aserciones aprobadas en SQLite y PostgreSQL 16. Fusionado en `docs/nexora-approved-upgrades-2026-11` mediante commit `a1b20fe962b22f172cbb39f48585a2db0015e59c`.
+- Ambas integraciones permanecen en ramas de trabajo dedicadas. `main` y producción no recibieron estos cambios.
 - Revisión visual/manual del Setup y del panel, y una instalación desechable del paquete, siguen pendientes antes de producción.
 
 ## Pendiente y no incluido en esta tanda
