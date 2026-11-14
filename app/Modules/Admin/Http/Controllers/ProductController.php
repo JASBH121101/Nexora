@@ -2,6 +2,7 @@
 
 namespace App\Modules\Admin\Http\Controllers;
 
+use App\Core\Authorization\PermissionCatalog;
 use App\Models\BusinessCurrency;
 use App\Models\CatalogCategory;
 use App\Models\CatalogGroup;
@@ -10,7 +11,6 @@ use App\Models\Product;
 use App\Models\ProductFieldDefinition;
 use App\Models\ProductFieldValue;
 use App\Models\ProductPrice;
-use App\Core\Authorization\PermissionCatalog;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
