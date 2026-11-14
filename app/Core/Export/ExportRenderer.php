@@ -94,7 +94,7 @@ final class ExportRenderer
                 $xml .= '      <price currency="'.self::escapeXml((string) $currency).'">'
                     .self::escapeXml((string) $amount).'</price>'.PHP_EOL;
             }
-            $xml .= "    </prices>".PHP_EOL";
+            $xml .= "    </prices>".PHP_EOL;
 
             $xml .= "    <fields>".PHP_EOL;
             foreach (($product['fields'] ?? []) as $key => $value) {
@@ -105,7 +105,7 @@ final class ExportRenderer
                     .self::escapeXml(is_bool($value) ? ($value ? 'true' : 'false') : (string) $value)
                     .'</field>'.PHP_EOL;
             }
-            $xml .= "    </fields>".PHP_EOL";
+            $xml .= "    </fields>".PHP_EOL;
             $xml .= "  </product>".PHP_EOL;
         }
 
