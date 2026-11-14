@@ -6,7 +6,6 @@ use App\Core\Export\CatalogExportBuilder;
 use App\Core\Export\ExportRenderer;
 use App\Models\CatalogCategory;
 use App\Models\ExportHistory;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -104,7 +103,6 @@ final class ExportController
         $baseName = 'nexora-catalog-'.now()->format('Ymd-His');
         $extension = $format;
         $fileName = $baseName.'.'.$extension;
-        $history = null;
         $temporaryPath = null;
 
         try {
@@ -126,7 +124,7 @@ final class ExportController
                 ? (int) filesize($temporaryPath)
                 : strlen((string) $contents);
 
-            $history = ExportHistory::query()->create([
+            ExportHistory::query()->create([
                 'user_id' => $user->id,
                 'format' => $format,
                 'status' => 'completed',
