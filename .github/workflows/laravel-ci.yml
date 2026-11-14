@@ -20,7 +20,7 @@ on:
       - "phpunit.xml"
       - ".github/workflows/laravel-ci.yml"
   pull_request:
-    branches: [main, 'feature/**']
+    branches: [main, 'feature/**', 'docs/nexora-approved-upgrades-2026-11']
     paths:
       - "app/**"
       - "bootstrap/**"
