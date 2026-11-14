@@ -124,6 +124,22 @@ final class PermissionCatalog
         ];
     }
 
+    public static function isKnownField(string $resource, string $field): bool
+    {
+        if ($resource === 'products') {
+            return array_key_exists($field, self::fieldDefinitions())
+                || \\App\\Models\\ProductFieldDefinition::query()
+                    ->where('field_key', $field)
+                    ->exists();
+        }
+
+        if ($resource === 'inventory') {
+            return array_key_exists($field, self::inventoryFieldDefinitions());
+        }
+
+        return false;
+    }
+
     public static function fieldPermissionFor(string $resource, string $field, string $action): ?string
     {
         if ($resource === 'products') {
