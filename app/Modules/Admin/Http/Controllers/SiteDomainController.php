@@ -18,8 +18,7 @@ final class SiteDomainController
     public function __construct(
         private readonly DomainNameNormalizer $normalizer,
         private readonly SiteDomainDiagnostics $diagnostics,
-    ) {
-    }
+    ) {}
 
     public function index(): View
     {
@@ -101,7 +100,7 @@ final class SiteDomainController
         $domain = $this->findDomain((array) data_get($configuration, 'site.domains', []), $domainId);
 
         if ($domain === null) {
-            throw new NotFoundHttpException();
+            throw new NotFoundHttpException;
         }
 
         $verification = (array) ($domain['verification'] ?? []);
@@ -131,7 +130,7 @@ final class SiteDomainController
             unset($item);
 
             if (! $found) {
-                throw new NotFoundHttpException();
+                throw new NotFoundHttpException;
             }
 
             $site['domains'] = $domains;
@@ -155,6 +154,7 @@ final class SiteDomainController
             foreach ($domains as &$domain) {
                 if (($domain['id'] ?? null) !== $domainId) {
                     $domain['is_primary'] = false;
+
                     continue;
                 }
 
@@ -170,7 +170,7 @@ final class SiteDomainController
             unset($domain);
 
             if (! $found) {
-                throw new NotFoundHttpException();
+                throw new NotFoundHttpException;
             }
 
             $site['domains'] = $domains;
@@ -196,7 +196,7 @@ final class SiteDomainController
             ));
 
             if (count($remaining) === count($domains)) {
-                throw new NotFoundHttpException();
+                throw new NotFoundHttpException;
             }
 
             $site['domains'] = $remaining;
@@ -218,7 +218,7 @@ final class SiteDomainController
     /**
      * Serialize JSONB updates to avoid losing concurrent configuration changes.
      *
-     * @param callable(array<string, mixed>):array<string, mixed> $mutator
+     * @param  callable(array<string, mixed>):array<string, mixed>  $mutator
      */
     private function mutateConfiguration(callable $mutator): void
     {
