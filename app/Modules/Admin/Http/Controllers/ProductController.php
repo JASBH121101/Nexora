@@ -70,7 +70,6 @@ final class ProductController
         ]);
     }
 
-
     public function updateInventoryQuantity(Request $request, Product $product): RedirectResponse
     {
         abort_unless($request->user()->canAccessField('inventory', 'quantity', 'edit'), 403);
