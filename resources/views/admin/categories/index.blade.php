@@ -24,6 +24,7 @@
         </div>
     @endif
 
+    @if ($canCreate)
     <form method="POST" action="{{ route('admin.categories.store') }}" class="create-form">
         @csrf
         <label>Nueva categoría
@@ -31,6 +32,7 @@
         </label>
         <button class="primary-button" type="submit">Añadir categoría</button>
     </form>
+    @endif
 
     <div class="category-list">
         @forelse ($categories as $category)
@@ -44,6 +46,7 @@
                         {{ $category->is_active ? 'Activa' : 'Inactiva' }}
                     </span>
                 </div>
+                @if ($canEdit)
                 <div class="category-actions">
                     <form method="POST" action="{{ route('admin.categories.update', $category) }}" class="rename-form">
                         @csrf
@@ -60,6 +63,7 @@
                         </button>
                     </form>
                 </div>
+                @endif
             </article>
         @empty
             <p class="muted">No hay categorías registradas.</p>

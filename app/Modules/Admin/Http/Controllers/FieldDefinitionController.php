@@ -33,6 +33,9 @@ final class FieldDefinitionController
                 ->orderBy('name')
                 ->get(),
             'fieldTypes' => self::FIELD_TYPES,
+            'canCreate' => auth()->user()->hasPermission('fields.create'),
+            'canEdit' => auth()->user()->hasPermission('fields.edit'),
+            'canDelete' => auth()->user()->hasPermission('fields.delete'),
         ]);
     }
 

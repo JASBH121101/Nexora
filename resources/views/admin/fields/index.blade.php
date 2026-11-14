@@ -24,6 +24,7 @@
         </div>
     @endif
 
+    @if ($canCreate)
     <div class="config-card">
         <h2>Crear grupo</h2>
         <form method="POST" action="{{ route('admin.fields.groups.store') }}" class="inline-form">
@@ -55,12 +56,14 @@
             <p class="muted small">Primero crea un grupo para ordenar los campos del catálogo.</p>
         @endif
     </div>
+    @endif
 
     <div class="field-groups">
         <h2>Grupos y campos existentes</h2>
         @forelse ($groups as $group)
             <article class="group-card">
                 <div class="group-heading">
+                    @if ($canEdit)
                     <form method="POST" action="{{ route('admin.fields.groups.update', $group) }}" class="group-rename">
                         @csrf
                         @method('PUT')
@@ -75,8 +78,9 @@
                         </select>
                         <button class="secondary-button compact" type="submit">Guardar grupo</button>
                     </form>
+                    @endif
                     <span class="muted small">{{ $group->category?->name ?? 'Todas las categorías' }} · {{ $group->fields->count() }} campos</span>
-                    @if ($group->fields->isEmpty())
+                    @if ($canDelete && $group->fields->isEmpty())
                         <form method="POST" action="{{ route('admin.fields.groups.destroy', $group) }}" onsubmit="return confirm('¿Eliminar este grupo vacío?')">
                             @csrf
                             @method('DELETE')
@@ -94,19 +98,23 @@
                                 @if ($field->is_public)<em>Público</em>@else<em class="private">Privado</em>@endif
                             </span>
                         </summary>
+                        @if ($canEdit)
                         <form method="POST" action="{{ route('admin.fields.update', $field) }}" class="field-form edit-field">
                             @csrf
                             @method('PUT')
                             @include('admin.fields._form-fields', ['field' => $field, 'groups' => $groups, 'fieldTypes' => $fieldTypes])
                             <div class="field-form-actions">
                                 <button class="primary-button" type="submit">Guardar cambios</button>
-                        </form>
-                                <form method="POST" action="{{ route('admin.fields.destroy', $field) }}" onsubmit="return confirm('Eliminar este campo también eliminará sus valores guardados en los productos. ¿Continuar?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="secondary-button danger" type="submit">Eliminar campo</button>
-                                </form>
                             </div>
+                        </form>
+                        @endif
+                        @if ($canDelete)
+                            <form method="POST" action="{{ route('admin.fields.destroy', $field) }}" onsubmit="return confirm('Eliminar este campo también eliminará sus valores guardados en los productos. ¿Continuar?')">
+                                @csrf
+                                @method('DELETE')
+                                <button class="secondary-button danger" type="submit">Eliminar campo</button>
+                            </form>
+                        @endif
                     </details>
                 @empty
                     <p class="muted small">Este grupo todavía no tiene campos.</p>

@@ -19,6 +19,8 @@ final class CategoryController
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get(),
+            'canCreate' => auth()->user()->hasPermission('categories.create'),
+            'canEdit' => auth()->user()->hasPermission('categories.edit'),
         ]);
     }
 

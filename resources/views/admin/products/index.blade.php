@@ -12,7 +12,7 @@
         </div>
         <div class="page-actions">
             <a class="secondary-button link" href="{{ route('admin.home') }}">Volver</a>
-            @if ($canManage)
+            @if ($canCreate)
                 <a class="primary-button link" href="{{ route('admin.products.create') }}">Nuevo producto</a>
             @endif
         </div>
@@ -24,33 +24,47 @@
 
     @forelse ($products as $product)
         <article class="product-row">
-            @if ($product->image_path)
-                <img class="product-thumb" src="{{ asset('storage/'.$product->image_path) }}" alt="{{ $product->name }}" loading="lazy">
-            @else
-                <div class="product-thumb placeholder" aria-hidden="true">N</div>
+            @if ($canViewImage)
+                @if ($product->image_path)
+                    <img class="product-thumb" src="{{ asset('storage/'.$product->image_path) }}" alt="{{ $product->name }}" loading="lazy">
+                @else
+                    <div class="product-thumb placeholder" aria-hidden="true">N</div>
+                @endif
             @endif
             <div class="product-main">
                 <div class="product-title">
-                    <strong>{{ $product->name }}</strong>
-                    <span class="state {{ $product->status }}">{{ $product->status === 'published' ? 'Publicado' : 'Borrador' }}</span>
+                    @if ($canViewName)
+                        <strong>{{ $product->name }}</strong>
+                    @endif
+                    @if ($canViewStatus)
+                        <span class="state {{ $product->status }}">{{ $product->status === 'published' ? 'Publicado' : ($product->status === 'draft' ? 'Borrador' : 'Restringido') }}</span>
+                    @endif
                 </div>
-                <p class="muted small">{{ $product->category?->name ?? 'Sin categoría' }}</p>
-                <div class="price-list">
-                    @forelse ($product->prices as $price)
-                        <span>{{ $price->currency_code }} {{ number_format((float) $price->amount, 2) }}</span>
-                    @empty
-                        <span class="muted">Sin precio</span>
-                    @endforelse
-                </div>
+                @if ($product->category)
+                    <p class="muted small">{{ $product->category->name }}</p>
+                @endif
+                @if ($canViewPrice)
+                    <div class="price-list">
+                        @forelse ($product->prices as $price)
+                            <span>{{ $price->currency_code }} {{ number_format((float) $price->amount, 2) }}</span>
+                        @empty
+                            <span class="muted">Sin precio</span>
+                        @endforelse
+                    </div>
+                @endif
             </div>
-            @if ($canManage)
+            @if ($canEdit || $canDelete)
                 <div class="product-actions">
-                    <a class="secondary-button link compact" href="{{ route('admin.products.edit', $product) }}">Editar</a>
-                    <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('¿Eliminar este producto? Esta acción no se puede deshacer.')">
-                        @csrf
-                        @method('DELETE')
-                        <button class="secondary-button compact danger" type="submit">Eliminar</button>
-                    </form>
+                    @if ($canEdit)
+                        <a class="secondary-button link compact" href="{{ route('admin.products.edit', $product) }}">Editar</a>
+                    @endif
+                    @if ($canDelete)
+                        <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('¿Eliminar este producto? Esta acción no se puede deshacer.')">
+                            @csrf
+                            @method('DELETE')
+                            <button class="secondary-button compact danger" type="submit">Eliminar</button>
+                        </form>
+                    @endif
                 </div>
             @endif
         </article>
@@ -58,7 +72,7 @@
         <div class="empty-state">
             <strong>Tu catálogo todavía está vacío.</strong>
             <p class="muted">Agrega el primer producto para comenzar.</p>
-            @if ($canManage)
+            @if ($canCreate)
                 <a class="primary-button link" href="{{ route('admin.products.create') }}">Crear primer producto</a>
             @endif
         </div>
