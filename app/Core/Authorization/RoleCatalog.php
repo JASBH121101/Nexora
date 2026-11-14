@@ -16,7 +16,7 @@ final class RoleCatalog
                     'name' => $definition['name'],
                     'description' => $definition['description'],
                     'permissions' => $definition['permissions'],
-                    'field_permissions' => [],
+                    'field_permissions' => $definition['field_permissions'] ?? [],
                     'is_system' => true,
                 ],
             );
