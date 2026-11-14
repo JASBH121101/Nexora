@@ -213,6 +213,6 @@ final class CurrencyCatalog
         $groupedInteger = preg_replace('/\B(?=(\d{3})+(?!\d))/', $groupSeparator, $integer) ?? $integer;
         $formattedNumber = $groupedInteger.($minorUnits > 0 ? $decimalSeparator.$fraction : '');
 
-        return self::symbol($currencyCode).' '.$formattedNumber;
+        return self::symbol($currencyCode).' '.$formattedNumber.' '.$metadata['code'];
     }
 }
