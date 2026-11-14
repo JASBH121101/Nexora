@@ -10,7 +10,7 @@ class DomainNameNormalizerTest extends TestCase
 {
     public function test_hostname_is_normalized_to_lowercase_without_a_trailing_dot(): void
     {
-        $normalizer = new DomainNameNormalizer();
+        $normalizer = new DomainNameNormalizer;
 
         $this->assertSame('www.example.com', $normalizer->normalize(' WWW.Example.COM. '));
     }
@@ -21,14 +21,14 @@ class DomainNameNormalizerTest extends TestCase
             $this->markTestSkipped('The PHP intl extension is not installed in this test environment.');
         }
 
-        $normalizer = new DomainNameNormalizer();
+        $normalizer = new DomainNameNormalizer;
 
         $this->assertSame('xn--bcher-kva.example', $normalizer->normalize('bücher.example'));
     }
 
     public function test_protocol_path_port_ip_literal_and_local_names_are_rejected(): void
     {
-        $normalizer = new DomainNameNormalizer();
+        $normalizer = new DomainNameNormalizer;
 
         foreach ([
             'https://example.com',
