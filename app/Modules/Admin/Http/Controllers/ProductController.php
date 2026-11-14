@@ -97,6 +97,7 @@ final class ProductController
                     'status' => $validated['status'],
                     'image_path' => $imagePath,
                     'is_featured' => (bool) ($validated['is_featured'] ?? false),
+                    'quantity_available' => $validated['quantity_available'] ?? '0',
                     'sort_order' => (int) Product::query()->max('sort_order') + 1,
                 ]);
 
@@ -151,6 +152,7 @@ final class ProductController
                     'status' => $validated['status'],
                     'image_path' => $imagePath,
                     'is_featured' => (bool) ($validated['is_featured'] ?? false),
+                    'quantity_available' => $validated['quantity_available'] ?? $product->quantity_available,
                 ])->save();
 
                 $this->syncProductData($product, $validated);
@@ -256,6 +258,8 @@ final class ProductController
                 ->orderBy('sort_order')
                 ->get(),
             'values' => $values,
+            'canViewInventory' => $user->canAccessField('inventory', 'quantity', 'view'),
+            'canEditInventory' => $user->canAccessField('inventory', 'quantity', $fieldAction),
             'prices' => $user->canAccessField('products', 'price', 'view')
                 ? ($product?->prices?->keyBy('currency_code') ?? collect())
                 : collect(),
@@ -289,6 +293,10 @@ final class ProductController
             if ($request->exists($input) && ! $user->canAccessField('products', $field, $fieldAction)) {
                 abort(403);
             }
+        }
+
+        if ($request->exists('quantity_available') && ! $user->canAccessField('inventory', 'quantity', $fieldAction)) {
+            abort(403);
         }
 
         if ($request->hasFile('image') && ! $user->canAccessField('products', 'image', $fieldAction)) {
@@ -465,6 +473,12 @@ final class ProductController
                 ? ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:max_width=4000,max_height=4000']
                 : ['prohibited'],
         ];
+
+        $canEditQuantity = auth()->user()->canAccessField('inventory', 'quantity', $fieldAction);
+
+        if ($canEditQuantity) {
+            $rules['quantity_available'] = ['nullable', 'numeric', 'min:0', 'max:99999999999.999'];
+        }
 
         if ($canEditPrice) {
             foreach ($currencyCodes as $currencyCode) {
