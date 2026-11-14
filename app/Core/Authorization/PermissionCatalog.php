@@ -2,6 +2,8 @@
 
 namespace App\Core\Authorization;
 
+use App\Models\ProductFieldDefinition;
+
 final class PermissionCatalog
 {
     public static function modules(): array
@@ -128,7 +130,7 @@ final class PermissionCatalog
     {
         if ($resource === 'products') {
             return array_key_exists($field, self::fieldDefinitions())
-                || \App\Models\ProductFieldDefinition::query()
+                || ProductFieldDefinition::query()
                     ->where('field_key', $field)
                     ->exists();
         }
