@@ -50,15 +50,16 @@ final class InventoryAssistantTest extends TestCase
         ]);
 
         $this->actingAs($employee)
-            ->get(route('admin.products.edit', $product))
+            ->get(route('admin.products.index'))
             ->assertOk()
             ->assertSee('name="quantity_available"', false)
+            ->assertSee('Guardar cantidad')
             ->assertDontSee('12500.00')
             ->assertDontSee('DESCRIPCION-PRIVADA-778');
 
-        $this->put(route('admin.products.update', $product), [
+        $this->patch(route('admin.products.inventory.update', $product), [
             'quantity_available' => '12.500',
-        ])->assertRedirect(route('admin.products.index'));
+        ])->assertRedirect();
 
         $product->refresh();
         self::assertSame('12.500', $product->quantity_available);
