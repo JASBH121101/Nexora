@@ -65,8 +65,25 @@ final class ProductController
             'canViewImage' => $user->canAccessField('products', 'image', 'view'),
             'canViewStatus' => $user->canAccessField('products', 'status', 'view'),
             'canViewInventory' => $user->canAccessField('inventory', 'quantity', 'view'),
+            'canEditInventory' => $user->canAccessField('inventory', 'quantity', 'edit'),
             'canViewName' => $user->canAccessField('products', 'name', 'view'),
         ]);
+    }
+
+
+    public function updateInventoryQuantity(Request $request, Product $product): RedirectResponse
+    {
+        abort_unless($request->user()->canAccessField('inventory', 'quantity', 'edit'), 403);
+
+        $validated = $request->validate([
+            'quantity_available' => ['required', 'numeric', 'min:0', 'max:99999999999.999'],
+        ]);
+
+        $product->forceFill([
+            'quantity_available' => $validated['quantity_available'],
+        ])->save();
+
+        return back()->with('status', 'Existencias actualizadas correctamente.');
     }
 
     public function create(): View
