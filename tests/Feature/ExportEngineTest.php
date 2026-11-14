@@ -128,6 +128,38 @@ final class ExportEngineTest extends TestCase
         $this->assertDatabaseCount('export_histories', 0);
     }
 
+
+    public function test_history_only_user_can_view_history_without_exporting(): void
+    {
+        $this->completeInstallation();
+
+        $role = Role::query()->create([
+            'name' => 'Solo historial de exportaciones',
+            'slug' => 'export-history-viewer',
+            'permissions' => ['products.view', 'exports.history.view'],
+            'field_permissions' => [],
+            'is_system' => false,
+        ]);
+
+        $employee = User::query()->create([
+            'name' => 'Auditor de exportaciones',
+            'username' => 'export-history-viewer',
+            'email' => 'export-history-viewer@example.com',
+            'password' => 'Temporary-Password-123!',
+            'role' => 'employee',
+            'role_id' => $role->id,
+            'is_active' => true,
+            'must_change_password' => false,
+        ]);
+
+        $this->actingAs($employee)
+            ->get(route('admin.exports.index'))
+            ->assertOk()
+            ->assertSee('Historial de exportaciones')
+            ->assertSee('Todavía no hay exportaciones')
+            ->assertDontSee('Generar descarga');
+    }
+
     private function completeInstallation(): void
     {
         $this->post('/setup', [
