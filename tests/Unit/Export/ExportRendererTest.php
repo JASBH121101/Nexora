@@ -44,7 +44,7 @@ final class ExportRendererTest extends TestCase
         self::assertStringContainsString("'@cmd", $csv);
         self::assertStringContainsString("'+SUM", $csv);
         self::assertStringContainsString("'-2+3", $csv);
-        self::assertStringContainsString('{"NIO":"150.00"}', $csv);
+        self::assertStringContainsString('"{""NIO"":""150.00""}"', $csv);
     }
 
     public function test_xml_export_escapes_markup_and_serializes_nested_values(): void
