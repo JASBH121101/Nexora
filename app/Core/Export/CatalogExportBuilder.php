@@ -4,7 +4,6 @@ namespace App\Core\Export;
 
 use App\Models\Product;
 use App\Models\ProductFieldDefinition;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\ValidationException;
 
 final class CatalogExportBuilder
@@ -31,7 +30,7 @@ final class CatalogExportBuilder
         }
 
         $status = $filters['status'] ?? 'published';
-        if ($status === 'all' && ! $user->canAccessField('products', 'status', 'view')) {
+        if ($status !== 'published' && ! $user->canAccessField('products', 'status', 'view')) {
             abort(403);
         }
 
