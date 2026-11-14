@@ -14,6 +14,7 @@ use App\Modules\Admin\Http\Controllers\LoginHelpController;
 use App\Modules\Admin\Http\Controllers\PasswordController;
 use App\Modules\Admin\Http\Controllers\ProductController;
 use App\Modules\Admin\Http\Controllers\RoleController;
+use App\Modules\Admin\Http\Controllers\SiteDomainController;
 use App\Modules\Admin\Http\Controllers\VerifyEmailController;
 use App\Modules\Setup\Http\Controllers\SetupController;
 use App\Modules\Site\Http\Controllers\PublicSiteController;
@@ -122,6 +123,22 @@ Route::middleware(['auth', AdminAccess::class, RequirePasswordChange::class])
             ->name('admin.exports.store');
 
         Route::middleware(OwnerOnly::class)->group(function (): void {
+            Route::get('/site/domains', [SiteDomainController::class, 'index'])
+                ->name('admin.site-domains.index');
+            Route::post('/site/domains', [SiteDomainController::class, 'store'])
+                ->middleware('throttle:5,1')
+                ->name('admin.site-domains.store');
+            Route::post('/site/domains/{domainId}/diagnose', [SiteDomainController::class, 'diagnose'])
+                ->whereUuid('domainId')
+                ->middleware('throttle:2,1')
+                ->name('admin.site-domains.diagnose');
+            Route::post('/site/domains/{domainId}/primary', [SiteDomainController::class, 'makePrimary'])
+                ->whereUuid('domainId')
+                ->name('admin.site-domains.primary');
+            Route::delete('/site/domains/{domainId}', [SiteDomainController::class, 'destroy'])
+                ->whereUuid('domainId')
+                ->name('admin.site-domains.destroy');
+
             Route::get('/employees', [EmployeeController::class, 'index'])->name('admin.employees.index');
             Route::post('/employees', [EmployeeController::class, 'store'])->name('admin.employees.store');
             Route::post('/employees/{employee}/role', [EmployeeController::class, 'updateRole'])
