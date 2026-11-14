@@ -21,6 +21,11 @@ final class ExportController
     public function index(): Response
     {
         $user = auth()->user();
+        abort_unless(
+            $user->hasPermission('exports.create') || $user->hasPermission('exports.history.view'),
+            403,
+        );
+
         $canViewHistory = $user->hasPermission('exports.history.view');
 
         return response()->view('admin.exports.index', [
