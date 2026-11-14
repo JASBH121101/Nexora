@@ -43,6 +43,9 @@
                 @if ($product->category)
                     <p class="muted small">{{ $product->category->name }}</p>
                 @endif
+                @if ($canViewInventory)
+                    <p class="muted small">Existencias: {{ number_format((float) $product->quantity_available, 3, ',', '.') }}</p>
+                @endif
                 @if ($canViewPrice)
                     <div class="price-list">
                         @forelse ($product->prices as $price)
