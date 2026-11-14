@@ -109,15 +109,15 @@
                 <p class="muted small">Introduce manualmente los precios en las monedas habilitadas. No se realizan conversiones automáticas.</p>
                 <div class="field-grid">
                     @foreach ($currencies as $currency)
-                        <label>{{ $currency->code }}
+                        <label>{{ $currency->code }} · {{ \\App\\Core\\Library\\Money\\CurrencyCatalog::symbol($currency->code) }}
                             <input
                                 type="number"
                                 name="prices[{{ $currency->code }}]"
                                 min="0"
-                                max="999999999999.99"
-                                step="0.01"
+                                max="999999999999.9999"
+                                step="{{ \\App\\Core\\Library\\Money\\CurrencyCatalog::step($currency->code) }}"
                                 value="{{ old('prices.'.$currency->code, $prices[$currency->code]->amount ?? '') }}"
-                                placeholder="0.00"
+                                placeholder="{{ \\App\\Core\\Library\\Money\\CurrencyCatalog::placeholder($currency->code) }}"
                                 @disabled(!$canEditPrice)
                             >
                         </label>
@@ -178,7 +178,7 @@
                                     </label>
                                     @break
                                 @default
-                                    <label>{{ $field->label }}{{ $field->unit_code ? ' ('.$field->unit_code.')' : '' }}{{ $field->is_required ? ' *' : '' }}
+                                    <label>{{ $field->label }}{{ $field->unitLabel() ? ' ('.$field->unitLabel().')' : '' }}{{ $field->is_required ? ' *' : '' }}
                                         <input
                                             type="{{ $field->field_type === 'number' ? 'number' : 'text' }}"
                                             name="fields[{{ $field->field_key }}]"
