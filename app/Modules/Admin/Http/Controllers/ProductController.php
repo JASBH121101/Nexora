@@ -64,6 +64,7 @@ final class ProductController
             'canViewPrice' => $user->canAccessField('products', 'price', 'view'),
             'canViewImage' => $user->canAccessField('products', 'image', 'view'),
             'canViewStatus' => $user->canAccessField('products', 'status', 'view'),
+            'canViewInventory' => $user->canAccessField('inventory', 'quantity', 'view'),
             'canViewName' => $user->canAccessField('products', 'name', 'view'),
         ]);
     }
