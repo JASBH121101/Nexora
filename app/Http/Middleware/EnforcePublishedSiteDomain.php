@@ -11,7 +11,7 @@ final class EnforcePublishedSiteDomain
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $configuration = InstallationSettings::query()->whereKey(1)->value('configuration');
+        $configuration = InstallationSettings::query()->find(1)?->configuration ?? [];
 
         if (! is_array($configuration)) {
             return $next($request);
