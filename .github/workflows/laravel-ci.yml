@@ -104,6 +104,8 @@ jobs:
           fi
 
       - name: Verify Laravel coding style
+        env:
+          COLUMNS: 200
         run: composer lint
 
       - name: Run Laravel feature tests on SQLite

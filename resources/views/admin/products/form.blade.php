@@ -11,7 +11,7 @@
         <div>
             <p class="muted eyebrow">GESTIÓN DE CATÁLOGO</p>
             <h1>{{ $isEdit ? 'Editar producto' : 'Nuevo producto' }}</h1>
-            <p class="muted">Los campos disponibles dependen de la plantilla de este negocio.</p>
+            <p class="muted">Los campos disponibles dependen de la plantilla y de tus permisos.</p>
         </div>
         <a class="secondary-button link" href="{{ route('admin.products.index') }}">Volver</a>
     </div>
@@ -36,74 +36,95 @@
 
         <div class="form-section">
             <h2>Información general</h2>
-            <label>Nombre del producto
-                <input name="name" maxlength="120" required value="{{ old('name', $product?->name) }}" placeholder="Ej. Producto de muestra">
-            </label>
-            <label>Categoría
-                <select id="product-category" name="category_id">
-                    <option value="">Sin categoría</option>
-                    @foreach ($categories as $category)
-                        <option value="{{ $category->id }}" @selected((string) old('category_id', $product?->category_id) === (string) $category->id)>
-                            {{ $category->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </label>
-            <label>Descripción
-                <textarea name="description" rows="4" maxlength="5000" placeholder="Describe el producto">{{ old('description', $product?->description) }}</textarea>
-            </label>
-            <div class="field-grid">
-                <label>Estado
-                    <select name="status" required>
-                        <option value="draft" @selected(old('status', $product?->status ?? 'draft') === 'draft')>Borrador</option>
-                        <option value="published" @selected(old('status', $product?->status ?? 'draft') === 'published')>Publicado</option>
+            @if ($baseFieldAccess['name']['view'])
+                <label>Nombre del producto
+                    <input name="name" maxlength="120" required value="{{ old('name', $product?->name) }}" placeholder="Ej. Producto de muestra" @disabled(!$baseFieldAccess['name']['edit'])>
+                </label>
+            @endif
+            @if ($baseFieldAccess['category_id']['view'])
+                <label>Categoría
+                    <select id="product-category" name="category_id" @disabled(!$baseFieldAccess['category_id']['edit'])>
+                        <option value="">Sin categoría</option>
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->id }}" @selected((string) old('category_id', $product?->category_id) === (string) $category->id)>
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
                     </select>
                 </label>
-                <label class="checkbox-field">
-                    <input type="checkbox" name="is_featured" value="1" @checked((bool) old('is_featured', $product?->is_featured ?? false))>
-                    <span>Destacar producto</span>
+            @endif
+            @if ($baseFieldAccess['description']['view'])
+                <label>Descripción
+                    <textarea name="description" rows="4" maxlength="5000" placeholder="Describe el producto" @disabled(!$baseFieldAccess['description']['edit'])>{{ old('description', $product?->description) }}</textarea>
                 </label>
+            @endif
+            <div class="field-grid">
+                @if ($baseFieldAccess['status']['view'])
+                    <label>Estado
+                        <select name="status" required @disabled(!$baseFieldAccess['status']['edit'])>
+                            <option value="draft" @selected(old('status', $product?->status ?? 'draft') === 'draft')>Borrador</option>
+                            @if ($canPublish || $product?->status === 'published')
+                                <option value="published" @selected(old('status', $product?->status ?? 'draft') === 'published')>Publicado</option>
+                            @endif
+                        </select>
+                    </label>
+                @endif
+                @if ($baseFieldAccess['is_featured']['view'])
+                    <label class="checkbox-field">
+                        <input type="checkbox" name="is_featured" value="1" @checked((bool) old('is_featured', $product?->is_featured ?? false)) @disabled(!$baseFieldAccess['is_featured']['edit'])>
+                        <span>Destacar producto</span>
+                    </label>
+                @endif
             </div>
         </div>
 
         @if ($photosEnabled)
             <div class="form-section">
                 <h2>Fotografía</h2>
-                @if ($isEdit && $product->image_path)
+                @if ($isEdit && $product->image_path && $canViewImage)
                     <div class="current-image">
                         <img src="{{ asset('storage/'.$product->image_path) }}" alt="{{ $product->name }}">
-                        <label class="checkbox-field">
-                            <input type="checkbox" name="remove_image" value="1" @checked(old('remove_image'))>
-                            <span>Quitar fotografía actual</span>
-                        </label>
                     </div>
                 @endif
-                <label>Imagen principal (opcional)
-                    <input type="file" name="image" accept="image/jpeg,image/png,image/webp">
-                </label>
-                <p class="muted small">JPG, PNG o WebP. Máximo 5 MB y 4000 × 4000 píxeles.</p>
+                @if ($isEdit && $product->image_path && $canDeleteImage)
+                    <label class="checkbox-field">
+                        <input type="checkbox" name="remove_image" value="1" @checked(old('remove_image'))>
+                        <span>Quitar fotografía actual</span>
+                    </label>
+                @endif
+                @if ($canEditImage)
+                    <label>Imagen principal (opcional)
+                        <input type="file" name="image" accept="image/jpeg,image/png,image/webp">
+                    </label>
+                    <p class="muted small">JPG, PNG o WebP. Máximo 5 MB y 4000 × 4000 píxeles.</p>
+                @else
+                    <p class="muted small">Tienes permiso de consulta, pero no de modificación de fotografías.</p>
+                @endif
             </div>
         @endif
 
-        <div class="form-section">
-            <h2>Precios</h2>
-            <p class="muted small">Introduce manualmente los precios en las monedas habilitadas. No se realizan conversiones automáticas.</p>
-            <div class="field-grid">
-                @foreach ($currencies as $currency)
-                    <label>{{ $currency->code }}
-                        <input
-                            type="number"
-                            name="prices[{{ $currency->code }}]"
-                            min="0"
-                            max="999999999999.99"
-                            step="0.01"
-                            value="{{ old('prices.'.$currency->code, $prices[$currency->code]->amount ?? '') }}"
-                            placeholder="0.00"
-                        >
-                    </label>
-                @endforeach
+        @if ($canViewPrice)
+            <div class="form-section">
+                <h2>Precios</h2>
+                <p class="muted small">Introduce manualmente los precios en las monedas habilitadas. No se realizan conversiones automáticas.</p>
+                <div class="field-grid">
+                    @foreach ($currencies as $currency)
+                        <label>{{ $currency->code }}
+                            <input
+                                type="number"
+                                name="prices[{{ $currency->code }}]"
+                                min="0"
+                                max="999999999999.99"
+                                step="0.01"
+                                value="{{ old('prices.'.$currency->code, $prices[$currency->code]->amount ?? '') }}"
+                                placeholder="0.00"
+                                @disabled(!$canEditPrice)
+                            >
+                        </label>
+                    @endforeach
+                </div>
             </div>
-        </div>
+        @endif
 
         @forelse ($fieldGroups as $group)
             <div
@@ -120,12 +141,12 @@
                             @switch($field->field_type)
                                 @case('textarea')
                                     <label>{{ $field->label }}{{ $field->is_required ? ' *' : '' }}
-                                        <textarea name="fields[{{ $field->field_key }}]" rows="3" @required($field->is_required)>{{ $fieldValue }}</textarea>
+                                        <textarea name="fields[{{ $field->field_key }}]" rows="3" @required($field->is_required) @disabled(!$field->can_edit) @if (!$field->can_edit) data-permission-disabled @endif>{{ $fieldValue }}</textarea>
                                     </label>
                                     @break
                                 @case('select')
                                     <label>{{ $field->label }}{{ $field->is_required ? ' *' : '' }}
-                                        <select name="fields[{{ $field->field_key }}]" @required($field->is_required)>
+                                        <select name="fields[{{ $field->field_key }}]" @required($field->is_required) @disabled(!$field->can_edit) @if (!$field->can_edit) data-permission-disabled @endif>
                                             <option value="">Selecciona</option>
                                             @foreach (($field->options ?? []) as $option)
                                                 <option value="{{ $option }}" @selected((string) $fieldValue === (string) $option)>{{ $option }}</option>
@@ -135,7 +156,7 @@
                                     @break
                                 @case('multiselect')
                                     <label>{{ $field->label }}{{ $field->is_required ? ' *' : '' }}
-                                        <select name="fields[{{ $field->field_key }}][]" multiple @required($field->is_required)>
+                                        <select name="fields[{{ $field->field_key }}][]" multiple @required($field->is_required) @disabled(!$field->can_edit) @if (!$field->can_edit) data-permission-disabled @endif>
                                             @foreach (($field->options ?? []) as $option)
                                                 <option value="{{ $option }}" @selected(in_array($option, (array) $fieldValue, true))>{{ $option }}</option>
                                             @endforeach
@@ -144,14 +165,16 @@
                                     @break
                                 @case('boolean')
                                     <label class="checkbox-field">
-                                        <input type="hidden" name="fields[{{ $field->field_key }}]" value="0">
-                                        <input type="checkbox" name="fields[{{ $field->field_key }}]" value="1" @checked((bool) $fieldValue)>
+                                        @if ($field->can_edit)
+                                            <input type="hidden" name="fields[{{ $field->field_key }}]" value="0">
+                                        @endif
+                                        <input type="checkbox" name="fields[{{ $field->field_key }}]" value="1" @checked((bool) $fieldValue) @disabled(!$field->can_edit) @if (!$field->can_edit) data-permission-disabled @endif>
                                         <span>{{ $field->label }}</span>
                                     </label>
                                     @break
                                 @case('date')
                                     <label>{{ $field->label }}{{ $field->is_required ? ' *' : '' }}
-                                        <input type="date" name="fields[{{ $field->field_key }}]" value="{{ $fieldValue }}" @required($field->is_required)>
+                                        <input type="date" name="fields[{{ $field->field_key }}]" value="{{ $fieldValue }}" @required($field->is_required) @disabled(!$field->can_edit) @if (!$field->can_edit) data-permission-disabled @endif>
                                     </label>
                                     @break
                                 @default
@@ -162,6 +185,7 @@
                                             value="{{ $fieldValue }}"
                                             @if ($field->field_type === 'number') step="any" @endif
                                             @required($field->is_required)
+                                            @disabled(!$field->can_edit) @if (!$field->can_edit) data-permission-disabled @endif
                                         >
                                     </label>
                             @endswitch
@@ -170,7 +194,7 @@
                 </div>
             </div>
         @empty
-            <div class="notice">Esta plantilla todavía no tiene campos adicionales definidos.</div>
+            <div class="notice">No hay campos adicionales visibles para tu usuario.</div>
         @endforelse
 
         <div class="form-actions">
@@ -185,7 +209,7 @@
 <style>
     .page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.12em}.page-head h1{margin:8px 0}.link{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
     .product-form{display:grid;gap:18px;margin-top:20px}.form-section{padding:16px;border:1px solid #e6eae2;border-radius:12px}.form-section[hidden]{display:none}.form-section h2{font-size:15px;margin:0 0 12px}.form-section p{margin:0 0 10px}
-    .product-form label{display:grid;gap:7px;margin:10px 0;font-size:12px;font-weight:700}.product-form input:not([type=checkbox]),.product-form select,.product-form textarea{width:100%;min-width:0;min-height:42px;padding:10px;border:1px solid #dfe5d8;border-radius:9px;background:#fff;color:#20271f;font:inherit}.product-form textarea{resize:vertical}
+    .product-form label{display:grid;gap:7px;margin:10px 0;font-size:12px;font-weight:700}.product-form input:not([type=checkbox]),.product-form select,.product-form textarea{width:100%;min-width:0;min-height:42px;padding:10px;border:1px solid #dfe5d8;border-radius:9px;background:#fff;color:#20271f;font:inherit}.product-form textarea{resize:vertical}.product-form :disabled{opacity:.68;cursor:not-allowed}
     .field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.dynamic-field{min-width:0}.dynamic-field.full{grid-column:1/-1}
     .checkbox-field{display:flex!important;align-items:center;gap:9px;min-height:40px}.checkbox-field input[type=checkbox]{width:17px;height:17px;flex:none;accent-color:#6c8d28}.checkbox-field span{font-size:12px}
     .current-image{display:flex;align-items:center;gap:14px;margin:10px 0}.current-image img{width:90px;height:90px;object-fit:cover;border-radius:10px}.small{font-size:12px}
@@ -212,7 +236,8 @@
 
             group.hidden = !visible;
             group.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = !visible;
+                if (field.disabled && field.hasAttribute('data-permission-disabled')) return;
+                field.disabled = !visible || field.hasAttribute('data-permission-disabled');
             });
         });
     };
