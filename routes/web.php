@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AdminAccess;
+use App\Http\Middleware\EnforcePublishedSiteDomain;
 use App\Http\Middleware\OwnerOnly;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Modules\Admin\Http\Controllers\AccessRequestController;
@@ -164,5 +165,9 @@ Route::middleware(['auth', AdminAccess::class, RequirePasswordChange::class])
         });
     });
 
-Route::get('/producto/{slug}', [PublicSiteController::class, 'show'])->name('site.product');
-Route::get('/', PublicSiteController::class)->name('site.home');
+Route::get('/producto/{slug}', [PublicSiteController::class, 'show'])
+    ->middleware(EnforcePublishedSiteDomain::class)
+    ->name('site.product');
+Route::get('/', PublicSiteController::class)
+    ->middleware(EnforcePublishedSiteDomain::class)
+    ->name('site.home');
