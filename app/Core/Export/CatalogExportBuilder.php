@@ -13,6 +13,7 @@ final class CatalogExportBuilder
      */
     public function build(array $filters, object $user): array
     {
+        abort_unless($user->hasPermission('products.view'), 403);
         $includePrices = (bool) ($filters['include_prices'] ?? false);
         $includeInventory = (bool) ($filters['include_inventory'] ?? false);
         $includePhotos = (bool) ($filters['include_photos'] ?? false);
