@@ -169,7 +169,7 @@ final class SetupController
             'owner_username' => strtolower(trim((string) $request->input('owner_username'))),
             'owner_email' => strtolower(trim((string) $request->input('owner_email'))),
             'country_code' => strtoupper(trim((string) $request->input('country_code'))),
-            'locale' => strtolower(trim((string) $request->input('locale'))),
+            'locale' => CoreLanguageCatalog::normalize((string) $request->input('locale', 'es-419')) ?? 'es-419',
         ]);
 
         $phones = array_values(array_filter(
