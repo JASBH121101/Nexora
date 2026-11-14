@@ -2,10 +2,10 @@
 
 namespace App\Modules\Setup\Services;
 
+use App\Core\Library\Measurement\UnitCatalog;
 use App\Models\CatalogCategory;
 use App\Models\CatalogGroup;
 use App\Models\ProductFieldDefinition;
-use App\Core\Library\Measurement\UnitCatalog;
 use Illuminate\Support\Str;
 
 final class TemplateCatalog
