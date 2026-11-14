@@ -78,7 +78,8 @@ class SiteDomainControllerTest extends TestCase
         $this->installOwner();
         config(['nexora.site_dns_targets' => ['1.1.1.1']]);
 
-        $dns = new class implements DnsRecordResolver {
+        $dns = new class implements DnsRecordResolver
+        {
             public array $txt = [];
 
             public function resolveAddresses(string $hostname): array
@@ -91,7 +92,8 @@ class SiteDomainControllerTest extends TestCase
                 return $this->txt[$recordName] ?? [];
             }
         };
-        $tls = new class implements TlsCertificateInspector {
+        $tls = new class implements TlsCertificateInspector
+        {
             public function inspect(string $hostname, array $publicAddresses): array
             {
                 return [
@@ -153,7 +155,8 @@ class SiteDomainControllerTest extends TestCase
         $this->installOwner();
         config(['nexora.site_dns_targets' => ['1.1.1.1']]);
 
-        $dns = new class implements DnsRecordResolver {
+        $dns = new class implements DnsRecordResolver
+        {
             public array $txt = [];
 
             public function resolveAddresses(string $hostname): array
@@ -166,7 +169,8 @@ class SiteDomainControllerTest extends TestCase
                 return $this->txt[$recordName] ?? [];
             }
         };
-        $tls = new class implements TlsCertificateInspector {
+        $tls = new class implements TlsCertificateInspector
+        {
             public function inspect(string $hostname, array $publicAddresses): array
             {
                 return [
