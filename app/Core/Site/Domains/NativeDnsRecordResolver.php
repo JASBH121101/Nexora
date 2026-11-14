@@ -40,6 +40,7 @@ final class NativeDnsRecordResolver implements DnsRecordResolver
 
             if (is_string($value)) {
                 $values[] = trim($value);
+
                 continue;
             }
 
