@@ -78,6 +78,26 @@
             </div>
         </div>
 
+        @if ($canViewInventory)
+            <div class="form-section">
+                <h2>Inventario básico</h2>
+                <label>Cantidad disponible
+                    <input
+                        type="number"
+                        name="quantity_available"
+                        min="0"
+                        max="99999999999.999"
+                        step="0.001"
+                        value="{{ old('quantity_available', $product?->quantity_available ?? '0.000') }}"
+                        @disabled(!$canEditInventory)
+                    >
+                </label>
+                @if (!$canEditInventory)
+                    <p class="muted small">Tienes permiso de consulta, pero no de modificación de existencias.</p>
+                @endif
+            </div>
+        @endif
+
         @if ($photosEnabled)
             <div class="form-section">
                 <h2>Fotografía</h2>
