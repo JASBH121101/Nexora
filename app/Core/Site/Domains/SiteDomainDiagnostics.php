@@ -7,8 +7,7 @@ final class SiteDomainDiagnostics
     public function __construct(
         private readonly DnsRecordResolver $dns,
         private readonly TlsCertificateInspector $tls,
-    ) {
-    }
+    ) {}
 
     public function run(string $hostname, string $token): array
     {
