@@ -128,7 +128,6 @@ final class ExportEngineTest extends TestCase
         $this->assertDatabaseCount('export_histories', 0);
     }
 
-
     public function test_history_only_user_can_view_history_without_exporting(): void
     {
         $this->completeInstallation();
