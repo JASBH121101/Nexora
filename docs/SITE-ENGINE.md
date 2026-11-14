@@ -43,6 +43,12 @@ tests/Feature/PublicSiteEngineTest.php covers:
 
 The canonical Laravel CI workflow runs Pint plus the feature suite on SQLite and PostgreSQL 16. The PR must show both database jobs green before the Site Engine is considered certified.
 
+## Custom domains, DNS and TLS
+
+Owner-only domain management is implemented in [SITE-DOMAIN-DNS-TLS.md](SITE-DOMAIN-DNS-TLS.md) and integrated through PR #11. Each installation can register up to five customer-owned domains or external subdomains. Ownership is verified with a unique DNS TXT challenge; A/AAAA answers must match public IPs configured by the hosting operator in `NEXORA_SITE_DNS_TARGETS`. TLS diagnostics connect only to matching configured IPs on port 443, validate the hostname with SNI and require a trusted, currently valid certificate. A domain can become primary only after all checks pass. Verified aliases redirect to the primary hostname, and the primary public host enforces HTTPS.
+
+The CI adapters are deterministic fakes: they validate application behavior but do not query public DNS, make external TLS connections, configure DNS providers, issue certificates or operate a VPS. The feature is code-integrated; a real publication still requires the customer's domain, actual VPS IP, DNS records, web-server virtual host, certificate and canonical `APP_URL`.
+
 ## Deployment boundary
 
-This branch does not change DNS, domain registration, hosting, TLS certificates, reverse proxies, or production configuration. HTTPS must be enabled at the selected hosting/VPS edge, and APP_URL must be set to the final HTTPS origin before generating canonical URLs and sitemap links. No public deployment has been performed by this implementation.
+The application does not change DNS records, register domains, configure hosting/reverse proxies, issue or renew TLS certificates, or deploy production. HTTPS must be enabled at the selected hosting/VPS edge, and `APP_URL` must be set to the final HTTPS origin before generating canonical URLs and sitemap links. No public deployment has been performed by this implementation.
