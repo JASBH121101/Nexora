@@ -3,7 +3,7 @@
 **Rama:** `feature/nexora-permission-engine-v1`  
 **Base:** `docs/nexora-approved-upgrades-2026-11`  
 **Fecha:** 14 de noviembre de 2026  
-**Estado:** implementación inicial preparada para validación; no desplegada.
+**Estado:** implementación v1 con validación automatizada aprobada; no desplegada. Revisión visual/manual de uso pendiente.
 
 ## Objetivo
 
@@ -53,14 +53,20 @@ Un rol «Auxiliar de bodega» puede tener acceso a consulta de productos e inven
 - `resources/views/admin/employees/index.blade.php`
 - `tests/Feature/PermissionEngineTest.php`
 
-## Validación pendiente antes de considerar certificada la entrega
+## Validación automatizada
 
-- Ejecutar Pint y PHPUnit en SQLite.
-- Ejecutar migraciones y pruebas en PostgreSQL 16.
-- Confirmar renderizado de vistas Blade y rutas en Laravel.
-- Revisar operaciones de medios en create/update/delete.
-- Revisar las excepciones de lectura/edición en productos y campos dinámicos.
-- Confirmar que el restablecimiento demo conserva el esquema y elimina roles personalizados.
-- Revisar el resultado del análisis JB Expert QA en esta rama.
+**Resultado del commit validado:** `652afb2cc834d95b7bf20bce0c14a48570ccddfe`.
 
-Esta entrega no implementa aún MFA, gestión de sesiones activas, auditoría de actividad, respaldos, inventario persistente, Export Engine ni actualizaciones híbridas. Tampoco introduce multi-tenancy compartido: se mantiene el modelo documentado de instalación independiente por negocio mientras se decide la topología futura.
+- Laravel Pint: aprobado.
+- PHPUnit sobre SQLite: **59 pruebas aprobadas, 563 aserciones**.
+- Migraciones y pruebas sobre PostgreSQL 16: aprobadas.
+- JB Expert QA — auditoría estática del proyecto: aprobada.
+- Pruebas añadidas para roles, excepciones individuales, compatibilidad heredada, denegación por defecto, ocultación de campos, preservación de valores protegidos y rechazo de identificadores desconocidos.
+
+La validación de CI confirma los flujos cubiertos por pruebas automatizadas. Todavía se requiere revisión visual/manual del panel en navegador y una comprobación operativa en una instalación aislada antes de considerar el módulo listo para producción.
+
+## Límites de esta entrega
+
+Esta entrega no implementa aún MFA, gestión de sesiones activas, auditoría de actividad, respaldos, inventario persistente, Export Engine ni actualizaciones híbridas. Los permisos para inventario y exportaciones están definidos como catálogo preparatorio, no habilitan funciones que todavía no existen.
+
+Tampoco introduce multi-tenancy compartido: se mantiene el modelo documentado de instalación independiente por negocio mientras se decide la topología futura. No se modificó `main` ni se desplegó la aplicación.
