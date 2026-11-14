@@ -86,8 +86,7 @@ final class FakeDomainDns implements DnsRecordResolver
     public function __construct(
         private readonly array $addresses,
         private readonly array $txtRecords,
-    ) {
-    }
+    ) {}
 
     public function resolveAddresses(string $hostname): array
     {
@@ -108,9 +107,7 @@ final class FakeDomainTls implements TlsCertificateInspector
 
     public array $lastAddresses = [];
 
-    public function __construct(private readonly string $status)
-    {
-    }
+    public function __construct(private readonly string $status) {}
 
     public function inspect(string $hostname, array $publicAddresses): array
     {
