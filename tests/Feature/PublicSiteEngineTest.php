@@ -3,10 +3,8 @@
 namespace Tests\Feature;
 
 use App\Core\Library\Money\CurrencyCatalog;
-use App\Models\BusinessContact;
 use App\Models\CatalogCategory;
 use App\Models\CatalogGroup;
-use App\Models\InstallationSettings;
 use App\Models\Product;
 use App\Models\ProductFieldDefinition;
 use App\Models\ProductFieldValue;
