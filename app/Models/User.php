@@ -66,6 +66,16 @@ class User extends Authenticatable implements MustVerifyEmailContract
             return false;
         }
 
+        $knownPermissions = PermissionCatalog::keys();
+        $legacyPermissions = array_keys(PermissionCatalog::legacyLabels());
+
+        if (
+            ! in_array($permission, $knownPermissions, true)
+            && ! in_array($permission, $legacyPermissions, true)
+        ) {
+            return false;
+        }
+
         $userOverrides = $this->permission_overrides ?? [];
         $override = $userOverrides['permissions'][$permission] ?? null;
 
@@ -100,6 +110,10 @@ class User extends Authenticatable implements MustVerifyEmailContract
 
     public function canAccessField(string $resource, string $field, string $action): bool
     {
+        if (! PermissionCatalog::isKnownField($resource, $field)) {
+            return false;
+        }
+
         $permission = PermissionCatalog::fieldPermissionFor($resource, $field, $action);
 
         if ($permission === null || ! $this->hasPermission($permission)) {
