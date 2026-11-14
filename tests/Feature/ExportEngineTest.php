@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\CatalogCategory;
-use App\Models\ExportHistory;
 use App\Models\Product;
 use App\Models\ProductPrice;
 use App\Models\Role;
