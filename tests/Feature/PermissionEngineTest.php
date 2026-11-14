@@ -18,6 +18,15 @@ class PermissionEngineTest extends TestCase
 
     public function test_employee_inherits_module_permissions_and_field_restrictions_from_role(): void
     {
+        $this->assertSame(
+            'FIELD-SECRET-997',
+            ProductFieldValue::query()
+                ->where('product_id', $product->id)
+                ->where('field_definition_id', $brand->id)
+                ->firstOrFail()
+                ->value['value'],
+        );
+
         $role = Role::query()->create([
             'name' => 'Auxiliar de bodega',
             'slug' => 'auxiliar-bodega',
@@ -255,7 +264,8 @@ class PermissionEngineTest extends TestCase
             ProductFieldValue::query()
                 ->where('product_id', $product->id)
                 ->where('field_definition_id', $brand->id)
-                ->value('value->value'),
+                ->firstOrFail()
+                ->value['value'],
         );
 
         $this->assertSame(
@@ -263,7 +273,8 @@ class PermissionEngineTest extends TestCase
             ProductFieldValue::query()
                 ->where('product_id', $product->id)
                 ->where('field_definition_id', $model->id)
-                ->value('value->value'),
+                ->firstOrFail()
+                ->value['value'],
         );
     }
 

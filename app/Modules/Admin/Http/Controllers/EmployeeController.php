@@ -94,7 +94,11 @@ final class EmployeeController
     {
         abort_unless($employee->isEmployee(), 404);
 
+        $legacyPermissionKeys = array_keys(PermissionCatalog::legacyLabels());
+
         $request->validate([
+            'permissions' => ['sometimes', 'array', 'max:'.count($legacyPermissionKeys)],
+            'permissions.*' => ['string', 'distinct', Rule::in($legacyPermissionKeys)],
             'permission_overrides' => ['sometimes', 'array'],
             'permission_overrides.permissions' => ['sometimes', 'array'],
             'permission_overrides.permissions.*' => ['nullable', Rule::in(['allow', 'deny'])],
@@ -109,43 +113,59 @@ final class EmployeeController
             'permission_overrides.fields.inventory.*.edit' => ['nullable', Rule::in(['allow', 'deny'])],
         ]);
 
-        $submitted = $request->input('permission_overrides', []);
-        $allowedPermissions = PermissionCatalog::keys();
-        $allowedFields = [
-            'products' => array_keys(PermissionCatalog::fieldDefinitions() + ProductFieldDefinition::query()
-                ->pluck('label', 'field_key')
-                ->all()),
-            'inventory' => array_keys(PermissionCatalog::inventoryFieldDefinitions()),
-        ];
+        $changes = [];
 
-        $clean = [
-            'permissions' => [],
-            'fields' => ['products' => [], 'inventory' => []],
-        ];
-
-        foreach (($submitted['permissions'] ?? []) as $safeKey => $value) {
-            $permission = str_replace('__', '.', (string) $safeKey);
-
-            if (in_array($permission, $allowedPermissions, true) && in_array($value, ['allow', 'deny'], true)) {
-                $clean['permissions'][$permission] = $value;
-            }
+        // Keep the previous endpoint contract working for existing owner workflows.
+        if ($request->has('permissions')) {
+            $changes['permissions'] = array_values(array_unique($request->input('permissions', [])));
         }
 
-        foreach ($allowedFields as $resource => $fields) {
-            foreach ($fields as $field) {
-                foreach (['view', 'edit'] as $action) {
-                    $value = $submitted['fields'][$resource][$field][$action] ?? null;
+        if ($request->has('permission_overrides')) {
+            $submitted = $request->input('permission_overrides', []);
+            $allowedPermissions = PermissionCatalog::keys();
+            $allowedFields = [
+                'products' => array_keys(PermissionCatalog::fieldDefinitions() + ProductFieldDefinition::query()
+                    ->pluck('label', 'field_key')
+                    ->all()),
+                'inventory' => array_keys(PermissionCatalog::inventoryFieldDefinitions()),
+            ];
 
-                    if (in_array($value, ['allow', 'deny'], true)) {
-                        $clean['fields'][$resource][$field][$action] = $value;
+            $clean = [
+                'permissions' => [],
+                'fields' => ['products' => [], 'inventory' => []],
+            ];
+
+            foreach (($submitted['permissions'] ?? []) as $safeKey => $value) {
+                $permission = str_replace('__', '.', (string) $safeKey);
+
+                if (
+                    in_array($permission, $allowedPermissions, true)
+                    && in_array($value, ['allow', 'deny'], true)
+                ) {
+                    $clean['permissions'][$permission] = $value;
+                }
+            }
+
+            foreach ($allowedFields as $resource => $fields) {
+                foreach ($fields as $field) {
+                    foreach (['view', 'edit'] as $action) {
+                        $value = $submitted['fields'][$resource][$field][$action] ?? null;
+
+                        if (in_array($value, ['allow', 'deny'], true)) {
+                            $clean['fields'][$resource][$field][$action] = $value;
+                        }
                     }
                 }
             }
+
+            $changes['permission_overrides'] = $clean;
         }
 
-        $employee->forceFill(['permission_overrides' => $clean])->save();
+        if ($changes !== []) {
+            $employee->forceFill($changes)->save();
+        }
 
-        return back()->with('status', 'Excepciones individuales actualizadas para '.$employee->username.'.');
+        return back()->with('status', 'Permisos actualizados para '.$employee->username.'.');
     }
 
     public function updateStatus(Request $request, User $employee): RedirectResponse
