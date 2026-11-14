@@ -42,16 +42,16 @@ final class ExportRenderer
             foreach ($products as $product) {
                 fputcsv($handle, [
                     $product['id'] ?? '',
-                    $product['name'] ?? '',
-                    $product['slug'] ?? '',
-                    $product['category'] ?? '',
-                    $product['status'] ?? '',
-                    $product['description'] ?? '',
+                    self::safeCsvCell($product['name'] ?? ''),
+                    self::safeCsvCell($product['slug'] ?? ''),
+                    self::safeCsvCell($product['category'] ?? ''),
+                    self::safeCsvCell($product['status'] ?? ''),
+                    self::safeCsvCell($product['description'] ?? ''),
                     isset($product['is_featured']) ? ($product['is_featured'] ? '1' : '0') : '',
                     $product['quantity_available'] ?? '',
-                    json_encode($product['prices'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-                    $product['image_path'] ?? '',
-                    json_encode($product['fields'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                    self::safeCsvCell(json_encode($product['prices'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}'),
+                    self::safeCsvCell($product['image_path'] ?? ''),
+                    self::safeCsvCell(json_encode($product['fields'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}'),
                 ], ',', '"', '');
             }
 
@@ -110,6 +110,18 @@ final class ExportRenderer
         }
 
         return $xml.'</catalog>'.PHP_EOL;
+    }
+
+    private static function safeCsvCell(mixed $value): string
+    {
+        $text = is_scalar($value) ? (string) $value : '';
+
+        // Prevent spreadsheet formula execution when CSV is opened by office software.
+        if (preg_match('/^[\\x00-\\x20]*[=+@\\-]/u', $text) === 1) {
+            return "'".$text;
+        }
+
+        return $text;
     }
 
     private static function escapeXml(string $value): string
