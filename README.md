@@ -60,7 +60,8 @@ La rama de trabajo revisada contiene una base de aplicación Laravel, además de
 - La base incluye configuración inicial, catálogo configurable, cuenta del propietario y un sistema inicial de empleados/permisos.
 - `demo/`: prototipo frontend HTML/CSS/JS para validar flujos y presentación. Sus cambios se guardan en `localStorage` y no representan persistencia ni seguridad de producción.
 - La presencia de código backend no equivale a certificación de producción: deben ejecutarse y aprobarse pruebas funcionales, de seguridad y de despliegue antes de utilizar datos reales.
-- Las mejoras de exportación, inventario básico, MFA, auditoría, respaldos y permisos completos por campo están especificadas, pero no deben considerarse implementadas hasta verificarlas en código y pruebas.
+- Permission Engine v1 incorpora roles personalizables, permisos por módulo/acción, excepciones individuales y restricciones por campo; su validación automatizada está documentada en [Permission Engine v1](docs/PERMISSION-ENGINE-V1-IMPLEMENTATION.md).
+- Export Engine, inventario persistente, MFA, sesiones activas, auditoría y respaldos continúan pendientes de implementación.
 
 No introducir contraseñas reales, tokens ni datos personales en la demo.
 
