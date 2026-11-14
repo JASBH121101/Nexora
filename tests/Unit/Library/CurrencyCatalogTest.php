@@ -54,10 +54,10 @@ final class CurrencyCatalogTest extends TestCase
 
     public function test_amount_formatting_preserves_decimal_precision_and_locale(): void
     {
-        $this->assertSame('$ 1,234.50', CurrencyCatalog::formatAmount('1234.5000', 'USD', 'en'));
-        $this->assertSame('C$ 1.234,50', CurrencyCatalog::formatAmount('1234.5000', 'NIO', 'es'));
-        $this->assertSame('¥ 1,234', CurrencyCatalog::formatAmount('1234.0000', 'JPY', 'en'));
-        $this->assertSame('د.ك 1.250,750', CurrencyCatalog::formatAmount('1250.7500', 'KWD', 'es'));
+        $this->assertSame('$ 1,234.50 USD', CurrencyCatalog::formatAmount('1234.5000', 'USD', 'en'));
+        $this->assertSame('C$ 1.234,50 NIO', CurrencyCatalog::formatAmount('1234.5000', 'NIO', 'es'));
+        $this->assertSame('¥ 1,234 JPY', CurrencyCatalog::formatAmount('1234.0000', 'JPY', 'en'));
+        $this->assertSame('د.ك 1.250,750 KWD', CurrencyCatalog::formatAmount('1250.7500', 'KWD', 'es'));
         $this->assertNull(CurrencyCatalog::formatAmount('10.0050', 'USD', 'en'));
     }
 
