@@ -5,6 +5,8 @@ namespace App\Modules\Setup\Http\Controllers;
 use App\Core\Installation\DatabaseInstaller;
 use App\Core\Installation\InstallationState;
 use App\Core\Installation\ServerRequirements;
+use App\Core\Library\Contact\PhoneNumberNormalizer;
+use App\Core\Library\Localization\LanguageCatalog as CoreLanguageCatalog;
 use App\Models\BusinessContact;
 use App\Models\BusinessCurrency;
 use App\Models\InstallationSettings;
@@ -40,10 +42,14 @@ final class SetupController
             return redirect()->route(Auth::check() ? 'admin.home' : 'admin.login');
         }
 
-        $locale = $request->query('locale');
+        $requestedLocale = $request->query('locale');
+        $locale = is_string($requestedLocale)
+            ? CoreLanguageCatalog::normalize($requestedLocale)
+            : null;
 
-        if (! is_string($locale) || ! array_key_exists($locale, LanguageCatalog::all())) {
-            $locale = $request->getPreferredLanguage(array_keys(LanguageCatalog::all())) ?? 'es';
+        if ($locale === null) {
+            $preferredLocale = $request->getPreferredLanguage(array_keys(LanguageCatalog::all())) ?? 'es-419';
+            $locale = CoreLanguageCatalog::normalize($preferredLocale) ?? 'es-419';
         }
 
         App::setLocale($locale);
@@ -141,8 +147,10 @@ final class SetupController
             return redirect()->route('admin.login');
         }
 
-        $requestedLocale = strtolower(trim((string) $request->input('locale', 'es')));
-        App::setLocale(array_key_exists($requestedLocale, LanguageCatalog::all()) ? $requestedLocale : 'es');
+        $requestedLocale = CoreLanguageCatalog::normalize(
+            (string) $request->input('locale', 'es-419'),
+        );
+        App::setLocale($requestedLocale ?? 'es-419');
 
         $checks = $requirements->checks();
 
@@ -226,18 +234,19 @@ final class SetupController
         $normalizedPhones = [];
 
         foreach ($validated['phones'] ?? [] as $index => $phone) {
-            $callingCode = preg_replace('/\\D+/', '', $phone['country_calling_code']) ?? '';
-            $nationalNumber = preg_replace('/\\D+/', '', $phone['number']) ?? '';
-            $internationalNumber = $callingCode.$nationalNumber;
+            $internationalNumber = PhoneNumberNormalizer::toE164(
+                $phone['country_calling_code'],
+                $phone['number'],
+            );
 
-            if (strlen($nationalNumber) < 6 || strlen($internationalNumber) > 15) {
+            if ($internationalNumber === null) {
                 throw ValidationException::withMessages([
                     "phones.{$index}.number" => __('setup.phone_length_error'),
                 ]);
             }
 
             $normalizedPhones[] = [
-                'phone' => '+'.$internationalNumber,
+                'phone' => $internationalNumber,
                 'show_public' => (bool) ($phone['show_public'] ?? false),
             ];
         }
@@ -390,14 +399,11 @@ final class SetupController
 
     private function applyRequestLocale(Request $request): string
     {
-        $locale = strtolower(trim((string) $request->input(
+        $requestedLocale = (string) $request->input(
             'locale',
-            $request->query('locale', config('app.locale', 'es')),
-        )));
-
-        if (! array_key_exists($locale, LanguageCatalog::all())) {
-            $locale = 'es';
-        }
+            $request->query('locale', config('app.locale', 'es-419')),
+        );
+        $locale = CoreLanguageCatalog::normalize($requestedLocale) ?? 'es-419';
 
         App::setLocale($locale);
 
