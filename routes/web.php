@@ -15,6 +15,7 @@ use App\Modules\Admin\Http\Controllers\LoginHelpController;
 use App\Modules\Admin\Http\Controllers\PasswordController;
 use App\Modules\Admin\Http\Controllers\ProductController;
 use App\Modules\Admin\Http\Controllers\RoleController;
+use App\Modules\Admin\Http\Controllers\SiteDomainController;
 use App\Modules\Admin\Http\Controllers\VerifyEmailController;
 use App\Modules\Setup\Http\Controllers\SetupController;
 use App\Modules\Site\Http\Controllers\PublicSiteController;
