@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Http\Controllers;
 
 use App\Core\Authorization\PermissionCatalog;
+use App\Core\Library\Money\CurrencyCatalog;
 use App\Models\BusinessCurrency;
 use App\Models\CatalogCategory;
 use App\Models\CatalogGroup;
@@ -11,6 +12,7 @@ use App\Models\Product;
 use App\Models\ProductFieldDefinition;
 use App\Models\ProductFieldValue;
 use App\Models\ProductPrice;
+use Closure;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -466,7 +468,17 @@ final class ProductController
 
         if ($canEditPrice) {
             foreach ($currencyCodes as $currencyCode) {
-                $rules['prices.'.$currencyCode] = ['nullable', 'numeric', 'min:0', 'max:999999999999.99'];
+                $rules['prices.'.$currencyCode] = [
+                    'nullable',
+                    'numeric',
+                    'min:0',
+                    static function (string $attribute, mixed $value, Closure $fail) use ($currencyCode): void {
+                        if (! CurrencyCatalog::isValidAmount($value, $currencyCode)) {
+                            $precision = CurrencyCatalog::minorUnits($currencyCode) ?? 2;
+                            $fail("El precio de {$currencyCode} admite hasta {$precision} decimales y 12 dígitos enteros.");
+                        }
+                    },
+                ];
             }
         }
 
