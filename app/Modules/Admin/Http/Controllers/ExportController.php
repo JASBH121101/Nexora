@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
@@ -40,7 +39,7 @@ final class ExportController
         ]);
     }
 
-    public function store(Request $request, CatalogExportBuilder $builder): Response|BinaryFileResponse
+    public function store(Request $request, CatalogExportBuilder $builder): Response
     {
         $user = $request->user();
         abort_unless(
