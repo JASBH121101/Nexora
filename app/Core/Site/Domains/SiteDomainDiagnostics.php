@@ -10,17 +10,6 @@ final class SiteDomainDiagnostics
     ) {
     }
 
-    /**
-     * @return array{
-     *   status:string,
-     *   checked_at:string,
-     *   dns_addresses:list<string>,
-     *   expected_target_match:bool,
-     *   txt_record_name:string,
-     *   txt_match:bool,
-     *   tls:array{status:string, checked_at:string, valid_from:?string, valid_until:?string}|null
-     * }
-     */
     public function run(string $hostname, string $token): array
     {
         $checkedAt = now()->toIso8601String();
@@ -31,7 +20,7 @@ final class SiteDomainDiagnostics
         )));
         $txtRecordName = '_nexora-verification.'.$hostname;
 
-        $empty = [
+        $result = [
             'checked_at' => $checkedAt,
             'dns_addresses' => [],
             'expected_target_match' => false,
@@ -41,7 +30,7 @@ final class SiteDomainDiagnostics
         ];
 
         if ($expectedTargets === []) {
-            return ['status' => 'target_not_configured'] + $empty;
+            return ['status' => 'target_not_configured'] + $result;
         }
 
         $addresses = $this->dns->resolveAddresses($hostname);
@@ -50,30 +39,31 @@ final class SiteDomainDiagnostics
             static fn ($ip): bool => is_string($ip)
                 && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false,
         )));
+        $matchingAddresses = array_values(array_filter(
+            $publicAddresses,
+            fn (string $address): bool => $this->intersects([$address], $expectedTargets),
+        ));
 
-        $matchingAddresses = array_values(array_filter(\n            $publicAddresses,\n            fn (string $address): bool => $this->intersects([$address], $expectedTargets),\n        ));\n        $targetMatch = $matchingAddresses !== [];
+        $result['dns_addresses'] = $publicAddresses;
+        $result['expected_target_match'] = $matchingAddresses !== [];
 
-        $empty['dns_addresses'] = $publicAddresses;
-        $empty['expected_target_match'] = $targetMatch;
-
-        if (! $targetMatch) {
-            return ['status' => 'dns_target_mismatch'] + $empty;
+        if ($matchingAddresses === []) {
+            return ['status' => 'dns_target_mismatch'] + $result;
         }
 
-        $txtRecords = $this->dns->resolveTxt($txtRecordName);
-        $txtMatch = in_array($token, $txtRecords, true);
-        $empty['txt_match'] = $txtMatch;
+        $txtMatch = in_array($token, $this->dns->resolveTxt($txtRecordName), true);
+        $result['txt_match'] = $txtMatch;
 
         if (! $txtMatch) {
-            return ['status' => 'ownership_pending'] + $empty;
+            return ['status' => 'ownership_pending'] + $result;
         }
 
+        // Only connect to the exact public IPs configured for this VPS, never
+        // to additional addresses that the supplied hostname may also resolve to.
         $tls = $this->tls->inspect($hostname, $matchingAddresses);
-        $empty['tls'] = $tls;
+        $result['tls'] = $tls;
 
-        return [
-            'status' => ($tls['status'] ?? null) === 'valid' ? 'ready' : 'tls_invalid',
-        ] + $empty;
+        return ['status' => ($tls['status'] ?? null) === 'valid' ? 'ready' : 'tls_invalid'] + $result;
     }
 
     /** @param list<string> $left @param list<string> $right */
