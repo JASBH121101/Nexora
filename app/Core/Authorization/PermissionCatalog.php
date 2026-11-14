@@ -227,6 +227,23 @@ final class PermissionCatalog
                 'description' => 'Consulta el catálogo y los reportes autorizados.',
                 'permissions' => ['products.view', 'categories.view', 'fields.view', 'media.view', 'reports.view'],
             ],
+            [
+                'name' => 'Auxiliar de inventario',
+                'slug' => 'inventory-assistant',
+                'description' => 'Consulta productos y actualiza existencias sin acceder a precios ni descripciones.',
+                'permissions' => [
+                    'products.view',
+                    'categories.view',
+                    'inventory.view',
+                    'inventory.edit_quantity',
+                ],
+                'field_permissions' => [
+                    'products' => [
+                        'price' => ['view' => 'deny', 'edit' => 'deny'],
+                        'description' => ['view' => 'deny', 'edit' => 'deny'],
+                    ],
+                ],
+            ],
         ];
     }
 }

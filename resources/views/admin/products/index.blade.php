@@ -43,16 +43,28 @@
                 @if ($product->category)
                     <p class="muted small">{{ $product->category->name }}</p>
                 @endif
+                @if ($canViewInventory)
+                    <p class="muted small">Existencias: {{ number_format((float) $product->quantity_available, 3, ',', '.') }}</p>
+                @endif
                 @if ($canViewPrice)
                     <div class="price-list">
                         @forelse ($product->prices as $price)
-                            <span>{{ $price->currency_code }} {{ number_format((float) $price->amount, 2) }}</span>
+                            <span>{{ \App\Core\Library\Money\CurrencyCatalog::formatAmount((string) $price->amount, $price->currency_code, app()->getLocale()) ?? ($price->currency_code.' '.$price->amount) }}</span>
                         @empty
                             <span class="muted">Sin precio</span>
                         @endforelse
                     </div>
                 @endif
             </div>
+            @if ($canEditInventory)
+                <form class="quantity-form" method="POST" action="{{ route('admin.products.inventory.update', $product) }}">
+                    @csrf
+                    @method('PATCH')
+                    <label class="sr-only" for="quantity-{{ $product->id }}">Actualizar existencias de {{ $product->name }}</label>
+                    <input id="quantity-{{ $product->id }}" type="number" name="quantity_available" min="0" max="99999999999.999" step="0.001" value="{{ $product->quantity_available }}" required>
+                    <button class="secondary-button compact" type="submit">Guardar cantidad</button>
+                </form>
+            @endif
             @if ($canEdit || $canDelete)
                 <div class="product-actions">
                     @if ($canEdit)
@@ -86,8 +98,8 @@
 <style>
     .page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.12em}.page-head h1{margin:8px 0}.page-actions{display:flex;gap:8px;flex-wrap:wrap}
     .link{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}.primary-button,.secondary-button{min-height:38px;padding:0 13px;border:0;border-radius:9px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}.primary-button{background:#20271f;color:#fff}.secondary-button{background:#eef1e9;color:#35402b}.compact{min-height:32px;padding:0 10px}.danger{background:#fff0ee;color:#963b32}
-    .product-row{display:flex;align-items:center;gap:13px;padding:14px 0;border-bottom:1px solid #edf0e9}.product-thumb{width:62px;height:62px;flex:none;object-fit:cover;border-radius:10px;background:#f2f4ee}.placeholder{display:grid;place-items:center;color:#9aa58e;font-weight:900}.product-main{flex:1;min-width:0}.product-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.product-title strong{font-size:14px}.small{font-size:12px}.product-main p{margin:5px 0}.state{padding:4px 8px;border-radius:20px;background:#fff4dd;color:#805c19;font-size:10px;font-weight:800}.state.published{background:#edf7ed;color:#286536}.price-list{display:flex;gap:7px;flex-wrap:wrap}.price-list span{font-size:11px;font-weight:750;color:#38432f}.product-actions{display:flex;gap:7px;flex:none}.product-actions form{margin:0}.empty-state{padding:38px 12px;text-align:center}.empty-state p{font-size:13px}.empty-state .link{margin-top:8px}.pagination{margin-top:16px}
+    .product-row{display:flex;align-items:center;gap:13px;padding:14px 0;border-bottom:1px solid #edf0e9}.product-thumb{width:62px;height:62px;flex:none;object-fit:cover;border-radius:10px;background:#f2f4ee}.placeholder{display:grid;place-items:center;color:#9aa58e;font-weight:900}.product-main{flex:1;min-width:0}.product-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.product-title strong{font-size:14px}.small{font-size:12px}.product-main p{margin:5px 0}.state{padding:4px 8px;border-radius:20px;background:#fff4dd;color:#805c19;font-size:10px;font-weight:800}.state.published{background:#edf7ed;color:#286536}.price-list{display:flex;gap:7px;flex-wrap:wrap}.price-list span{font-size:11px;font-weight:750;color:#38432f}.product-actions{display:flex;gap:7px;flex:none}.product-actions form{margin:0}.quantity-form{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.quantity-form input{width:105px;min-height:32px;padding:5px 8px;border:1px solid #dfe5d9;border-radius:8px;font:inherit;font-size:12px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.empty-state{padding:38px 12px;text-align:center}.empty-state p{font-size:13px}.empty-state .link{margin-top:8px}.pagination{margin-top:16px}
     .notice{margin:12px 0;padding:12px 14px;border-radius:10px;background:#edf7ed;color:#286536;font-size:13px}
-    @media(max-width:560px){.page-head{flex-direction:column}.page-actions{width:100%}.page-actions .link{flex:1}.product-row{align-items:flex-start;flex-wrap:wrap}.product-main{min-width:calc(100% - 78px)}.product-actions{width:100%;padding-left:75px}.product-actions .link,.product-actions form{flex:1}.product-actions button{width:100%}}
+    @media(max-width:560px){.page-head{flex-direction:column}.page-actions{width:100%}.page-actions .link{flex:1}.product-row{align-items:flex-start;flex-wrap:wrap}.product-main{min-width:calc(100% - 78px)}.quantity-form{width:100%;padding-left:75px}.product-actions{width:100%;padding-left:75px}.product-actions .link,.product-actions form{flex:1}.product-actions button{width:100%}}
 </style>
 @endpush

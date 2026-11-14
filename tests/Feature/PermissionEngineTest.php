@@ -195,7 +195,7 @@ class PermissionEngineTest extends TestCase
         ProductPrice::query()->create([
             'product_id' => $product->id,
             'currency_code' => 'USD',
-            'amount' => '12500.00',
+            'amount' => '12500.0000',
         ]);
 
         foreach ($definitions as $definition) {
@@ -275,7 +275,7 @@ class PermissionEngineTest extends TestCase
         ])->assertRedirect(route('admin.products.index'));
 
         $this->assertSame(
-            '12500.00',
+            '12500.0000',
             ProductPrice::query()->where('product_id', $product->id)->value('amount'),
         );
 

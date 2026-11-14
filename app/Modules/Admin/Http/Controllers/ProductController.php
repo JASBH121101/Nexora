@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Http\Controllers;
 
 use App\Core\Authorization\PermissionCatalog;
+use App\Core\Library\Money\CurrencyCatalog;
 use App\Models\BusinessCurrency;
 use App\Models\CatalogCategory;
 use App\Models\CatalogGroup;
@@ -11,6 +12,7 @@ use App\Models\Product;
 use App\Models\ProductFieldDefinition;
 use App\Models\ProductFieldValue;
 use App\Models\ProductPrice;
+use Closure;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -62,8 +64,25 @@ final class ProductController
             'canViewPrice' => $user->canAccessField('products', 'price', 'view'),
             'canViewImage' => $user->canAccessField('products', 'image', 'view'),
             'canViewStatus' => $user->canAccessField('products', 'status', 'view'),
+            'canViewInventory' => $user->canAccessField('inventory', 'quantity', 'view'),
+            'canEditInventory' => $user->canAccessField('inventory', 'quantity', 'edit'),
             'canViewName' => $user->canAccessField('products', 'name', 'view'),
         ]);
+    }
+
+    public function updateInventoryQuantity(Request $request, Product $product): RedirectResponse
+    {
+        abort_unless($request->user()->canAccessField('inventory', 'quantity', 'edit'), 403);
+
+        $validated = $request->validate([
+            'quantity_available' => ['required', 'numeric', 'min:0', 'max:99999999999.999'],
+        ]);
+
+        $product->forceFill([
+            'quantity_available' => $validated['quantity_available'],
+        ])->save();
+
+        return back()->with('status', 'Existencias actualizadas correctamente.');
     }
 
     public function create(): View
@@ -95,6 +114,7 @@ final class ProductController
                     'status' => $validated['status'],
                     'image_path' => $imagePath,
                     'is_featured' => (bool) ($validated['is_featured'] ?? false),
+                    'quantity_available' => $validated['quantity_available'] ?? '0',
                     'sort_order' => (int) Product::query()->max('sort_order') + 1,
                 ]);
 
@@ -149,6 +169,7 @@ final class ProductController
                     'status' => $validated['status'],
                     'image_path' => $imagePath,
                     'is_featured' => (bool) ($validated['is_featured'] ?? false),
+                    'quantity_available' => $validated['quantity_available'] ?? $product->quantity_available,
                 ])->save();
 
                 $this->syncProductData($product, $validated);
@@ -254,6 +275,8 @@ final class ProductController
                 ->orderBy('sort_order')
                 ->get(),
             'values' => $values,
+            'canViewInventory' => $user->canAccessField('inventory', 'quantity', 'view'),
+            'canEditInventory' => $user->canAccessField('inventory', 'quantity', $fieldAction),
             'prices' => $user->canAccessField('products', 'price', 'view')
                 ? ($product?->prices?->keyBy('currency_code') ?? collect())
                 : collect(),
@@ -287,6 +310,10 @@ final class ProductController
             if ($request->exists($input) && ! $user->canAccessField('products', $field, $fieldAction)) {
                 abort(403);
             }
+        }
+
+        if ($request->exists('quantity_available') && ! $user->canAccessField('inventory', 'quantity', $fieldAction)) {
+            abort(403);
         }
 
         if ($request->hasFile('image') && ! $user->canAccessField('products', 'image', $fieldAction)) {
@@ -464,9 +491,25 @@ final class ProductController
                 : ['prohibited'],
         ];
 
+        $canEditQuantity = auth()->user()->canAccessField('inventory', 'quantity', $fieldAction);
+
+        if ($canEditQuantity) {
+            $rules['quantity_available'] = ['nullable', 'numeric', 'min:0', 'max:99999999999.999'];
+        }
+
         if ($canEditPrice) {
             foreach ($currencyCodes as $currencyCode) {
-                $rules['prices.'.$currencyCode] = ['nullable', 'numeric', 'min:0', 'max:999999999999.99'];
+                $rules['prices.'.$currencyCode] = [
+                    'nullable',
+                    'numeric',
+                    'min:0',
+                    static function (string $attribute, mixed $value, Closure $fail) use ($currencyCode): void {
+                        if (! CurrencyCatalog::isValidAmount($value, $currencyCode)) {
+                            $precision = CurrencyCatalog::minorUnits($currencyCode) ?? 2;
+                            $fail("El precio de {$currencyCode} admite hasta {$precision} decimales y 12 dígitos enteros.");
+                        }
+                    },
+                ];
             }
         }
 
