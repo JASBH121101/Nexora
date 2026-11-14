@@ -230,7 +230,7 @@ final class ExportController
             throw new \RuntimeException('No se pudo preparar el archivo temporal de exportación.');
         }
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($temporaryPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
             @unlink($temporaryPath);
             throw new \RuntimeException('No se pudo crear el paquete ZIP.');
