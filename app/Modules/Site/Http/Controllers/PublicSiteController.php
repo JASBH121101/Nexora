@@ -114,6 +114,7 @@ final class PublicSiteController
             'photosEnabled' => (bool) data_get($settings->configuration, 'identity.photosEnabled', true),
         ]);
     }
+
     public function sitemap(InstallationState $installation): Response|RedirectResponse
     {
         if (!$installation->isCompleted()) {
@@ -155,5 +156,4 @@ final class PublicSiteController
         return response($content)
             ->header('Content-Type', 'text/plain; charset=UTF-8');
     }
-
 }
