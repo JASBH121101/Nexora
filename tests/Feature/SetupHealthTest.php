@@ -1319,7 +1319,6 @@ class SetupHealthTest extends TestCase
         $this->assertDatabaseCount('installation_settings', 1);
     }
 
-
     public function test_installer_exposes_es_419_as_the_canonical_spanish_locale(): void
     {
         $this->get('/setup?locale=es-419')
