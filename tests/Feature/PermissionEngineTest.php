@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Core\Authorization\RoleCatalog;
 use App\Models\CatalogCategory;
 use App\Models\Product;
 use App\Models\ProductFieldDefinition;
@@ -313,6 +314,24 @@ class PermissionEngineTest extends TestCase
         $this->assertTrue($employee->canAccessField('products', 'image', 'view'));
         $this->assertTrue($employee->canAccessField('products', 'image', 'edit'));
         $this->assertFalse($employee->hasPermission('media.delete'));
+    }
+
+    public function test_default_inventory_assistant_role_is_least_privilege(): void
+    {
+        RoleCatalog::ensureDefaults();
+
+        $role = Role::query()->where('slug', 'inventory-assistant')->firstOrFail();
+        $employee = $this->createEmployee($role);
+
+        $this->assertTrue($employee->hasPermission('products.view'));
+        $this->assertTrue($employee->hasPermission('inventory.view'));
+        $this->assertTrue($employee->hasPermission('inventory.edit_quantity'));
+        $this->assertFalse($employee->hasPermission('products.edit'));
+        $this->assertFalse($employee->hasPermission('exports.create'));
+        $this->assertFalse($employee->canAccessField('products', 'price', 'view'));
+        $this->assertFalse($employee->canAccessField('products', 'description', 'view'));
+        $this->assertTrue($employee->canAccessField('inventory', 'quantity', 'view'));
+        $this->assertTrue($employee->canAccessField('inventory', 'quantity', 'edit'));
     }
 
     private function createEmployee(Role $role, array $overrides = []): User
