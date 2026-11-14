@@ -29,6 +29,7 @@ final class ResetDemoInstallation
         'sessions',
         'installation_settings',
         'users',
+        'roles',
     ];
 
     public function assertAllowed(): InstallationSettings

@@ -2,8 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Core\Library\Localization\LanguageCatalog;
 use App\Models\InstallationSettings;
-use App\Modules\Setup\Services\LanguageCatalog;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -18,8 +18,8 @@ final class ApplyInstallationLocale
             $settings = InstallationSettings::query()->find(1);
             $locale = data_get($settings?->configuration, 'regional.locale');
 
-            if (is_string($locale) && array_key_exists($locale, LanguageCatalog::all())) {
-                App::setLocale($locale);
+            if (is_string($locale)) {
+                App::setLocale(LanguageCatalog::normalize($locale) ?? (string) config('app.locale', 'es-419'));
             }
         } catch (Throwable) {
             // The installer must remain accessible before the schema exists.

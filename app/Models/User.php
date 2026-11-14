@@ -7,6 +7,7 @@ use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -16,9 +17,11 @@ use Illuminate\Notifications\Notifiable;
     'email',
     'password',
     'role',
+    'role_id',
     'is_active',
     'must_change_password',
     'permissions',
+    'permission_overrides',
 ])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmailContract
@@ -34,7 +37,13 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'is_active' => 'boolean',
             'must_change_password' => 'boolean',
             'permissions' => 'array',
+            'permission_overrides' => 'array',
         ];
+    }
+
+    public function roleDefinition(): BelongsTo
+    {
+        return $this->belongsTo(Role::class, 'role_id');
     }
 
     public function isOwner(): bool
@@ -57,13 +66,79 @@ class User extends Authenticatable implements MustVerifyEmailContract
             return false;
         }
 
-        $grantedPermissions = $this->permissions ?? [];
+        $knownPermissions = PermissionCatalog::keys();
+        $legacyPermissions = array_keys(PermissionCatalog::legacyLabels());
 
-        if ($permission === 'catalog.view' && in_array('catalog.manage', $grantedPermissions, true)) {
+        if (
+            ! in_array($permission, $knownPermissions, true)
+            && ! in_array($permission, $legacyPermissions, true)
+        ) {
+            return false;
+        }
+
+        $userOverrides = $this->permission_overrides ?? [];
+        $override = $userOverrides['permissions'][$permission] ?? null;
+
+        if ($override === 'allow') {
             return true;
         }
 
-        return in_array($permission, $grantedPermissions, true)
-            && array_key_exists($permission, PermissionCatalog::labels());
+        if ($override === 'deny') {
+            return false;
+        }
+
+        $rolePermissions = $this->roleDefinition?->permissions ?? [];
+
+        if (in_array($permission, $rolePermissions, true)) {
+            return true;
+        }
+
+        $legacyPermissions = $this->permissions ?? [];
+
+        if (in_array($permission, $legacyPermissions, true)) {
+            return true;
+        }
+
+        foreach (PermissionCatalog::legacyGrantsFor($permission) as $legacyPermission) {
+            if (in_array($legacyPermission, $legacyPermissions, true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function canAccessField(string $resource, string $field, string $action): bool
+    {
+        if (! PermissionCatalog::isKnownField($resource, $field)) {
+            return false;
+        }
+
+        $permission = PermissionCatalog::fieldPermissionFor($resource, $field, $action);
+
+        if ($permission === null || ! $this->hasPermission($permission)) {
+            return false;
+        }
+
+        if ($action !== 'view' && ! $this->canAccessField($resource, $field, 'view')) {
+            return false;
+        }
+
+        $fieldAction = $action === 'create' ? 'edit' : $action;
+        $userOverrides = $this->permission_overrides ?? [];
+        $userFieldRule = $userOverrides['fields'][$resource][$field][$fieldAction] ?? null;
+
+        if ($userFieldRule === 'allow') {
+            return true;
+        }
+
+        if ($userFieldRule === 'deny') {
+            return false;
+        }
+
+        $roleFieldPermissions = $this->roleDefinition?->field_permissions ?? [];
+        $roleRule = $roleFieldPermissions[$resource][$field][$fieldAction] ?? null;
+
+        return $roleRule !== 'deny';
     }
 }

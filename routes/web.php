@@ -7,11 +7,13 @@ use App\Modules\Admin\Http\Controllers\AccessRequestController;
 use App\Modules\Admin\Http\Controllers\CategoryController;
 use App\Modules\Admin\Http\Controllers\DashboardController;
 use App\Modules\Admin\Http\Controllers\EmployeeController;
+use App\Modules\Admin\Http\Controllers\ExportController;
 use App\Modules\Admin\Http\Controllers\FieldDefinitionController;
 use App\Modules\Admin\Http\Controllers\LoginController;
 use App\Modules\Admin\Http\Controllers\LoginHelpController;
 use App\Modules\Admin\Http\Controllers\PasswordController;
 use App\Modules\Admin\Http\Controllers\ProductController;
+use App\Modules\Admin\Http\Controllers\RoleController;
 use App\Modules\Admin\Http\Controllers\VerifyEmailController;
 use App\Modules\Setup\Http\Controllers\SetupController;
 use App\Modules\Site\Http\Controllers\PublicSiteController;
@@ -57,66 +59,81 @@ Route::middleware(['auth', AdminAccess::class, RequirePasswordChange::class])
         Route::get('/', DashboardController::class)->name('admin.home');
 
         Route::get('/products', [ProductController::class, 'index'])
-            ->middleware('permission:catalog.view')
+            ->middleware('permission:products.view')
             ->name('admin.products.index');
         Route::get('/products/create', [ProductController::class, 'create'])
-            ->middleware('permission:catalog.manage')
+            ->middleware(['permission:products.view', 'permission:products.create'])
             ->name('admin.products.create');
         Route::post('/products', [ProductController::class, 'store'])
-            ->middleware('permission:catalog.manage')
+            ->middleware(['permission:products.view', 'permission:products.create'])
             ->name('admin.products.store');
+        Route::patch('/products/{product}/inventory', [ProductController::class, 'updateInventoryQuantity'])
+            ->middleware('permission:inventory.edit_quantity')
+            ->name('admin.products.inventory.update');
         Route::get('/products/{product}/edit', [ProductController::class, 'edit'])
-            ->middleware('permission:catalog.manage')
+            ->middleware(['permission:products.view', 'permission:products.edit'])
             ->name('admin.products.edit');
         Route::put('/products/{product}', [ProductController::class, 'update'])
-            ->middleware('permission:catalog.manage')
+            ->middleware(['permission:products.view', 'permission:products.edit'])
             ->name('admin.products.update');
         Route::delete('/products/{product}', [ProductController::class, 'destroy'])
-            ->middleware('permission:catalog.manage')
+            ->middleware('permission:products.delete')
             ->name('admin.products.destroy');
 
         Route::get('/categories', [CategoryController::class, 'index'])
-            ->middleware('permission:categories.manage')
+            ->middleware('permission:categories.view')
             ->name('admin.categories.index');
         Route::post('/categories', [CategoryController::class, 'store'])
-            ->middleware('permission:categories.manage')
+            ->middleware('permission:categories.create')
             ->name('admin.categories.store');
         Route::put('/categories/{category}', [CategoryController::class, 'update'])
-            ->middleware('permission:categories.manage')
+            ->middleware('permission:categories.edit')
             ->name('admin.categories.update');
         Route::post('/categories/{category}/status', [CategoryController::class, 'updateStatus'])
-            ->middleware('permission:categories.manage')
+            ->middleware('permission:categories.edit')
             ->name('admin.categories.status');
 
         Route::get('/fields', [FieldDefinitionController::class, 'index'])
-            ->middleware('permission:fields.manage')
+            ->middleware('permission:fields.view')
             ->name('admin.fields.index');
         Route::post('/fields/groups', [FieldDefinitionController::class, 'storeGroup'])
-            ->middleware('permission:fields.manage')
+            ->middleware('permission:fields.create')
             ->name('admin.fields.groups.store');
         Route::put('/fields/groups/{group}', [FieldDefinitionController::class, 'updateGroup'])
-            ->middleware('permission:fields.manage')
+            ->middleware('permission:fields.edit')
             ->name('admin.fields.groups.update');
         Route::delete('/fields/groups/{group}', [FieldDefinitionController::class, 'destroyGroup'])
-            ->middleware('permission:fields.manage')
+            ->middleware('permission:fields.delete')
             ->name('admin.fields.groups.destroy');
         Route::post('/fields', [FieldDefinitionController::class, 'store'])
-            ->middleware('permission:fields.manage')
+            ->middleware('permission:fields.create')
             ->name('admin.fields.store');
         Route::put('/fields/{field}', [FieldDefinitionController::class, 'update'])
-            ->middleware('permission:fields.manage')
+            ->middleware('permission:fields.edit')
             ->name('admin.fields.update');
         Route::delete('/fields/{field}', [FieldDefinitionController::class, 'destroy'])
-            ->middleware('permission:fields.manage')
+            ->middleware('permission:fields.delete')
             ->name('admin.fields.destroy');
+
+        Route::get('/exports', [ExportController::class, 'index'])
+            ->name('admin.exports.index');
+        Route::post('/exports', [ExportController::class, 'store'])
+            ->middleware(['permission:exports.create', 'permission:exports.download'])
+            ->name('admin.exports.store');
 
         Route::middleware(OwnerOnly::class)->group(function (): void {
             Route::get('/employees', [EmployeeController::class, 'index'])->name('admin.employees.index');
             Route::post('/employees', [EmployeeController::class, 'store'])->name('admin.employees.store');
+            Route::post('/employees/{employee}/role', [EmployeeController::class, 'updateRole'])
+                ->name('admin.employees.role');
             Route::post('/employees/{employee}/status', [EmployeeController::class, 'updateStatus'])
                 ->name('admin.employees.status');
             Route::post('/employees/{employee}/permissions', [EmployeeController::class, 'updatePermissions'])
                 ->name('admin.employees.permissions');
+
+            Route::get('/roles', [RoleController::class, 'index'])->name('admin.roles.index');
+            Route::post('/roles', [RoleController::class, 'store'])->name('admin.roles.store');
+            Route::put('/roles/{role}', [RoleController::class, 'update'])->name('admin.roles.update');
 
             Route::get('/access-requests', [AccessRequestController::class, 'index'])
                 ->name('admin.access-requests.index');

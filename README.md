@@ -57,10 +57,14 @@ No se requiere la API oficial de WhatsApp para enlaces de contacto `wa.me`. Auto
 
 La rama de trabajo revisada contiene una base de aplicación Laravel, además de la demo frontend:
 - `app/`, `routes/`, `database/` y `resources/`: estructura de backend, rutas, modelos, controladores, migraciones y vistas administrativas/públicas.
-- La base incluye configuración inicial, catálogo configurable, cuenta del propietario y un sistema inicial de empleados/permisos.
+- La base incluye configuración inicial, catálogo configurable, cuenta del propietario y Permission Engine v1 con roles, permisos por módulo/acción, excepciones individuales y restricciones por campo.
+- Library Engine 0.2.0: catálogos compartidos de país, moneda, códigos de llamada, idiomas y unidades; normalización telefónica y validación monetaria con precisión decimal.
+- Inventario básico: cantidad disponible persistida, control de valores negativos y permisos separados para consultar y ajustar cantidades. No es un libro de movimientos ni un ERP de inventario.
+- Export Engine: CSV, JSON y XML; ZIP opcional cuando PHP ZipArchive está disponible, con filtros y permisos por campo. PDF y XLSX siguen pendientes de elegir bibliotecas y validar compatibilidad con el VPS.
 - `demo/`: prototipo frontend HTML/CSS/JS para validar flujos y presentación. Sus cambios se guardan en `localStorage` y no representan persistencia ni seguridad de producción.
-- La presencia de código backend no equivale a certificación de producción: deben ejecutarse y aprobarse pruebas funcionales, de seguridad y de despliegue antes de utilizar datos reales.
-- Las mejoras de exportación, inventario básico, MFA, auditoría, respaldos y permisos completos por campo están especificadas, pero no deben considerarse implementadas hasta verificarlas en código y pruebas.
+- La presencia de código backend no equivale a certificación de producción: deben aprobarse pruebas funcionales, seguridad, revisión visual/manual y despliegue aislado antes de utilizar datos reales. Las pruebas automatizadas actuales pasan; la revisión visual y operativa final sigue pendiente.
+- La implementación de Permission Engine v1 y Phase 2 se encuentra integrada en la rama de trabajo de NEXORA y documentada en [Permission Engine v1](docs/PERMISSION-ENGINE-V1-IMPLEMENTATION.md), [Inventory Basic](docs/INVENTORY-BASIC.md), [Export Engine](docs/EXPORT-ENGINE.md) y [Phase 2 status](docs/PHASE-2-IMPLEMENTATION-STATUS.md).
+- MFA, gestión de sesiones activas, auditoría de actividad y respaldos/restauración siguen pendientes de implementación y de decisiones operativas.
 
 No introducir contraseñas reales, tokens ni datos personales en la demo.
 
@@ -70,6 +74,7 @@ No introducir contraseñas reales, tokens ni datos personales en la demo.
 - [Arquitectura técnica](docs/ARCHITECTURE.md)
 - [Motor de catálogo configurable](docs/DYNAMIC-CATALOG-ENGINE.md)
 - [Especificación aprobada de mejoras](docs/APPROVED-UPGRADES-2026-11.md)
+- [Implementación Permission Engine v1](docs/PERMISSION-ENGINE-V1-IMPLEMENTATION.md)
 - [Guía de la demo](demo/README.md)
 
 ## Seguridad
