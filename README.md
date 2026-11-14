@@ -53,22 +53,23 @@ Plantillas previstas: perfumería, ropa y calzado, tecnología, gimnasio y fitne
 
 No se requiere la API oficial de WhatsApp para enlaces de contacto `wa.me`. Automatización de conversaciones, OTP por SMS/WhatsApp, conversión cambiaria automática y servicios externos son alcances separados que deben evaluarse por costo.
 
-## Estado real del repositorio
+## Estado del repositorio
 
-El repositorio contiene una demostración frontend HTML/CSS/JS:
-- `demo/`: muestra pública, panel de administración simulado y datos de muestra.
-- `demo/setup.html`: prototipo del asistente guiado y constructor de fichas.
-- Los cambios de la demo se guardan en `localStorage` del navegador.
-- La demo no tiene autenticación real, API, base de datos ni almacenamiento seguro de imágenes.
-- No debe utilizarse para administrar datos reales ni introducir contraseñas o datos personales.
+La rama de trabajo revisada contiene una base de aplicación Laravel, además de la demo frontend:
+- `app/`, `routes/`, `database/` y `resources/`: estructura de backend, rutas, modelos, controladores, migraciones y vistas administrativas/públicas.
+- La base incluye configuración inicial, catálogo configurable, cuenta del propietario y un sistema inicial de empleados/permisos.
+- `demo/`: prototipo frontend HTML/CSS/JS para validar flujos y presentación. Sus cambios se guardan en `localStorage` y no representan persistencia ni seguridad de producción.
+- La presencia de código backend no equivale a certificación de producción: deben ejecutarse y aprobarse pruebas funcionales, de seguridad y de despliegue antes de utilizar datos reales.
+- Las mejoras de exportación, inventario básico, MFA, auditoría, respaldos y permisos completos por campo están especificadas, pero no deben considerarse implementadas hasta verificarlas en código y pruebas.
 
-El prototipo sirve para validar flujo, interacción y estructura visual. **No equivale a la aplicación Laravel de producción.**
+No introducir contraseñas reales, tokens ni datos personales en la demo.
 
 ## Documentación
 
 - [Alcance funcional](docs/PRODUCT-SCOPE.md)
 - [Arquitectura técnica](docs/ARCHITECTURE.md)
 - [Motor de catálogo configurable](docs/DYNAMIC-CATALOG-ENGINE.md)
+- [Especificación aprobada de mejoras](docs/APPROVED-UPGRADES-2026-11.md)
 - [Guía de la demo](demo/README.md)
 
 ## Seguridad
