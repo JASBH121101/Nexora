@@ -19,7 +19,7 @@ final class PublicSiteController
         Request $request,
         InstallationState $installation,
     ): View|RedirectResponse {
-        if (! $installation->isCompleted()) {
+        if (!$installation->isCompleted()) {
             return redirect()->route('setup.show');
         }
 
@@ -84,7 +84,7 @@ final class PublicSiteController
 
     public function show(string $slug, InstallationState $installation): View|RedirectResponse
     {
-        if (! $installation->isCompleted()) {
+        if (!$installation->isCompleted()) {
             return redirect()->route('setup.show');
         }
 
@@ -116,7 +116,7 @@ final class PublicSiteController
     }
     public function sitemap(InstallationState $installation): Response|RedirectResponse
     {
-        if (! $installation->isCompleted()) {
+        if (!$installation->isCompleted()) {
             return redirect()->route('setup.show');
         }
 
