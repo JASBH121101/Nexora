@@ -49,7 +49,7 @@
                 @if ($canViewPrice)
                     <div class="price-list">
                         @forelse ($product->prices as $price)
-                            <span>{{ \\App\\Core\\Library\\Money\\CurrencyCatalog::formatAmount((string) $price->amount, $price->currency_code, app()->getLocale()) ?? ($price->currency_code.' '.$price->amount) }}</span>
+                            <span>{{ \App\Core\Library\Money\CurrencyCatalog::formatAmount((string) $price->amount, $price->currency_code, app()->getLocale()) ?? ($price->currency_code.' '.$price->amount) }}</span>
                         @empty
                             <span class="muted">Sin precio</span>
                         @endforelse
