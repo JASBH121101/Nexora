@@ -11,7 +11,7 @@ class Product extends Model
 {
     protected $fillable = [
         'category_id', 'name', 'slug', 'description', 'status',
-        'image_path', 'is_featured', 'sort_order',
+        'image_path', 'is_featured', 'sort_order', 'quantity_available',
     ];
 
     protected function casts(): array
@@ -19,6 +19,7 @@ class Product extends Model
         return [
             'is_featured' => 'boolean',
             'sort_order' => 'integer',
+            'quantity_available' => 'decimal:3',
         ];
     }
 
