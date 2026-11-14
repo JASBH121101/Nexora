@@ -7,6 +7,7 @@ use App\Modules\Admin\Http\Controllers\AccessRequestController;
 use App\Modules\Admin\Http\Controllers\CategoryController;
 use App\Modules\Admin\Http\Controllers\DashboardController;
 use App\Modules\Admin\Http\Controllers\EmployeeController;
+use App\Modules\Admin\Http\Controllers\ExportController;
 use App\Modules\Admin\Http\Controllers\FieldDefinitionController;
 use App\Modules\Admin\Http\Controllers\LoginController;
 use App\Modules\Admin\Http\Controllers\LoginHelpController;
@@ -110,6 +111,13 @@ Route::middleware(['auth', AdminAccess::class, RequirePasswordChange::class])
         Route::delete('/fields/{field}', [FieldDefinitionController::class, 'destroy'])
             ->middleware('permission:fields.delete')
             ->name('admin.fields.destroy');
+
+        Route::get('/exports', [ExportController::class, 'index'])
+            ->middleware('permission:exports.create')
+            ->name('admin.exports.index');
+        Route::post('/exports', [ExportController::class, 'store'])
+            ->middleware(['permission:exports.create', 'permission:exports.download'])
+            ->name('admin.exports.store');
 
         Route::middleware(OwnerOnly::class)->group(function (): void {
             Route::get('/employees', [EmployeeController::class, 'index'])->name('admin.employees.index');
