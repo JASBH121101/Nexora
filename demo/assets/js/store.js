@@ -35,13 +35,32 @@
     if (digits.length < 8 || digits.length > 15) return "";
     return "https://wa.me/" + digits + "?text=" + encodeURIComponent(message);
   };
-  const getProducts = (business) => safeRead("products:" + business.id, business.products);
-  const saveProducts = (businessId, products) => safeWrite("products:" + businessId, products);
-  const getSettings = (business) => ({
-    name: business.name,
-    whatsapp: business.whatsapp,
-    contact: business.contact
-  , ...safeRead("settings:" + business.id, {}) });
-  const saveSettings = (businessId, settings) => safeWrite("settings:" + businessId, settings);
+  const getProducts = (business) => {
+    const businessId = String(business?.id ?? "");
+    const fallback = Array.isArray(business?.products) ? business.products : [];
+    const stored = safeRead("products:" + businessId, fallback);
+    return Array.isArray(stored) ? stored : structuredClone(fallback);
+  };
+  const saveProducts = (businessId, products) => (
+    Array.isArray(products) && safeWrite("products:" + businessId, products)
+  );
+  const getSettings = (business) => {
+    const stored = safeRead("settings:" + String(business?.id ?? ""), {});
+    const settings = stored && typeof stored === "object" && !Array.isArray(stored)
+      ? stored
+      : {};
+    return {
+      name: business?.name ?? "",
+      whatsapp: business?.whatsapp ?? "",
+      contact: business?.contact ?? "",
+      ...settings
+    };
+  };
+  const saveSettings = (businessId, settings) => (
+    settings !== null
+    && typeof settings === "object"
+    && !Array.isArray(settings)
+    && safeWrite("settings:" + businessId, settings)
+  );
   window.NexoraStore = { escapeHTML, money, whatsappURL, getProducts, saveProducts, getSettings, saveSettings };
 })();
