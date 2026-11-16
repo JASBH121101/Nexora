@@ -29,3 +29,94 @@ test("WhatsApp links normalize numbers and encode message text", () => {
   assert.ok(link.includes("Hola%20NEXORA%20%26%20demo"));
   assert.equal(store.whatsappURL("123", "Hola"), "");
 });
+
+
+test("malformed but valid JSON product records fall back to a cloned demo catalogue", () => {
+  const business = {
+    id: "shape-validation",
+    products: [{ id: "seed", name: "Seed product" }]
+  };
+  const invalidRecords = [null, { products: "not-an-array" }, 42, "unexpected"];
+
+  for (const invalidRecord of invalidRecords) {
+    values.set("nexora-demo-v1:products:" + business.id, JSON.stringify(invalidRecord));
+    const products = store.getProducts(business);
+
+    assert.deepEqual(products, business.products);
+    assert.notStrictEqual(products, business.products);
+    products.push({ id: "local-mutation", name: "Mutation" });
+    assert.deepEqual(store.getProducts(business), business.products);
+  }
+});
+
+test("product persistence rejects non-array payloads without replacing valid data", () => {
+  const business = {
+    id: "save-shape-validation",
+    products: [{ id: "stable", name: "Stable product" }]
+  };
+  const invalidPayloads = [null, {}, "not-an-array", 7];
+
+  assert.equal(store.saveProducts(business.id, business.products), true);
+  const before = JSON.stringify(store.getProducts(business));
+
+  for (const invalidPayload of invalidPayloads) {
+    assert.equal(store.saveProducts(business.id, invalidPayload), false);
+    assert.equal(JSON.stringify(store.getProducts(business)), before);
+  }
+});
+
+test("settings storage ignores array-shaped records and rejects invalid writes", () => {
+  const business = {
+    id: "settings-shape-validation",
+    name: "Demo business",
+    whatsapp: "50500000000",
+    contact: "Default contact"
+  };
+  values.set(
+    "nexora-demo-v1:settings:" + business.id,
+    JSON.stringify(["unexpected", "array"])
+  );
+
+  assert.deepEqual(store.getSettings(business), {
+    name: business.name,
+    whatsapp: business.whatsapp,
+    contact: business.contact
+  });
+  assert.equal(store.saveSettings(business.id, null), false);
+  assert.equal(store.saveSettings(business.id, []), false);
+  assert.equal(store.saveSettings(business.id, "not-an-object"), false);
+});
+
+test("business catalogues remain isolated through bounded repeated storage round trips", () => {
+  const firstBusiness = {
+    id: "stress-business-a",
+    products: [{ id: "a-seed", name: "A seed" }]
+  };
+  const secondBusiness = {
+    id: "stress-business-b",
+    products: [{ id: "b-seed", name: "B seed" }]
+  };
+
+  for (let round = 0; round < 24; round += 1) {
+    const firstProducts = store.getProducts(firstBusiness);
+    firstProducts.push({
+      id: "a-" + round,
+      name: "Product A " + round,
+      description: "bounded fixture ".repeat(20)
+    });
+
+    assert.equal(store.saveProducts(firstBusiness.id, firstProducts), true);
+
+    const secondProducts = store.getProducts(secondBusiness);
+    assert.equal(secondProducts.length, 1);
+    assert.equal(secondProducts[0].id, "b-seed");
+
+    const detached = store.getProducts(firstBusiness);
+    detached[0].name = "unsaved mutation";
+    assert.notEqual(store.getProducts(firstBusiness)[0].name, "unsaved mutation");
+  }
+
+  assert.equal(store.getProducts(firstBusiness).length, 25);
+  assert.equal(store.getProducts(secondBusiness).length, 1);
+  assert.equal(store.getProducts(secondBusiness)[0].id, "b-seed");
+});
