@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class ProductImageController
 {
-    public function public(string $slug): StreamedResponse
+    public function showPublic(string $slug): StreamedResponse
     {
         $product = Product::query()
             ->published()
