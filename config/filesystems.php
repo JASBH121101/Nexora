@@ -32,6 +32,13 @@ return [
             'throw' => true,
             'report' => false,
         ],
+        'legacy_media_archive' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private-media-archive'),
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => false,
+        ],
     ],
     'links' => [public_path('storage') => storage_path('app/public')],
 ];
