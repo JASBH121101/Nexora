@@ -82,6 +82,43 @@ class ProductImageSecurityTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_legacy_image_migration_is_dry_run_first_and_keeps_a_private_backup(): void
+    {
+        Storage::fake('public');
+        Storage::fake('product_quarantine');
+        Storage::fake('private_media');
+        Storage::fake('legacy_media_archive');
+
+        $this->installCatalogOwner();
+        $category = CatalogCategory::query()->firstOrFail();
+        $legacyPath = 'products/legacy-product.jpg';
+        Storage::disk('public')->put($legacyPath, $this->pngBytes());
+
+        $product = $this->createProduct(
+            $category,
+            'Producto heredado',
+            'producto-heredado',
+            'published',
+            $legacyPath,
+        );
+
+        $this->artisan('nexora:secure-product-images')
+            ->assertExitCode(0);
+
+        $this->assertSame($legacyPath, $product->fresh()->image_path);
+        Storage::disk('public')->assertExists($legacyPath);
+        $this->assertSame([], Storage::disk('private_media')->allFiles());
+
+        $this->artisan('nexora:secure-product-images', ['--apply' => true])
+            ->assertExitCode(0);
+
+        $product->refresh();
+        $this->assertMatchesRegularExpression('/^products\/[0-9a-f-]{36}\.png$/i', $product->image_path);
+        Storage::disk('private_media')->assertExists($product->image_path);
+        Storage::disk('public')->assertMissing($legacyPath);
+        $this->assertCount(1, Storage::disk('legacy_media_archive')->allFiles());
+    }
+
     private function pngBytes(): string
     {
         $image = imagecreatetruecolor(20, 20);
