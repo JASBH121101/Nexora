@@ -18,6 +18,7 @@ use App\Modules\Admin\Http\Controllers\RoleController;
 use App\Modules\Admin\Http\Controllers\SiteDomainController;
 use App\Modules\Admin\Http\Controllers\VerifyEmailController;
 use App\Modules\Setup\Http\Controllers\SetupController;
+use App\Modules\Site\Http\Controllers\ProductImageController;
 use App\Modules\Site\Http\Controllers\PublicSiteController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -63,6 +64,9 @@ Route::middleware(['auth', AdminAccess::class, RequirePasswordChange::class])
         Route::get('/products', [ProductController::class, 'index'])
             ->middleware('permission:products.view')
             ->name('admin.products.index');
+        Route::get('/products/{product}/image', [ProductImageController::class, 'admin'])
+            ->middleware('permission:products.view')
+            ->name('admin.products.image');
         Route::get('/products/create', [ProductController::class, 'create'])
             ->middleware(['permission:products.view', 'permission:products.create'])
             ->name('admin.products.create');
@@ -171,6 +175,9 @@ Route::get('/sitemap.xml', [PublicSiteController::class, 'sitemap'])
 Route::get('/robots.txt', [PublicSiteController::class, 'robots'])
     ->middleware(EnforcePublishedSiteDomain::class)
     ->name('site.robots');
+Route::get('/producto/{slug}/imagen', [ProductImageController::class, 'public'])
+    ->middleware(EnforcePublishedSiteDomain::class)
+    ->name('site.product.image');
 Route::get('/producto/{slug}', [PublicSiteController::class, 'show'])
     ->middleware(EnforcePublishedSiteDomain::class)
     ->name('site.product');
