@@ -62,7 +62,7 @@
             @foreach ($products as $product)
                 <a class="product-card" href="{{ route('site.product', $product->slug) }}">
                     @if ($photosEnabled && $product->image_path)
-                        <img src="{{ asset('storage/'.$product->image_path) }}" alt="{{ $product->name }}" loading="lazy">
+                        <img src="{{ route('site.product.image', $product->slug) }}" alt="{{ $product->name }}" loading="lazy">
                     @else
                         <div class="product-image-placeholder" aria-hidden="true"><span>{{ mb_substr($product->name, 0, 1) }}</span></div>
                     @endif
