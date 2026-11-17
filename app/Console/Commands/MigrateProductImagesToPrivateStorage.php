@@ -118,10 +118,16 @@ final class MigrateProductImagesToPrivateStorage extends Command
                 );
 
                 // Preserve the original privately before sanitizing or changing the DB path.
+                $originalBytes = file_get_contents($temporaryPath);
+
+                if (! is_string($originalBytes) || $originalBytes === '') {
+                    throw new RuntimeException('Could not read the legacy image for its private backup.');
+                }
+
                 $archivePath = 'legacy-public/'.$product->id.'/'.Str::uuid().'.bin';
                 $archived = Storage::disk('legacy_media_archive')->put(
                     $archivePath,
-                    file_get_contents($temporaryPath),
+                    $originalBytes,
                     ['visibility' => 'private'],
                 );
 
