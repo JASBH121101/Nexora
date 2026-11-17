@@ -6,7 +6,8 @@
   "license": "proprietary",
   "require": {
     "php": "^8.3",
-    "laravel/framework": "^13.17"
+    "laravel/framework": "^13.17",
+    "ext-gd": "*"
   },
   "require-dev": {
     "fakerphp/faker": "^1.23",
