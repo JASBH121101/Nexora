@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Http\Controllers;
 
 use App\Core\Authorization\PermissionCatalog;
+use App\Core\Media\ProductImageProcessor;
 use App\Core\Library\Money\CurrencyCatalog;
 use App\Models\BusinessCurrency;
 use App\Models\CatalogCategory;
@@ -26,6 +27,10 @@ use Throwable;
 
 final class ProductController
 {
+    public function __construct(private readonly ProductImageProcessor $imageProcessor)
+    {
+    }
+
     public function index(): View
     {
         $user = auth()->user();
@@ -101,7 +106,7 @@ final class ProductController
 
         $validated = $this->validateProduct($request);
         $imagePath = $request->hasFile('image')
-            ? $request->file('image')->store('products', 'public')
+            ? $this->processProductImage($request)
             : null;
 
         try {
@@ -124,7 +129,7 @@ final class ProductController
             });
         } catch (Throwable $exception) {
             if ($imagePath !== null) {
-                Storage::disk('public')->delete($imagePath);
+                Storage::disk('private_media')->delete($imagePath);
             }
 
             throw $exception;
@@ -153,7 +158,7 @@ final class ProductController
         $validated = $this->validateProduct($request);
         $oldImagePath = $product->image_path;
         $newImagePath = $request->hasFile('image')
-            ? $request->file('image')->store('products', 'public')
+            ? $this->processProductImage($request)
             : null;
 
         $removeImage = (bool) ($validated['remove_image'] ?? false);
@@ -176,14 +181,14 @@ final class ProductController
             });
         } catch (Throwable $exception) {
             if ($newImagePath !== null) {
-                Storage::disk('public')->delete($newImagePath);
+                Storage::disk('private_media')->delete($newImagePath);
             }
 
             throw $exception;
         }
 
         if ($oldImagePath !== null && $oldImagePath !== $imagePath) {
-            Storage::disk('public')->delete($oldImagePath);
+            Storage::disk('private_media')->delete($oldImagePath);
         }
 
         return redirect()->route('admin.products.index')
@@ -199,7 +204,7 @@ final class ProductController
         });
 
         if ($imagePath !== null) {
-            Storage::disk('public')->delete($imagePath);
+            Storage::disk('private_media')->delete($imagePath);
         }
 
         return back()->with('status', 'Producto eliminado.');
@@ -437,6 +442,18 @@ final class ProductController
         }
 
         $request->merge(['fields' => $submittedFields]);
+    }
+
+
+    private function processProductImage(Request $request): string
+    {
+        try {
+            return $this->imageProcessor->process($request->file('image'));
+        } catch (Throwable) {
+            throw ValidationException::withMessages([
+                'image' => 'No fue posible validar y procesar la imagen. Prueba con un JPG, PNG o WebP válido.',
+            ]);
+        }
     }
 
     private function validateProduct(Request $request): array
