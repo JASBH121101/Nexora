@@ -175,7 +175,7 @@ Route::get('/sitemap.xml', [PublicSiteController::class, 'sitemap'])
 Route::get('/robots.txt', [PublicSiteController::class, 'robots'])
     ->middleware(EnforcePublishedSiteDomain::class)
     ->name('site.robots');
-Route::get('/producto/{slug}/imagen', [ProductImageController::class, 'public'])
+Route::get('/producto/{slug}/imagen', [ProductImageController::class, 'showPublic'])
     ->middleware(EnforcePublishedSiteDomain::class)
     ->name('site.product.image');
 Route::get('/producto/{slug}', [PublicSiteController::class, 'show'])
