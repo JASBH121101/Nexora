@@ -202,11 +202,11 @@ class ProductImageSecurityTest extends TestCase
         );
 
         $publicDisk = Storage::disk('public');
-        $throwingPublicDisk = \\Mockery::mock($publicDisk)->makePartial();
+        $throwingPublicDisk = \Mockery::mock($publicDisk)->makePartial();
         $throwingPublicDisk->shouldReceive('delete')
             ->once()
             ->with($legacyPath)
-            ->andThrow(new \\RuntimeException('simulated public delete failure'));
+            ->andThrow(new \RuntimeException('simulated public delete failure'));
         Storage::set('public', $throwingPublicDisk);
 
         $this->artisan('nexora:secure-product-images', ['--apply' => true])
