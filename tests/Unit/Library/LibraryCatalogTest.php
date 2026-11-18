@@ -40,6 +40,10 @@ final class LibraryCatalogTest extends TestCase
         $this->assertTrue(CurrencyCatalog::contains(' usd '));
         $this->assertSame(['es-419', 'en'], LanguageCatalog::codes());
         $this->assertSame('es-419', LanguageCatalog::normalize('es-MX'));
+        $this->assertSame('es-419', LanguageCatalog::normalize('es-NI'));
+        $this->assertNull(LanguageCatalog::normalize('es-ES'));
+        $this->assertNull(LanguageCatalog::normalize('fr-FR'));
+        $this->assertNull(LanguageCatalog::normalize('es-INVALID'));
         $this->assertSame('en', LanguageCatalog::normalize('en-GB'));
     }
 
