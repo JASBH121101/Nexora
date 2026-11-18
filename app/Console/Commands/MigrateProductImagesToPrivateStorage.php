@@ -49,6 +49,7 @@ final class MigrateProductImagesToPrivateStorage extends Command
                 && Storage::disk('private_media')->exists($oldPath)
             ) {
                 $alreadySecure++;
+
                 continue;
             }
 
@@ -60,11 +61,13 @@ final class MigrateProductImagesToPrivateStorage extends Command
             ) {
                 $this->warn("Product {$product->id}: legacy image is missing or outside the expected products directory.");
                 $missing++;
+
                 continue;
             }
 
             if (! $apply) {
                 $this->line("Would migrate product {$product->id}: {$product->name}");
+
                 continue;
             }
 
@@ -152,6 +155,7 @@ final class MigrateProductImagesToPrivateStorage extends Command
                 if (! Storage::disk('public')->delete($oldPath)) {
                     $this->error("Product {$product->id}: secure image saved, but the old public file could not be removed. Remove it manually after checking the private backup.");
                     $failed++;
+
                     continue;
                 }
 
