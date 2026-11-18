@@ -14,8 +14,11 @@ use Throwable;
 final class ProductImageProcessor
 {
     private const MAX_INPUT_BYTES = 5 * 1024 * 1024;
+
     private const MAX_OUTPUT_BYTES = 15 * 1024 * 1024;
+
     private const MAX_DIMENSION = 4000;
+
     private const MAX_PIXELS = 16_000_000;
 
     private const ALLOWED_MIME_TYPES = [
