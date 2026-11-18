@@ -3,8 +3,8 @@
 namespace App\Modules\Admin\Http\Controllers;
 
 use App\Core\Authorization\PermissionCatalog;
-use App\Core\Media\ProductImageProcessor;
 use App\Core\Library\Money\CurrencyCatalog;
+use App\Core\Media\ProductImageProcessor;
 use App\Models\BusinessCurrency;
 use App\Models\CatalogCategory;
 use App\Models\CatalogGroup;
@@ -27,9 +27,7 @@ use Throwable;
 
 final class ProductController
 {
-    public function __construct(private readonly ProductImageProcessor $imageProcessor)
-    {
-    }
+    public function __construct(private readonly ProductImageProcessor $imageProcessor) {}
 
     public function index(): View
     {
@@ -443,7 +441,6 @@ final class ProductController
 
         $request->merge(['fields' => $submittedFields]);
     }
-
 
     private function deleteProductImage(string $path): void
     {
