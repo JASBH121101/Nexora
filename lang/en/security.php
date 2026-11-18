@@ -6,6 +6,7 @@ return [
     'subtitle' => 'Protect admin access with a TOTP-compatible authenticator app.',
     'enabled_status' => 'Two-step verification is enabled.',
     'disabled_status' => 'Two-step verification is disabled.',
+    'disabled_instructions' => 'Additional verification is disabled. You can enable it with an authenticator app that generates TOTP codes.',
     'start_title' => 'Set up an authenticator app',
     'current_password' => 'Current password',
     'start_button' => 'Generate setup key',

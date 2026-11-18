@@ -68,7 +68,7 @@
     @else
         <section class="state-card">
             <strong>{{ __('security.disabled_status') }}</strong>
-            <p>{{ __('security.manual_instructions') }}</p>
+            <p>{{ __('security.disabled_instructions') }}</p>
         </section>
         <form method="POST" action="{{ route('admin.security.mfa.enrollment') }}" class="mfa-form">
             @csrf

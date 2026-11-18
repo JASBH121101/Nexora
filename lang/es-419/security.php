@@ -6,6 +6,7 @@ return [
     'subtitle' => 'Protege el acceso al panel con una aplicación autenticadora compatible con TOTP.',
     'enabled_status' => 'La verificación en dos pasos está activa.',
     'disabled_status' => 'La verificación en dos pasos está desactivada.',
+    'disabled_instructions' => 'La verificación adicional está desactivada. Puedes activarla con una aplicación autenticadora que genere códigos TOTP.',
     'start_title' => 'Configurar una aplicación autenticadora',
     'current_password' => 'Contraseña actual',
     'start_button' => 'Generar clave de configuración',
