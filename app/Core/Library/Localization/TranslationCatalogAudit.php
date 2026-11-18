@@ -16,9 +16,31 @@ final class TranslationCatalogAudit
 
         foreach ($sourceEntries as $key => $sourceValue) {
             if (! array_key_exists($key, $targetEntries)) {
+                $parent = $key;
+
+                while (str_contains($parent, '.')) {
+                    $parent = substr($parent, 0, (int) strrpos($parent, '.'));
+
+                    if (array_key_exists($parent, $targetEntries)) {
+                        break;
+                    }
+                }
+
+                $targetHasChildren = false;
+
+                foreach (array_keys($targetEntries) as $targetKey) {
+                    if (str_starts_with($targetKey, $key.'.')) {
+                        $targetHasChildren = true;
+                        break;
+                    }
+                }
+
+                $shapeMismatch = array_key_exists($parent, $targetEntries)
+                    || $targetHasChildren;
+
                 $findings[] = [
-                    'key' => $key,
-                    'code' => 'translation-missing',
+                    'key' => $shapeMismatch ? $parent : $key,
+                    'code' => $shapeMismatch ? 'message-shape-mismatch' : 'translation-missing',
                     'severity' => 'high',
                 ];
 
