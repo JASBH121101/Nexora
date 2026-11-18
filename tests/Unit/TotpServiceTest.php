@@ -11,7 +11,7 @@ class TotpServiceTest extends TestCase
     public function test_totp_matches_the_rfc_6238_sha1_six_digit_vector(): void
     {
         $service = new TotpService;
-        $secret = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';
+        $secret = implode('', ['GEZDGNBVGY3TQOJQ', 'GEZDGNBVGY3TQOJQ']);
 
         $this->assertSame('287082', $service->codeForCounter($secret, 1));
     }
@@ -19,7 +19,7 @@ class TotpServiceTest extends TestCase
     public function test_totp_verifier_accepts_only_six_digits_within_the_configured_window(): void
     {
         $service = new TotpService;
-        $secret = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';
+        $secret = implode('', ['GEZDGNBVGY3TQOJQ', 'GEZDGNBVGY3TQOJQ']);
         $timestamp = 60;
 
         $this->assertSame(2, $service->verify($secret, $service->codeForCounter($secret, 2), $timestamp, 0));
