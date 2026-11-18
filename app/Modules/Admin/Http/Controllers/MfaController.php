@@ -3,7 +3,6 @@
 namespace App\Modules\Admin\Http\Controllers;
 
 use App\Core\Security\TotpService;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
