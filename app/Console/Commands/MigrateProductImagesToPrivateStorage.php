@@ -73,6 +73,7 @@ final class MigrateProductImagesToPrivateStorage extends Command
 
             $temporaryPath = null;
             $newPath = null;
+            $databaseUpdated = false;
 
             try {
                 $size = Storage::disk('public')->size($oldPath);
@@ -151,6 +152,9 @@ final class MigrateProductImagesToPrivateStorage extends Command
 
                     $current->forceFill(['image_path' => $newPath])->save();
                 });
+                // From this point, the database references the private object.
+                // Never delete that object in a later error handler.
+                $databaseUpdated = true;
 
                 if (! Storage::disk('public')->delete($oldPath)) {
                     $this->error("Product {$product->id}: secure image saved, but the old public file could not be removed. Remove it manually after checking the private backup.");
@@ -162,12 +166,14 @@ final class MigrateProductImagesToPrivateStorage extends Command
                 $migrated++;
                 $this->info("Product {$product->id}: migrated and backed up privately.");
             } catch (Throwable $exception) {
-                if ($newPath !== null) {
+                if ($newPath !== null && ! $databaseUpdated) {
                     try {
                         Storage::disk('private_media')->delete($newPath);
                     } catch (Throwable) {
                         $this->warn("Product {$product->id}: could not clean up an uncommitted private image.");
                     }
+                } elseif ($newPath !== null && $databaseUpdated) {
+                    $this->warn("Product {$product->id}: the database already references the private image; that file was retained for consistency. Verify removal of the legacy public copy.");
                 }
 
                 $this->error("Product {$product->id}: migration failed ({$exception->getMessage()}).");
