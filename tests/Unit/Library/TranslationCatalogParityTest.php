@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\\Unit\\Library;
+namespace Tests\Unit\Library;
 
-use PHPUnit\\Framework\\TestCase;
+use PHPUnit\Framework\TestCase;
 
 final class TranslationCatalogParityTest extends TestCase
 {
