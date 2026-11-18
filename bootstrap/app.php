@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AdminAccess;
 use App\Http\Middleware\ApplyInstallationLocale;
+use App\Http\Middleware\EnsureMfaVerified;
 use App\Http\Middleware\OwnerOnly;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Http\Middleware\RequirePermission;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin.access' => AdminAccess::class,
+            'mfa.verified' => EnsureMfaVerified::class,
             'owner' => OwnerOnly::class,
             'password.change.required' => RequirePasswordChange::class,
             'permission' => RequirePermission::class,
