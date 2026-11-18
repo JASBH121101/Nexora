@@ -4,7 +4,10 @@ namespace Tests\Feature;
 
 use App\Core\Media\ProductImageProcessor;
 use App\Models\CatalogCategory;
+use App\Models\InstallationSettings;
 use App\Models\Product;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -79,6 +82,102 @@ class ProductImageSecurityTest extends TestCase
             ->assertHeader('Cache-Control', 'max-age=300, public');
 
         $this->get(route('site.product.image', $draft->slug))
+            ->assertNotFound();
+    }
+
+    public function test_admin_image_route_requires_field_level_media_view_permission(): void
+    {
+        Storage::fake('private_media');
+        $this->installCatalogOwner();
+
+        $category = CatalogCategory::query()->firstOrFail();
+        $path = 'products/'.(string) str()->uuid().'.png';
+        Storage::disk('private_media')->put($path, $this->pngBytes());
+
+        $product = $this->createProduct(
+            $category,
+            'Imagen de administración',
+            'imagen-administracion',
+            'draft',
+            $path,
+        );
+
+        $deniedRole = Role::query()->create([
+            'name' => 'Consulta sin medios',
+            'slug' => 'consulta-sin-medios',
+            'permissions' => ['products.view'],
+            'field_permissions' => [],
+            'is_system' => false,
+        ]);
+        $deniedUser = User::query()->create([
+            'name' => 'Usuario sin medios',
+            'username' => 'no-media-'.uniqid(),
+            'email' => uniqid('no-media-').'@example.com',
+            'password' => 'Temporary-Password-123!',
+            'role' => 'employee',
+            'role_id' => $deniedRole->id,
+            'is_active' => true,
+            'must_change_password' => false,
+        ]);
+
+        $this->actingAs($deniedUser)
+            ->get(route('admin.products.image', $product))
+            ->assertForbidden();
+
+        $allowedRole = Role::query()->create([
+            'name' => 'Consulta con medios',
+            'slug' => 'consulta-con-medios',
+            'permissions' => ['products.view', 'media.view'],
+            'field_permissions' => [],
+            'is_system' => false,
+        ]);
+        $allowedUser = User::query()->create([
+            'name' => 'Usuario con medios',
+            'username' => 'media-view-'.uniqid(),
+            'email' => uniqid('media-view-').'@example.com',
+            'password' => 'Temporary-Password-123!',
+            'role' => 'employee',
+            'role_id' => $allowedRole->id,
+            'is_active' => true,
+            'must_change_password' => false,
+        ]);
+
+        $response = $this->actingAs($allowedUser)
+            ->get(route('admin.products.image', $product))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'image/png')
+            ->assertHeader('X-Content-Type-Options', 'nosniff');
+
+        $this->assertStringContainsString(
+            'no-store',
+            (string) $response->headers->get('Cache-Control'),
+        );
+    }
+
+    public function test_public_image_route_is_disabled_when_photos_are_disabled(): void
+    {
+        Storage::fake('private_media');
+        $this->installCatalogOwner();
+
+        $settings = InstallationSettings::query()->findOrFail(1);
+        $configuration = $settings->configuration ?? [];
+        $identity = $configuration['identity'] ?? [];
+        $configuration['identity'] = array_merge($identity, ['photosEnabled' => false]);
+        $settings->forceFill(['configuration' => $configuration])->save();
+
+        $category = CatalogCategory::query()->firstOrFail();
+        $path = 'products/'.(string) str()->uuid().'.png';
+        Storage::disk('private_media')->put($path, $this->pngBytes());
+
+        $product = $this->createProduct(
+            $category,
+            'Imagen deshabilitada',
+            'imagen-deshabilitada',
+            'published',
+            $path,
+        );
+
+        $this->get(route('site.product.image', $product->slug))
             ->assertNotFound();
     }
 
