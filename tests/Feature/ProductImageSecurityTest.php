@@ -76,7 +76,7 @@ class ProductImageSecurityTest extends TestCase
             ->assertOk()
             ->assertHeader('Content-Type', 'image/png')
             ->assertHeader('X-Content-Type-Options', 'nosniff')
-            ->assertHeader('Cache-Control', 'public, max-age=300');
+            ->assertHeader('Cache-Control', 'max-age=300, public');
 
         $this->get(route('site.product.image', $draft->slug))
             ->assertNotFound();
