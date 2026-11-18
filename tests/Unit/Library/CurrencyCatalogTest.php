@@ -11,11 +11,10 @@ final class CurrencyCatalogTest extends TestCase
     {
         foreach (CurrencyCatalog::codes() as $code) {
             $metadata = CurrencyCatalog::metadata($code);
-
             $this->assertNotNull($metadata, 'Missing currency metadata for '.$code);
             $this->assertSame($code, $metadata['code']);
             $this->assertNotSame('', $metadata['symbol']);
-            $this->assertContains($metadata['minor_units'], [0, 2, 3]);
+            $this->assertContains($metadata['minor_units'], [0, 2, 3, 4]);
             $this->assertNotNull($metadata['step']);
         }
     }
@@ -28,6 +27,8 @@ final class CurrencyCatalogTest extends TestCase
         $this->assertSame(2, CurrencyCatalog::minorUnits('NIO'));
         $this->assertSame(3, CurrencyCatalog::minorUnits('KWD'));
         $this->assertSame(3, CurrencyCatalog::minorUnits('BHD'));
+        $this->assertSame(4, CurrencyCatalog::minorUnits('CLF'));
+        $this->assertSame(4, CurrencyCatalog::minorUnits('UYW'));
         $this->assertNull(CurrencyCatalog::minorUnits('XXX'));
     }
 
@@ -48,6 +49,10 @@ final class CurrencyCatalogTest extends TestCase
         $this->assertFalse(CurrencyCatalog::isValidAmount('1250.0', 'JPY'));
         $this->assertTrue(CurrencyCatalog::isValidAmount('1250.750', 'KWD'));
         $this->assertFalse(CurrencyCatalog::isValidAmount('1250.7501', 'KWD'));
+        $this->assertTrue(CurrencyCatalog::isValidAmount('1250.1234', 'CLF'));
+        $this->assertFalse(CurrencyCatalog::isValidAmount('1250.12345', 'CLF'));
+        $this->assertTrue(CurrencyCatalog::isValidAmount('1250.1234', 'UYW'));
+        $this->assertFalse(CurrencyCatalog::isValidAmount('1250.12345', 'UYW'));
         $this->assertFalse(CurrencyCatalog::isValidAmount('1e3', 'USD'));
         $this->assertFalse(CurrencyCatalog::isValidAmount('1000000000000', 'USD'));
     }
@@ -58,6 +63,8 @@ final class CurrencyCatalogTest extends TestCase
         $this->assertSame('C$ 1.234,50 NIO', CurrencyCatalog::formatAmount('1234.5000', 'NIO', 'es'));
         $this->assertSame('¥ 1,234 JPY', CurrencyCatalog::formatAmount('1234.0000', 'JPY', 'en'));
         $this->assertSame('د.ك 1.250,750 KWD', CurrencyCatalog::formatAmount('1250.7500', 'KWD', 'es'));
+        $this->assertSame('CLF 1.234,5000 CLF', CurrencyCatalog::formatAmount('1234.5000', 'CLF', 'es'));
+        $this->assertSame('$U 1.234,5000 UYW', CurrencyCatalog::formatAmount('1234.5000', 'UYW', 'es'));
         $this->assertNull(CurrencyCatalog::formatAmount('10.0050', 'USD', 'en'));
     }
 
@@ -66,8 +73,12 @@ final class CurrencyCatalogTest extends TestCase
         $this->assertSame('1', CurrencyCatalog::step('JPY'));
         $this->assertSame('0.01', CurrencyCatalog::step('USD'));
         $this->assertSame('0.001', CurrencyCatalog::step('KWD'));
+        $this->assertSame('0.0001', CurrencyCatalog::step('CLF'));
+        $this->assertSame('0.0001', CurrencyCatalog::step('UYW'));
         $this->assertSame('0', CurrencyCatalog::placeholder('JPY'));
         $this->assertSame('0.00', CurrencyCatalog::placeholder('USD'));
         $this->assertSame('0.000', CurrencyCatalog::placeholder('KWD'));
+        $this->assertSame('0.0000', CurrencyCatalog::placeholder('CLF'));
+        $this->assertSame('0.0000', CurrencyCatalog::placeholder('UYW'));
     }
 }
