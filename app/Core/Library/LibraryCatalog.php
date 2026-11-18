@@ -50,7 +50,7 @@ final class LibraryCatalog
             'currency_metadata_complete' => count(array_filter(
                 $currencyMetadata,
                 static fn (?array $metadata): bool => $metadata === null
-                    || ! in_array($metadata['minor_units'], [0, 2, 3], true)
+                    || ! in_array($metadata['minor_units'], [0, 2, 3, 4], true)
                     || $metadata['symbol'] === '',
             )) === 0,
             'country_currency_keys_valid' => array_diff($countryCurrencyKeys, $countries) === [],
