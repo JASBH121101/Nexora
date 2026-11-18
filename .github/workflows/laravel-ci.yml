@@ -23,6 +23,7 @@ on:
     branches: [main, 'feature/**', 'docs/nexora-approved-upgrades-2026-11']
     paths:
       - "app/**"
+      - "app/**"
       - "bootstrap/**"
       - "config/**"
       - "database/**"
