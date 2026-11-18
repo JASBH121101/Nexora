@@ -9,8 +9,8 @@ final class TranslationCatalogParityTest extends TestCase
     public function test_setup_and_validation_catalogues_have_matching_keys(): void
     {
         foreach (['setup', 'validation'] as $namespace) {
-            $spanish = require base_path('lang/es-419/'.$namespace.'.php');
-            $english = require base_path('lang/en/'.$namespace.'.php');
+            $spanish = $this->flattenMessages(require base_path('lang/es-419/'.$namespace.'.php'));
+            $english = $this->flattenMessages(require base_path('lang/en/'.$namespace.'.php'));
 
             $spanishKeys = array_keys($spanish);
             $englishKeys = array_keys($english);
@@ -28,13 +28,11 @@ final class TranslationCatalogParityTest extends TestCase
     public function test_setup_and_validation_placeholders_match_between_locales(): void
     {
         foreach (['setup', 'validation'] as $namespace) {
-            $spanish = require base_path('lang/es-419/'.$namespace.'.php');
-            $english = require base_path('lang/en/'.$namespace.'.php');
+            $spanish = $this->flattenMessages(require base_path('lang/es-419/'.$namespace.'.php'));
+            $english = $this->flattenMessages(require base_path('lang/en/'.$namespace.'.php'));
 
             foreach ($spanish as $key => $spanishMessage) {
                 $this->assertArrayHasKey($key, $english);
-                $this->assertIsString($spanishMessage);
-                $this->assertIsString($english[$key]);
 
                 preg_match_all('/:([A-Za-z_][A-Za-z0-9_]*)/', $spanishMessage, $spanishMatches);
                 preg_match_all('/:([A-Za-z_][A-Za-z0-9_]*)/', $english[$key], $englishMatches);
@@ -51,5 +49,25 @@ final class TranslationCatalogParityTest extends TestCase
                 );
             }
         }
+    }
+
+    private function flattenMessages(array $catalog, string $prefix = ''): array
+    {
+        $messages = [];
+
+        foreach ($catalog as $key => $value) {
+            $fullKey = $prefix === '' ? (string) $key : $prefix.'.'.$key;
+
+            if (is_array($value)) {
+                $messages += $this->flattenMessages($value, $fullKey);
+
+                continue;
+            }
+
+            $this->assertIsString($value, 'Translation value must be a string: '.$fullKey);
+            $messages[$fullKey] = $value;
+        }
+
+        return $messages;
     }
 }
