@@ -61,6 +61,18 @@ final class LoginController
             abort(403);
         }
 
+        $request->session()->forget([
+            'nexora_mfa_pending_user_id',
+            'nexora_mfa_verified_user_id',
+            'nexora_mfa_verified_at',
+        ]);
+
+        if ($user->mfaSettings()->whereNotNull('enabled_at')->exists()) {
+            $request->session()->put('nexora_mfa_pending_user_id', $user->id);
+
+            return redirect()->route('admin.mfa.challenge');
+        }
+
         return redirect()->intended(route('admin.home'));
     }
 

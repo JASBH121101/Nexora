@@ -8,6 +8,7 @@
 @if(session('media_message'))<div class="notice warning" role="status">{{session('media_message')}}</div>@endif
 @if(auth()->user()->isOwner()&&!auth()->user()->hasVerifiedEmail())<div class="notice warning">El correo del propietario todavía no está verificado.<form method="POST" action="{{route('verification.send')}}">@csrf<button class="text-button">Solicitar enlace de verificación</button></form></div>@endif
 <nav class="shortcuts">
+<a href="{{route('admin.security.mfa')}}">Seguridad de cuenta <span>MFA</span></a>
 @if(auth()->user()->hasPermission('products.view'))<a href="{{route('admin.products.index')}}">Productos <span>{{$productCount}}</span></a>@endif
 @if(auth()->user()->hasPermission('categories.view'))<a href="{{route('admin.categories.index')}}">Categorías</a>@endif
 @if(auth()->user()->hasPermission('fields.view'))<a href="{{route('admin.fields.index')}}">Campos dinámicos</a>@endif
