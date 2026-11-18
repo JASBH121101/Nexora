@@ -15,7 +15,7 @@ use App\Core\Library\Money\CurrencyCatalog;
  */
 final class LibraryCatalog
 {
-    public const VERSION = '0.2.0';
+    public const VERSION = '0.2.1';
 
     public static function integrityReport(): array
     {
