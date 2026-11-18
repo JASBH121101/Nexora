@@ -22,6 +22,8 @@ on:
   pull_request:
     branches: [main, 'feature/**', 'docs/nexora-approved-upgrades-2026-11']
     paths:
+      # Required so PHP application-layer-only changes run Pint and PHPUnit.
+      - "app/**"
       - "app/**"
       - "app/**"
       - "bootstrap/**"
