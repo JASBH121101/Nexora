@@ -19,7 +19,9 @@ final class TranslationCatalogAudit
                 $parent = $key;
                 while (str_contains($parent, '.')) {
                     $parent = substr($parent, 0, (int) strrpos($parent, '.'));
-                    if (array_key_exists($parent, $targetEntries)) break;
+                    if (array_key_exists($parent, $targetEntries)) {
+                        break;
+                    }
                 }
 
                 $targetHasChildren = false;
@@ -36,12 +38,18 @@ final class TranslationCatalogAudit
                     'code' => $shapeMismatch ? 'message-shape-mismatch' : 'translation-missing',
                     'severity' => 'high',
                 ];
+
                 continue;
             }
 
             $targetValue = $targetEntries[$key];
             if (get_debug_type($sourceValue) !== get_debug_type($targetValue)) {
-                $findings[] = ['key' => $key, 'code' => 'message-shape-mismatch', 'severity' => 'high'];
+                $findings[] = [
+                    'key' => $key,
+                    'code' => 'message-shape-mismatch',
+                    'severity' => 'high',
+                ];
+
                 continue;
             }
 
@@ -66,7 +74,11 @@ final class TranslationCatalogAudit
             }
         }
 
-        $high = count(array_filter($findings, static fn (array $finding): bool => $finding['severity'] === 'high'));
+        $high = count(array_filter(
+            $findings,
+            static fn (array $finding): bool => $finding['severity'] === 'high',
+        ));
+
         return [
             'passed' => $high === 0,
             'source_keys' => count($sourceEntries),
@@ -79,15 +91,20 @@ final class TranslationCatalogAudit
     private static function flatten(array $catalog, string $prefix = ''): array
     {
         $entries = [];
+
         foreach ($catalog as $key => $value) {
             $path = $prefix === '' ? (string) $key : $prefix.'.'.$key;
             if (is_array($value)) {
-                foreach (self::flatten($value, $path) as $nestedKey => $nestedValue) $entries[$nestedKey] = $nestedValue;
+                foreach (self::flatten($value, $path) as $nestedKey => $nestedValue) {
+                    $entries[$nestedKey] = $nestedValue;
+                }
+
                 continue;
             }
             $entries[$path] = $value;
         }
         ksort($entries);
+
         return $entries;
     }
 
@@ -96,6 +113,7 @@ final class TranslationCatalogAudit
         preg_match_all('/(?<!:):([A-Za-z][A-Za-z0-9_]*)/', $message, $matches);
         $placeholders = array_values(array_unique($matches[1] ?? []));
         sort($placeholders);
+
         return $placeholders;
     }
 }
