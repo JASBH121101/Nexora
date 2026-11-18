@@ -88,14 +88,22 @@ final class CurrencyCatalog
     public static function minorUnits(string $currencyCode): ?int
     {
         $code = strtoupper(trim($currencyCode));
-        if (! self::contains($code)) return null;
+
+        if (! self::contains($code)) {
+            return null;
+        }
+
         return self::MINOR_UNITS[$code] ?? 2;
     }
 
     public static function symbol(string $currencyCode): ?string
     {
         $code = strtoupper(trim($currencyCode));
-        if (! self::contains($code)) return null;
+
+        if (! self::contains($code)) {
+            return null;
+        }
+
         return self::SYMBOLS[$code] ?? $code;
     }
 
@@ -103,47 +111,86 @@ final class CurrencyCatalog
     {
         $code = strtoupper(trim($currencyCode));
         $minorUnits = self::minorUnits($code);
-        if ($minorUnits === null) return null;
-        return ['code' => $code, 'symbol' => self::symbol($code), 'minor_units' => $minorUnits, 'step' => self::step($code)];
+
+        if ($minorUnits === null) {
+            return null;
+        }
+
+        return [
+            'code' => $code,
+            'symbol' => self::symbol($code),
+            'minor_units' => $minorUnits,
+            'step' => self::step($code),
+        ];
     }
 
     public static function step(string $currencyCode): ?string
     {
         $minorUnits = self::minorUnits($currencyCode);
-        if ($minorUnits === null) return null;
-        return $minorUnits === 0 ? '1' : '0.'.str_repeat('0', $minorUnits - 1).'1';
+
+        if ($minorUnits === null) {
+            return null;
+        }
+
+        return $minorUnits === 0
+            ? '1'
+            : '0.'.str_repeat('0', $minorUnits - 1).'1';
     }
 
     public static function placeholder(string $currencyCode): ?string
     {
         $minorUnits = self::minorUnits($currencyCode);
-        return $minorUnits === null ? null : '0'.($minorUnits > 0 ? '.'.str_repeat('0', $minorUnits) : '');
+
+        return $minorUnits === null
+            ? null
+            : '0'.($minorUnits > 0 ? '.'.str_repeat('0', $minorUnits) : '');
     }
 
     public static function isValidAmount(mixed $amount, string $currencyCode): bool
     {
         $minorUnits = self::minorUnits($currencyCode);
-        if ($minorUnits === null || (! is_string($amount) && ! is_int($amount))) return false;
+
+        if ($minorUnits === null || (! is_string($amount) && ! is_int($amount))) {
+            return false;
+        }
+
         $value = trim((string) $amount);
-        if (! preg_match('/^([0-9]+)(?:\.([0-9]+))?$/D', $value, $matches)) return false;
+
+        if (! preg_match('/^([0-9]+)(?:\.([0-9]+))?$/D', $value, $matches)) {
+            return false;
+        }
+
         $integer = ltrim($matches[1], '0');
+
         return strlen($integer) <= 12 && strlen($matches[2] ?? '') <= $minorUnits;
     }
 
-    public static function formatAmount(string|int $amount, string $currencyCode, string $locale = 'es'): ?string
-    {
+    public static function formatAmount(
+        string|int $amount,
+        string $currencyCode,
+        string $locale = 'es',
+    ): ?string {
         $metadata = self::metadata($currencyCode);
-        if ($metadata === null || ! preg_match('/^([0-9]+)(?:\.([0-9]+))?$/D', trim((string) $amount), $matches)) return null;
+
+        if ($metadata === null || ! preg_match('/^([0-9]+)(?:\.([0-9]+))?$/D', trim((string) $amount), $matches)) {
+            return null;
+        }
+
         $minorUnits = $metadata['minor_units'];
         $integer = ltrim($matches[1], '0');
         $integer = $integer === '' ? '0' : $integer;
         $fraction = $matches[2] ?? '';
-        if (strlen($fraction) > $minorUnits && trim(substr($fraction, $minorUnits), '0') !== '') return null;
+
+        if (strlen($fraction) > $minorUnits && trim(substr($fraction, $minorUnits), '0') !== '') {
+            return null;
+        }
+
         $fraction = str_pad(substr($fraction, 0, $minorUnits), $minorUnits, '0');
         $isSpanish = str_starts_with(strtolower(str_replace('_', '-', $locale)), 'es');
         $decimalSeparator = $isSpanish ? ',' : '.';
         $groupSeparator = $isSpanish ? '.' : ',';
         $groupedInteger = preg_replace('/\B(?=(\d{3})+(?!\d))/', $groupSeparator, $integer) ?? $integer;
+
         return self::symbol($currencyCode).' '.$groupedInteger.($minorUnits > 0 ? $decimalSeparator.$fraction : '').' '.$metadata['code'];
     }
 }
