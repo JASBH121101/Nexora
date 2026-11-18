@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Core\Security\TotpService;
 use App\Models\User;
-use App\Models\UserMfaSetting;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;

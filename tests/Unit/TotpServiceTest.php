@@ -10,7 +10,7 @@ class TotpServiceTest extends TestCase
 {
     public function test_totp_matches_the_rfc_6238_sha1_six_digit_vector(): void
     {
-        $service = new TotpService();
+        $service = new TotpService;
         $secret = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';
 
         $this->assertSame('287082', $service->codeForCounter($secret, 1));
@@ -18,7 +18,7 @@ class TotpServiceTest extends TestCase
 
     public function test_totp_verifier_accepts_only_six_digits_within_the_configured_window(): void
     {
-        $service = new TotpService();
+        $service = new TotpService;
         $secret = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';
         $timestamp = 60;
 
@@ -30,7 +30,7 @@ class TotpServiceTest extends TestCase
 
     public function test_invalid_base32_secret_and_negative_counter_are_rejected(): void
     {
-        $service = new TotpService();
+        $service = new TotpService;
 
         $this->expectException(InvalidArgumentException::class);
         $service->codeForCounter('NOT-A-BASE32-SECRET', 1);
@@ -38,7 +38,7 @@ class TotpServiceTest extends TestCase
 
     public function test_new_secrets_have_sufficient_base32_entropy_and_a_valid_provisioning_uri(): void
     {
-        $service = new TotpService();
+        $service = new TotpService;
         $secret = $service->generateSecret();
         $uri = $service->provisioningUri('owner@example.com', 'NEXORA', $secret);
 
