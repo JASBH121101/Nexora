@@ -64,7 +64,7 @@ final class CurrencyCatalogTest extends TestCase
         $this->assertSame('¥ 1,234 JPY', CurrencyCatalog::formatAmount('1234.0000', 'JPY', 'en'));
         $this->assertSame('د.ك 1.250,750 KWD', CurrencyCatalog::formatAmount('1250.7500', 'KWD', 'es'));
         $this->assertSame('CLF 1.234,5000 CLF', CurrencyCatalog::formatAmount('1234.5000', 'CLF', 'es'));
-        $this->assertSame('$U 1.234,5000 UYW', CurrencyCatalog::formatAmount('1234.5000', 'UYW', 'es'));
+        $this->assertSame('UYW 1.234,5000 UYW', CurrencyCatalog::formatAmount('1234.5000', 'UYW', 'es'));
         $this->assertNull(CurrencyCatalog::formatAmount('10.0050', 'USD', 'en'));
     }
 
