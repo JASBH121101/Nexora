@@ -12,6 +12,7 @@ El Library Engine 0.2.0 quedó integrado en `feature/nexora-permission-engine-v1
 - Catálogo de unidades con identificadores estables, etiquetas localizadas y conversiones dimensionales.
 - Metadatos ISO de moneda, símbolos, minor units, steps y placeholders; la unidad de cuatro decimales CLF está cubierta explícitamente.
 - Normalización regional explícita: los alias españoles latinoamericanos conocidos se resuelven a es-419; es-ES y locales no soportados no se etiquetan incorrectamente como español latino.
+- `TranslationCatalogAudit` compara catálogos PHP anidados, detecta claves faltantes, claves obsoletas, cambios de forma y diferencias de placeholders. La auditoría estructural no sustituye la revisión lingüística humana.
 - Validación monetaria con cadenas decimales y sin cálculos de precio basados en floats.
 - Precios de producto con precisión `DECIMAL(16,4)` y migración aditiva.
 - Referencias estables de catálogo para unidades, preservando `unit_code` y `unit_dimension` heredados.
