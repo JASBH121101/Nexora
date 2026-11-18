@@ -24,11 +24,11 @@ final class LanguageCatalog
     {
         $normalized = strtolower(str_replace('_', '-', trim($locale)));
 
-        if ($normalized === 'es' || str_starts_with($normalized, 'es-')) {
+        if (preg_match('/^es(?:-(?:419|ni|mx|gt|hn|cr|pa|sv|do|co|ar|cl|pe|uy|py|bo|ve|ec))?$/D', $normalized) === 1) {
             return 'es-419';
         }
 
-        if ($normalized === 'en' || str_starts_with($normalized, 'en-')) {
+        if (preg_match('/^en(?:-(?:[a-z]{2}|[0-9]{3}))?$/D', $normalized) === 1) {
             return 'en';
         }
 
