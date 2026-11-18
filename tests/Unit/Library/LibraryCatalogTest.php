@@ -16,7 +16,6 @@ final class LibraryCatalogTest extends TestCase
     public function test_reference_catalogues_pass_internal_integrity_checks(): void
     {
         $report = LibraryCatalog::integrityReport();
-
         $this->assertTrue($report['passed'], json_encode($report, JSON_PRETTY_PRINT));
         $this->assertSame(LibraryCatalog::VERSION, $report['version']);
     }
@@ -24,7 +23,6 @@ final class LibraryCatalogTest extends TestCase
     public function test_country_currency_and_calling_code_catalogues_cover_the_same_country_set(): void
     {
         $countries = CountryCatalog::codes();
-
         $this->assertSame([], array_values(array_diff(array_keys(CountryCurrencyCatalog::all()), $countries)));
         $this->assertSame([], array_values(array_diff($countries, array_keys(CountryDialingCodeCatalog::all()))));
         $this->assertSame('+505', CountryDialingCodeCatalog::forCountry(' ni '));
@@ -40,6 +38,11 @@ final class LibraryCatalogTest extends TestCase
         $this->assertTrue(CurrencyCatalog::contains(' usd '));
         $this->assertSame(['es-419', 'en'], LanguageCatalog::codes());
         $this->assertSame('es-419', LanguageCatalog::normalize('es-MX'));
+        $this->assertSame('es-419', LanguageCatalog::normalize('es-NI'));
+        $this->assertSame('es-419', LanguageCatalog::normalize('es-419'));
+        $this->assertNull(LanguageCatalog::normalize('es-ES'));
+        $this->assertNull(LanguageCatalog::normalize('fr-FR'));
+        $this->assertNull(LanguageCatalog::normalize('es-INVALID'));
         $this->assertSame('en', LanguageCatalog::normalize('en-GB'));
     }
 
