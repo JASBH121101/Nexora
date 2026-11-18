@@ -181,6 +181,44 @@ class ProductImageSecurityTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_legacy_image_migration_keeps_committed_private_image_when_public_delete_throws(): void
+    {
+        Storage::fake('public');
+        Storage::fake('product_quarantine');
+        Storage::fake('private_media');
+        Storage::fake('legacy_media_archive');
+
+        $this->installCatalogOwner();
+        $category = CatalogCategory::query()->firstOrFail();
+        $legacyPath = 'products/legacy-product-delete-error.jpg';
+        Storage::disk('public')->put($legacyPath, $this->pngBytes());
+
+        $product = $this->createProduct(
+            $category,
+            'Producto heredado con error de borrado',
+            'producto-heredado-error-borrado',
+            'published',
+            $legacyPath,
+        );
+
+        $publicDisk = Storage::disk('public');
+        $throwingPublicDisk = \\Mockery::mock($publicDisk)->makePartial();
+        $throwingPublicDisk->shouldReceive('delete')
+            ->once()
+            ->with($legacyPath)
+            ->andThrow(new \\RuntimeException('simulated public delete failure'));
+        Storage::set('public', $throwingPublicDisk);
+
+        $this->artisan('nexora:secure-product-images', ['--apply' => true])
+            ->assertExitCode(1);
+
+        $product->refresh();
+        $this->assertMatchesRegularExpression('/^products\\/[0-9a-f-]{36}\\.png$/i', $product->image_path);
+        Storage::disk('private_media')->assertExists($product->image_path);
+        $this->assertTrue($publicDisk->exists($legacyPath));
+        $this->assertCount(1, Storage::disk('legacy_media_archive')->allFiles());
+    }
+
     public function test_legacy_image_migration_is_dry_run_first_and_keeps_a_private_backup(): void
     {
         Storage::fake('public');
