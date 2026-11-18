@@ -44,11 +44,13 @@ final class TranslationCatalogParityTest extends TestCase
             $fullKey = $prefix === '' ? (string) $key : $prefix.'.'.$key;
             if (is_array($value)) {
                 $messages += $this->flattenMessages($value, $fullKey);
+
                 continue;
             }
             $this->assertIsString($value, 'Translation value must be a string: '.$fullKey);
             $messages[$fullKey] = $value;
         }
+
         return $messages;
     }
 }
