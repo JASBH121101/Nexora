@@ -17,6 +17,7 @@ final class TranslationCatalogAuditTest extends TestCase
 
         $setup = TranslationCatalogAudit::audit($spanishSetup, $englishSetup);
         $validation = TranslationCatalogAudit::audit($spanishValidation, $englishValidation);
+
         $this->assertTrue($setup['passed'], json_encode($setup, JSON_PRETTY_PRINT));
         $this->assertTrue($validation['passed'], json_encode($validation, JSON_PRETTY_PRINT));
         $this->assertSame(0, $setup['high_findings']);
@@ -37,6 +38,7 @@ final class TranslationCatalogAuditTest extends TestCase
                 'extra' => 'Unused',
             ],
         );
+
         $codes = array_column($result['findings'], 'code');
 
         $this->assertFalse($result['passed']);
@@ -48,7 +50,11 @@ final class TranslationCatalogAuditTest extends TestCase
 
     public function test_obsolete_entries_are_reported_without_failing_structural_parity(): void
     {
-        $result = TranslationCatalogAudit::audit(['save' => 'Guardar'], ['save' => 'Save', 'legacy' => 'Old label']);
+        $result = TranslationCatalogAudit::audit(
+            ['save' => 'Guardar'],
+            ['save' => 'Save', 'legacy' => 'Old label'],
+        );
+
         $this->assertTrue($result['passed']);
         $this->assertSame(0, $result['high_findings']);
         $this->assertSame('obsolete-translation', $result['findings'][0]['code']);
