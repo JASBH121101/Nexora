@@ -11,11 +11,17 @@ final class TranslationCatalogParityTest extends TestCase
         foreach (['setup', 'validation'] as $namespace) {
             $spanish = $this->flattenMessages(require base_path('lang/es-419/'.$namespace.'.php'));
             $english = $this->flattenMessages(require base_path('lang/en/'.$namespace.'.php'));
+
             $spanishKeys = array_keys($spanish);
             $englishKeys = array_keys($english);
             sort($spanishKeys);
             sort($englishKeys);
-            $this->assertSame($spanishKeys, $englishKeys, 'Translation keys differ in the '.$namespace.' namespace.');
+
+            $this->assertSame(
+                $spanishKeys,
+                $englishKeys,
+                'Translation keys differ in the '.$namespace.' namespace.',
+            );
         }
     }
 
@@ -24,15 +30,23 @@ final class TranslationCatalogParityTest extends TestCase
         foreach (['setup', 'validation'] as $namespace) {
             $spanish = $this->flattenMessages(require base_path('lang/es-419/'.$namespace.'.php'));
             $english = $this->flattenMessages(require base_path('lang/en/'.$namespace.'.php'));
+
             foreach ($spanish as $key => $spanishMessage) {
                 $this->assertArrayHasKey($key, $english);
+
                 preg_match_all('/:([A-Za-z_][A-Za-z0-9_]*)/', $spanishMessage, $spanishMatches);
                 preg_match_all('/:([A-Za-z_][A-Za-z0-9_]*)/', $english[$key], $englishMatches);
+
                 $spanishPlaceholders = array_unique($spanishMatches[1]);
                 $englishPlaceholders = array_unique($englishMatches[1]);
                 sort($spanishPlaceholders);
                 sort($englishPlaceholders);
-                $this->assertSame($spanishPlaceholders, $englishPlaceholders, 'Placeholder mismatch for '.$namespace.'.'.$key.'.');
+
+                $this->assertSame(
+                    $spanishPlaceholders,
+                    $englishPlaceholders,
+                    'Placeholder mismatch for '.$namespace.'.'.$key.'.',
+                );
             }
         }
     }
@@ -40,13 +54,16 @@ final class TranslationCatalogParityTest extends TestCase
     private function flattenMessages(array $catalog, string $prefix = ''): array
     {
         $messages = [];
+
         foreach ($catalog as $key => $value) {
             $fullKey = $prefix === '' ? (string) $key : $prefix.'.'.$key;
+
             if (is_array($value)) {
                 $messages += $this->flattenMessages($value, $fullKey);
 
                 continue;
             }
+
             $this->assertIsString($value, 'Translation value must be a string: '.$fullKey);
             $messages[$fullKey] = $value;
         }
