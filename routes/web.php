@@ -12,6 +12,7 @@ use App\Modules\Admin\Http\Controllers\ExportController;
 use App\Modules\Admin\Http\Controllers\FieldDefinitionController;
 use App\Modules\Admin\Http\Controllers\LoginController;
 use App\Modules\Admin\Http\Controllers\LoginHelpController;
+use App\Modules\Admin\Http\Controllers\MfaController;
 use App\Modules\Admin\Http\Controllers\PasswordController;
 use App\Modules\Admin\Http\Controllers\ProductController;
 use App\Modules\Admin\Http\Controllers\RoleController;
@@ -53,12 +54,35 @@ Route::post('/admin/login/help', [LoginHelpController::class, 'store'])
     ->middleware('throttle:3,10')
     ->name('admin.login.help');
 
-Route::middleware(['auth', AdminAccess::class, RequirePasswordChange::class])
+Route::middleware(['auth', AdminAccess::class])
+    ->prefix('admin')
+    ->group(function (): void {
+        Route::get('/mfa/challenge', [MfaController::class, 'challenge'])
+            ->name('admin.mfa.challenge');
+        Route::post('/mfa/challenge', [MfaController::class, 'verifyChallenge'])
+            ->middleware('throttle:5,1')
+            ->name('admin.mfa.challenge.verify');
+        Route::post('/mfa/cancel', [MfaController::class, 'cancelChallenge'])
+            ->name('admin.mfa.challenge.cancel');
+    });
+
+Route::middleware(['auth', AdminAccess::class, 'mfa.verified', RequirePasswordChange::class])
     ->prefix('admin')
     ->group(function (): void {
         Route::post('/logout', [LoginController::class, 'destroy'])->name('admin.logout');
         Route::get('/password/change', [PasswordController::class, 'edit'])->name('admin.password.change');
         Route::post('/password/change', [PasswordController::class, 'update'])->name('admin.password.update');
+
+        Route::get('/security/mfa', [MfaController::class, 'index'])->name('admin.security.mfa');
+        Route::post('/security/mfa/enrollment', [MfaController::class, 'startEnrollment'])
+            ->middleware('throttle:5,1')
+            ->name('admin.security.mfa.enrollment');
+        Route::post('/security/mfa/confirm', [MfaController::class, 'confirmEnrollment'])
+            ->middleware('throttle:5,1')
+            ->name('admin.security.mfa.confirm');
+        Route::post('/security/mfa/disable', [MfaController::class, 'disable'])
+            ->middleware('throttle:5,1')
+            ->name('admin.security.mfa.disable');
         Route::get('/', DashboardController::class)->name('admin.home');
 
         Route::get('/products', [ProductController::class, 'index'])
