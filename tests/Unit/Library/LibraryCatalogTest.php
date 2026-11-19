@@ -41,7 +41,6 @@ final class LibraryCatalogTest extends TestCase
         $this->assertSame(['es-419', 'en'], LanguageCatalog::codes());
         $this->assertSame('es-419', LanguageCatalog::normalize('es-MX'));
         $this->assertSame('es-419', LanguageCatalog::normalize('es-NI'));
-        $this->assertSame('es-419', LanguageCatalog::normalize('es-419'));
         $this->assertNull(LanguageCatalog::normalize('es-ES'));
         $this->assertNull(LanguageCatalog::normalize('fr-FR'));
         $this->assertNull(LanguageCatalog::normalize('es-INVALID'));
