@@ -11,6 +11,7 @@ final class CurrencyCatalogTest extends TestCase
     {
         foreach (CurrencyCatalog::codes() as $code) {
             $metadata = CurrencyCatalog::metadata($code);
+
             $this->assertNotNull($metadata, 'Missing currency metadata for '.$code);
             $this->assertSame($code, $metadata['code']);
             $this->assertNotSame('', $metadata['symbol']);
@@ -53,6 +54,7 @@ final class CurrencyCatalogTest extends TestCase
         $this->assertFalse(CurrencyCatalog::isValidAmount('1250.12345', 'CLF'));
         $this->assertTrue(CurrencyCatalog::isValidAmount('1250.1234', 'UYW'));
         $this->assertFalse(CurrencyCatalog::isValidAmount('1250.12345', 'UYW'));
+        $this->assertTrue(CurrencyCatalog::isValidAmount('1250.1234', 'UYW'));
         $this->assertFalse(CurrencyCatalog::isValidAmount('1e3', 'USD'));
         $this->assertFalse(CurrencyCatalog::isValidAmount('1000000000000', 'USD'));
     }
