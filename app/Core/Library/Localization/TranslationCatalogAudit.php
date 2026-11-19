@@ -5,8 +5,8 @@ namespace App\Core\Library\Localization;
 final class TranslationCatalogAudit
 {
     /**
-     * Compare nested Laravel translation arrays structurally.
-     * Key/placeholder parity does not certify linguistic quality.
+     * Compare two nested Laravel translation arrays structurally.
+     * This checks key/placeholder parity only; it cannot certify linguistic quality.
      */
     public static function audit(array $source, array $target): array
     {
@@ -17,14 +17,17 @@ final class TranslationCatalogAudit
         foreach ($sourceEntries as $key => $sourceValue) {
             if (! array_key_exists($key, $targetEntries)) {
                 $parent = $key;
+
                 while (str_contains($parent, '.')) {
                     $parent = substr($parent, 0, (int) strrpos($parent, '.'));
+
                     if (array_key_exists($parent, $targetEntries)) {
                         break;
                     }
                 }
 
                 $targetHasChildren = false;
+
                 foreach (array_keys($targetEntries) as $targetKey) {
                     if (str_starts_with($targetKey, $key.'.')) {
                         $targetHasChildren = true;
@@ -32,7 +35,9 @@ final class TranslationCatalogAudit
                     }
                 }
 
-                $shapeMismatch = array_key_exists($parent, $targetEntries) || $targetHasChildren;
+                $shapeMismatch = array_key_exists($parent, $targetEntries)
+                    || $targetHasChildren;
+
                 $findings[] = [
                     'key' => $shapeMismatch ? $parent : $key,
                     'code' => $shapeMismatch ? 'message-shape-mismatch' : 'translation-missing',
@@ -43,6 +48,7 @@ final class TranslationCatalogAudit
             }
 
             $targetValue = $targetEntries[$key];
+
             if (get_debug_type($sourceValue) !== get_debug_type($targetValue)) {
                 $findings[] = [
                     'key' => $key,
@@ -56,6 +62,7 @@ final class TranslationCatalogAudit
             if (is_string($sourceValue) && is_string($targetValue)) {
                 $sourcePlaceholders = self::placeholders($sourceValue);
                 $targetPlaceholders = self::placeholders($targetValue);
+
                 if ($sourcePlaceholders !== $targetPlaceholders) {
                     $findings[] = [
                         'key' => $key,
@@ -70,7 +77,11 @@ final class TranslationCatalogAudit
 
         foreach ($targetEntries as $key => $_value) {
             if (! array_key_exists($key, $sourceEntries)) {
-                $findings[] = ['key' => $key, 'code' => 'obsolete-translation', 'severity' => 'low'];
+                $findings[] = [
+                    'key' => $key,
+                    'code' => 'obsolete-translation',
+                    'severity' => 'low',
+                ];
             }
         }
 
@@ -94,6 +105,7 @@ final class TranslationCatalogAudit
 
         foreach ($catalog as $key => $value) {
             $path = $prefix === '' ? (string) $key : $prefix.'.'.$key;
+
             if (is_array($value)) {
                 foreach (self::flatten($value, $path) as $nestedKey => $nestedValue) {
                     $entries[$nestedKey] = $nestedValue;
@@ -101,8 +113,10 @@ final class TranslationCatalogAudit
 
                 continue;
             }
+
             $entries[$path] = $value;
         }
+
         ksort($entries);
 
         return $entries;
