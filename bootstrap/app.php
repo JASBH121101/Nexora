@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AdminAccess;
 use App\Http\Middleware\ApplyInstallationLocale;
+use App\Http\Middleware\EnsureMfaVerified;
 use App\Http\Middleware\OwnerOnly;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Http\Middleware\RequirePermission;
@@ -16,12 +17,16 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withCommands([
+        __DIR__.'/../app/Console/Commands',
+    ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
         $middleware->web(append: [ApplyInstallationLocale::class]);
 
         $middleware->alias([
             'admin.access' => AdminAccess::class,
+            'mfa.verified' => EnsureMfaVerified::class,
             'owner' => OwnerOnly::class,
             'password.change.required' => RequirePasswordChange::class,
             'permission' => RequirePermission::class,

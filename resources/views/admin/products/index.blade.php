@@ -26,7 +26,7 @@
         <article class="product-row">
             @if ($canViewImage)
                 @if ($product->image_path)
-                    <img class="product-thumb" src="{{ asset('storage/'.$product->image_path) }}" alt="{{ $product->name }}" loading="lazy">
+                    <img class="product-thumb" src="{{ route('admin.products.image', $product) }}" alt="{{ $product->name }}" loading="lazy">
                 @else
                     <div class="product-thumb placeholder" aria-hidden="true">N</div>
                 @endif

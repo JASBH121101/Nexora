@@ -103,7 +103,7 @@
                 <h2>Fotografía</h2>
                 @if ($isEdit && $product->image_path && $canViewImage)
                     <div class="current-image">
-                        <img src="{{ asset('storage/'.$product->image_path) }}" alt="{{ $product->name }}">
+                        <img src="{{ route('admin.products.image', $product) }}" alt="{{ $product->name }}">
                     </div>
                 @endif
                 @if ($isEdit && $product->image_path && $canDeleteImage)

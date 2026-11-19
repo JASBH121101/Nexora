@@ -40,7 +40,7 @@ final class ServerRequirements
         };
 
         $required = [
-            'ctype', 'curl', 'dom', 'fileinfo', 'filter', 'hash',
+            'ctype', 'curl', 'dom', 'fileinfo', 'filter', 'gd', 'hash',
             'mbstring', 'openssl', 'pcre', 'pdo', 'session',
             'tokenizer', 'xml',
         ];

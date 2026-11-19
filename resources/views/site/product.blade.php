@@ -7,7 +7,7 @@
 @section('og_title', $product->name.' · '.$settings->business_name)
 @section('og_description', \Illuminate\Support\Str::limit(trim(strip_tags((string) ($product->description ?: $product->name.' · '.$settings->business_name))), 160))
 @if ($photosEnabled && $product->image_path)
-    @section('og_image', asset('storage/'.$product->image_path))
+    @section('og_image', route('site.product.image', $product->slug))
 @endif
 
 @section('content')
@@ -16,7 +16,7 @@
     <article class="detail-card">
         <div class="detail-media">
             @if ($photosEnabled && $product->image_path)
-                <img src="{{ asset('storage/'.$product->image_path) }}" alt="{{ $product->name }}">
+                <img src="{{ route('site.product.image', $product->slug) }}" alt="{{ $product->name }}">
             @else
                 <div class="detail-placeholder" aria-hidden="true">{{ mb_substr($product->name, 0, 1) }}</div>
             @endif
