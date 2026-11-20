@@ -1,15 +1,15 @@
 <?php
 
-use App\\Http\\Middleware\\AdminAccess;
-use App\\Http\\Middleware\\ApplyInstallationLocale;
-use App\\Http\\Middleware\\EnsureMfaVerified;
-use App\\Http\\Middleware\\OwnerOnly;
-use App\\Http\\Middleware\\RequirePasswordChange;
-use App\\Http\\Middleware\\RequirePermission;
-use Illuminate\\Foundation\\Application;
-use Illuminate\\Foundation\\Configuration\\Exceptions;
-use Illuminate\\Foundation\\Configuration\\Middleware;
-use Illuminate\\Http\\Request;
+use App\Http\Middleware\AdminAccess;
+use App\Http\Middleware\ApplyInstallationLocale;
+use App\Http\Middleware\EnsureMfaVerified;
+use App\Http\Middleware\OwnerOnly;
+use App\Http\Middleware\RequirePasswordChange;
+use App\Http\Middleware\RequirePermission;
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         __DIR__.'/../app/Console/Commands',
     ])
     ->withMiddleware(function (Middleware $middleware): void {
-        // TrustProxies uses config/trustedproxy.php. Do not trust every source IP by default.
+        // TrustProxies reads config/trustedproxy.php; no wildcard proxy trust by default.
         $middleware->web(append: [ApplyInstallationLocale::class]);
 
         $middleware->alias([
