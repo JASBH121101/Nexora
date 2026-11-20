@@ -27,6 +27,7 @@ final class InstallationState
         'export_histories',
         'user_mfa_settings',
         'user_mfa_recovery_codes',
+        'user_sessions',
     ];
 
     public function hasSchema(): bool
