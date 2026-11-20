@@ -46,6 +46,7 @@ class UserSessionManagementTest extends TestCase
     public function test_owner_can_view_and_revoke_another_active_session(): void
     {
         $owner = $this->installOwner();
+        Auth::forgetGuards();
         $remoteSession = UserSession::query()->create([
             'user_id' => $owner->id,
             'session_hash' => hash('sha256', 'remote-session-secret'),
@@ -60,17 +61,20 @@ class UserSessionManagementTest extends TestCase
             ->assertSee('NEXORA QA remote browser')
             ->assertSee(__('security.current_session'));
 
+        Auth::forgetGuards();
         $this->delete(route('admin.security.sessions.destroy', $remoteSession->id))
             ->assertRedirect()
             ->assertSessionHas('status', __('security.session_revoked_successfully'));
 
         $this->assertNotNull($remoteSession->fresh()->revoked_at);
+        Auth::forgetGuards();
         $this->get(route('admin.home'))->assertOk();
     }
 
     public function test_revoking_the_current_session_ends_its_authenticated_access(): void
     {
         $this->installOwner();
+        Auth::forgetGuards();
         $this->get(route('admin.home'))->assertOk();
 
         $activeSession = UserSession::query()
@@ -79,16 +83,19 @@ class UserSessionManagementTest extends TestCase
             ->whereNull('revoked_at')
             ->firstOrFail();
 
+        Auth::forgetGuards();
         $this->delete(route('admin.security.sessions.destroy', $activeSession->id))
             ->assertRedirect(route('admin.login'))
             ->assertSessionHas('status', __('security.current_session_ended'));
 
+        Auth::forgetGuards();
         $this->get(route('admin.home'))->assertRedirect(route('admin.login'));
     }
 
     public function test_existing_authenticated_session_is_registered_on_first_access(): void
     {
         $this->installOwner();
+        Auth::forgetGuards();
         $this->get(route('admin.home'))->assertOk();
 
         $this->assertDatabaseHas('user_sessions', [
@@ -101,6 +108,7 @@ class UserSessionManagementTest extends TestCase
     public function test_revoked_session_tombstone_cannot_be_reactivated(): void
     {
         $this->installOwner();
+        Auth::forgetGuards();
         $this->get(route('admin.home'))->assertOk();
 
         $activeSession = UserSession::query()
@@ -110,6 +118,7 @@ class UserSessionManagementTest extends TestCase
             ->firstOrFail();
         $activeSession->forceFill(['revoked_at' => now()])->save();
 
+        Auth::forgetGuards();
         $this->get(route('admin.home'))->assertRedirect(route('admin.login'));
         $this->assertNotNull($activeSession->fresh()->revoked_at);
     }
@@ -117,6 +126,7 @@ class UserSessionManagementTest extends TestCase
     public function test_expired_session_is_rejected_and_removed(): void
     {
         $this->installOwner();
+        Auth::forgetGuards();
         $activeSession = UserSession::query()
             ->where('user_id', auth()->id())
             ->where('session_hash', hash('sha256', session()->getId()))
@@ -124,6 +134,7 @@ class UserSessionManagementTest extends TestCase
             ->firstOrFail();
         $activeSession->forceFill(['last_activity' => now()->subMinutes(121)->timestamp])->save();
 
+        Auth::forgetGuards();
         $this->get(route('admin.home'))
             ->assertRedirect(route('admin.login'))
             ->assertDatabaseHas('user_sessions', ['id' => $activeSession->id]);
@@ -149,6 +160,7 @@ class UserSessionManagementTest extends TestCase
             'password' => 'Employee-Password-2026!',
         ])->assertRedirect(route('admin.home'));
 
+        Auth::forgetGuards();
         $this->get(route('admin.security.sessions'))->assertForbidden();
     }
 
