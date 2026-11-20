@@ -21,6 +21,7 @@ final class UserSession extends Model
         'ip_address',
         'user_agent',
         'last_activity',
+        'revoked_at',
     ];
 
     protected $hidden = ['session_hash'];
@@ -29,6 +30,7 @@ final class UserSession extends Model
     {
         return [
             'last_activity' => 'integer',
+            'revoked_at' => 'datetime',
         ];
     }
 
