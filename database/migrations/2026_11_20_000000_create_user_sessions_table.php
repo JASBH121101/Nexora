@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
             $table->unsignedBigInteger('last_activity')->index();
+            $table->timestamp('revoked_at')->nullable()->index();
             $table->timestamps();
 
             $table->index(['user_id', 'last_activity']);
