@@ -13,7 +13,7 @@
 @if(auth()->user()->hasPermission('categories.view'))<a href="{{route('admin.categories.index')}}">Categorías</a>@endif
 @if(auth()->user()->hasPermission('fields.view'))<a href="{{route('admin.fields.index')}}">Campos dinámicos</a>@endif
 @if(auth()->user()->hasPermission('exports.create'))<a href="{{route('admin.exports.index')}}">Exportaciones</a>@endif
-@if(auth()->user()->isOwner())<a href="{{route('admin.site-domains.index')}}">Sitio y dominios</a><a href="{{route('admin.employees.index')}}">Empleados <span>{{$employeeCount}}</span></a><a href="{{route('admin.roles.index')}}">Roles y permisos</a><a href="{{route('admin.access-requests.index')}}">Solicitudes de acceso <span>{{$pendingHelpCount}}</span></a>@endif
+@if(auth()->user()->isOwner())<a href="{{route('admin.security.sessions')}}">{{ __('security.sessions_title') }}</a><a href="{{route('admin.site-domains.index')}}">Sitio y dominios</a><a href="{{route('admin.employees.index')}}">Empleados <span>{{$employeeCount}}</span></a><a href="{{route('admin.roles.index')}}">Roles y permisos</a><a href="{{route('admin.access-requests.index')}}">Solicitudes de acceso <span>{{$pendingHelpCount}}</span></a>@endif
 </nav>
 <div class="metrics"><article><span>PRODUCTOS</span><strong>{{$productCount}}</strong></article><article><span>PUBLICADOS</span><strong>{{$publishedCount}}</strong></article><article><span>PLANTILLA</span><strong>{{ucfirst($settings->business_type)}}</strong></article></div>
 <div class="notice">La cuenta y la configuración inicial están guardadas. Los módulos de gestión del catálogo se habilitarán en las siguientes entregas.</div>

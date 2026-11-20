@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Http\Controllers;
 
 use App\Core\Installation\InstallationState;
+use App\Core\Security\UserSessionRegistry;
 use App\Models\InstallationSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,7 +25,7 @@ final class LoginController
         return view('admin.auth.login');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, UserSessionRegistry $sessions): RedirectResponse
     {
         $data = $request->validate([
             'username' => ['required', 'string', 'max:32'],
@@ -61,6 +62,8 @@ final class LoginController
             abort(403);
         }
 
+        $sessions->register($request, $user);
+
         $request->session()->forget([
             'nexora_mfa_pending_user_id',
             'nexora_mfa_verified_user_id',
@@ -76,8 +79,12 @@ final class LoginController
         return redirect()->intended(route('admin.home'));
     }
 
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request, UserSessionRegistry $sessions): RedirectResponse
     {
+        if ($request->user()) {
+            $sessions->revokeCurrent($request, $request->user());
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

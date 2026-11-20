@@ -1264,7 +1264,7 @@ class SetupHealthTest extends TestCase
         $this->assertDatabaseCount('product_prices', 0);
         $this->assertDatabaseCount('business_contacts', 0);
         $this->assertDatabaseCount('business_currencies', 0);
-        $this->assertDatabaseCount('migrations', 10);
+        $this->assertDatabaseCount('migrations', 11);
         $this->assertTrue(app(InstallationState::class)->hasSchema());
         $this->assertFalse(app(InstallationState::class)->isCompleted());
 

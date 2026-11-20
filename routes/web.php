@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AdminAccess;
 use App\Http\Middleware\EnforcePublishedSiteDomain;
+use App\Http\Middleware\EnsureRegisteredSession;
 use App\Http\Middleware\OwnerOnly;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Modules\Admin\Http\Controllers\AccessRequestController;
@@ -17,6 +18,7 @@ use App\Modules\Admin\Http\Controllers\PasswordController;
 use App\Modules\Admin\Http\Controllers\ProductController;
 use App\Modules\Admin\Http\Controllers\RoleController;
 use App\Modules\Admin\Http\Controllers\SiteDomainController;
+use App\Modules\Admin\Http\Controllers\UserSessionController;
 use App\Modules\Admin\Http\Controllers\VerifyEmailController;
 use App\Modules\Setup\Http\Controllers\SetupController;
 use App\Modules\Site\Http\Controllers\ProductImageController;
@@ -54,7 +56,7 @@ Route::post('/admin/login/help', [LoginHelpController::class, 'store'])
     ->middleware('throttle:3,10')
     ->name('admin.login.help');
 
-Route::middleware(['auth', AdminAccess::class])
+Route::middleware(['auth', EnsureRegisteredSession::class, AdminAccess::class])
     ->prefix('admin')
     ->group(function (): void {
         Route::get('/mfa/challenge', [MfaController::class, 'challenge'])
@@ -66,7 +68,7 @@ Route::middleware(['auth', AdminAccess::class])
             ->name('admin.mfa.challenge.cancel');
     });
 
-Route::middleware(['auth', AdminAccess::class, 'mfa.verified', RequirePasswordChange::class])
+Route::middleware(['auth', EnsureRegisteredSession::class, AdminAccess::class, 'mfa.verified', RequirePasswordChange::class])
     ->prefix('admin')
     ->group(function (): void {
         Route::post('/logout', [LoginController::class, 'destroy'])->name('admin.logout');
@@ -152,6 +154,12 @@ Route::middleware(['auth', AdminAccess::class, 'mfa.verified', RequirePasswordCh
             ->name('admin.exports.store');
 
         Route::middleware(OwnerOnly::class)->group(function (): void {
+            Route::get('/security/sessions', [UserSessionController::class, 'index'])
+                ->name('admin.security.sessions');
+            Route::delete('/security/sessions/{sessionId}', [UserSessionController::class, 'destroy'])
+                ->whereUuid('sessionId')
+                ->name('admin.security.sessions.destroy');
+
             Route::get('/site/domains', [SiteDomainController::class, 'index'])
                 ->name('admin.site-domains.index');
             Route::post('/site/domains', [SiteDomainController::class, 'store'])
