@@ -65,7 +65,7 @@ La rama de trabajo revisada contiene una base de aplicación Laravel, además de
 - `demo/`: prototipo frontend HTML/CSS/JS para validar flujos y presentación. Sus cambios se guardan en `localStorage` y no representan persistencia ni seguridad de producción.
 - La presencia de código backend no equivale a certificación de producción: deben aprobarse pruebas funcionales, seguridad, revisión visual/manual y despliegue aislado antes de utilizar datos reales. Las pruebas automatizadas actuales pasan; la revisión visual y operativa final sigue pendiente.
 - La implementación de Permission Engine v1 y Phase 2 se encuentra integrada en la rama de trabajo de NEXORA y documentada en [Permission Engine v1](docs/PERMISSION-ENGINE-V1-IMPLEMENTATION.md), [Inventory Basic](docs/INVENTORY-BASIC.md), [Export Engine](docs/EXPORT-ENGINE.md) y [Phase 2 status](docs/PHASE-2-IMPLEMENTATION-STATUS.md).
-- MFA, gestión de sesiones activas, auditoría de actividad y respaldos/restauración siguen pendientes de implementación y de decisiones operativas.
+- MFA/TOTP opcional está implementado y cubierto por pruebas automatizadas; no es obligatorio por defecto. La gestión de sesiones activas y revocación individual, la auditoría de actividad con retención e integridad, y los respaldos/restauración siguen pendientes.
 
 No introducir contraseñas reales, tokens ni datos personales en la demo.
 
