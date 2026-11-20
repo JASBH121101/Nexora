@@ -169,7 +169,7 @@ Se aprueba el manejo reforzado de sesiones:
 - Invalidación de sesiones al cambiar credenciales o ante incidentes relevantes.
 - Regeneración del identificador de sesión tras autenticación y cambios de privilegios.
 
-La configuración actual de Laravel define una duración de sesión, pero no demuestra por sí sola que exista una consola de sesiones activas ni revocación individual. Esa capacidad deberá construirse y probarse.
+Estado actualizado al 20 de noviembre de 2026: la gestión de sesiones activas y revocación individual se implementó y fusionó en `main` mediante PR #26 (`add58abe8b0000f6833abbf3b7fd113444d22e34`). El propietario puede consultar las sesiones activas y revocar una sesión individual; el servidor registra un hash SHA-256 del identificador, no el identificador de sesión en claro, controla inactividad, conserva marcas de revocación para impedir la reactivación de sesiones revocadas y rota identificadores tras autenticación, MFA y cambios de credenciales. Los cambios de privilegios y otras acciones de seguridad revocan las sesiones afectadas. La implementación pasó Pint, JB Expert QA y las matrices feature de SQLite y PostgreSQL 16 (134 pruebas y 3,052 aserciones por matriz).\n\nLa implementación de sesiones no equivale a una auditoría de actividad inmutable: el registro de eventos sensibles, su integridad y la política de retención siguen pendientes y están especificados en la sección 5.3.
 
 ### 5.3 Auditoría
 
@@ -274,7 +274,7 @@ JB Expert QA y JB Security Guard QA son herramientas del entorno de desarrollo d
 
 ## 10. Auditoría del estado del repositorio base
 
-Revisión estática de la rama `feature/nexora-configurable-catalog` el 14 de noviembre de 2026. No se ejecutaron pruebas ni se desplegó la aplicación durante esta revisión.
+Revisión estática histórica de la rama `feature/nexora-configurable-catalog` el 14 de noviembre de 2026. No se ejecutaron pruebas ni se desplegó la aplicación durante esa revisión; la tabla siguiente es una fotografía del estado de aquel día y no del `main` actual.
 
 | Área | Evidencia encontrada | Estado frente a lo aprobado |
 |---|---|---|
@@ -284,7 +284,7 @@ Revisión estática de la rama `feature/nexora-configurable-catalog` el 14 de no
 | Inventario básico | El modelo Product revisado no contiene cantidad/estado de existencias | Pendiente |
 | Historial de exportaciones | No se identificó implementación | Pendiente |
 | MFA | No se identificó implementación | Pendiente |
-| Gestión de sesiones activas | Hay configuración estándar de sesión; no se identificó consola de revocación | Parcial |
+| Gestión de sesiones activas | Hay configuración estándar de sesión; no se identificó consola de revocación | Parcial al 14-11-2026; implementada después mediante PR #26 (ver estado actualizado de la sección 5.2) |
 | Auditoría de actividad | No se identificó módulo o tabla de auditoría en el árbol revisado | Pendiente |
 | Respaldos y restauración | No se identificó módulo de respaldo | Pendiente |
 | Aislamiento multi-tenant compartido | La arquitectura documenta una instalación independiente por negocio | Requisito aprobado; topología compartida pendiente de decisión |

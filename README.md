@@ -56,16 +56,16 @@ No se requiere la API oficial de WhatsApp para enlaces de contacto `wa.me`. Auto
 
 ## Estado del repositorio
 
-La rama de trabajo revisada contiene una base de aplicación Laravel, además de la demo frontend:
+La rama `main` contiene el backend de aplicación Laravel y una demo frontend:
 - `app/`, `routes/`, `database/` y `resources/`: estructura de backend, rutas, modelos, controladores, migraciones y vistas administrativas/públicas.
 - La base incluye configuración inicial, catálogo configurable, cuenta del propietario y Permission Engine v1 con roles, permisos por módulo/acción, excepciones individuales y restricciones por campo.
 - Library Engine 0.2.0: catálogos compartidos de país, moneda, códigos de llamada, idiomas y unidades; normalización telefónica y validación monetaria con precisión decimal.
 - Inventario básico: cantidad disponible persistida, control de valores negativos y permisos separados para consultar y ajustar cantidades. No es un libro de movimientos ni un ERP de inventario.
 - Export Engine: CSV, JSON y XML; ZIP opcional cuando PHP ZipArchive está disponible, con filtros y permisos por campo. PDF y XLSX siguen pendientes de elegir bibliotecas y validar compatibilidad con el VPS.
 - `demo/`: prototipo frontend HTML/CSS/JS para validar flujos y presentación. Sus cambios se guardan en `localStorage` y no representan persistencia ni seguridad de producción.
-- La presencia de código backend no equivale a certificación de producción: deben aprobarse pruebas funcionales, seguridad, revisión visual/manual y despliegue aislado antes de utilizar datos reales. Las pruebas automatizadas actuales pasan; la revisión visual y operativa final sigue pendiente.
+- La presencia de código backend no equivale a certificación de producción: deben aprobarse pruebas funcionales, seguridad, revisión visual/manual y despliegue aislado antes de utilizar datos reales. En el commit `add58abe8b0000f6833abbf3b7fd113444d22e34`, Pint, JB Expert QA y 134 pruebas (3,052 aserciones) en cada matriz SQLite y PostgreSQL 16 pasaron. La revisión visual y operativa sobre infraestructura real sigue pendiente.
 - La implementación de Permission Engine v1 y Phase 2 se encuentra integrada en la rama de trabajo de NEXORA y documentada en [Permission Engine v1](docs/PERMISSION-ENGINE-V1-IMPLEMENTATION.md), [Inventory Basic](docs/INVENTORY-BASIC.md), [Export Engine](docs/EXPORT-ENGINE.md) y [Phase 2 status](docs/PHASE-2-IMPLEMENTATION-STATUS.md).
-- MFA/TOTP opcional está implementado y cubierto por pruebas automatizadas; no es obligatorio por defecto. La gestión de sesiones activas y revocación individual, la auditoría de actividad con retención e integridad, y los respaldos/restauración siguen pendientes.
+- MFA/TOTP opcional está implementado y cubierto por pruebas automatizadas; no es obligatorio por defecto. La gestión de sesiones activas y revocación individual también está implementada: el panel del propietario lista sesiones y permite revocarlas; el servidor almacena hashes de identificadores de sesión, aplica expiración por inactividad y rota/revoca sesiones en eventos de seguridad. La auditoría de actividad con retención e integridad, y los respaldos/restauración siguen pendientes.
 
 No introducir contraseñas reales, tokens ni datos personales en la demo.
 

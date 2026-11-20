@@ -1,4 +1,4 @@
-# NEXORA — estado de implementación Phase 2 (2026-11-14)
+# NEXORA — estado de implementación Phase 2 (registro 2026-11-14; actualización 2026-11-20)
 
 ## Integrado en la cadena de ramas de trabajo
 
@@ -58,7 +58,7 @@ MFA/TOTP está implementado en el código y cubierto por pruebas automatizadas d
 
 - PDF/XLSX y selección de bibliotecas compatibles con el VPS.
 - Libro de movimientos, almacenes, transferencias, costeo y valoración de inventario.
-- Gestión de sesiones activas, revocación individual y política de expiración/revocación reforzada.
+- Auditoría de actividad con controles de integridad y política de retención.
 - Auditoría de actividad con política de retención e integridad.
 - Backups, cifrado, destino, retención y ensayo de restauración.
 - Firma y distribución del actualizador, claves del publicador y política de rollback.
@@ -82,22 +82,22 @@ Esta sección actualiza el estado de integración posterior al registro históri
 
 - PR #22 — catálogo configurable y backend Laravel: integrado en `main` mediante `3ff1f367e31164ef78235b8765ae796ebf8ddf05`. Incluye aplicación Laravel 13/PHP 8.3, Setup Engine, catálogo configurable, Permission Engine, MFA/TOTP, manejo privado de imágenes, exportaciones y herramientas de diagnóstico de dominios.
 - PR #23 — control de acceso de propietario inactivo: integrado mediante `946044be39d8678fdb4de889e4773905f5450ae7`. El middleware administrativo valida el estado activo también para el propietario en cada petición.
-- PR #24 — salud del esquema del instalador: integrado mediante `52ab7ba9c362631b9c4f365caec7b237c87aaf99`. La comprobación de esquema exige las tablas de roles, historial de exportaciones y MFA, además de las tablas base.
+- PR #24 — salud del esquema del instalador: integrado mediante `52ab7ba9c362631b9c4f365caec7b237c87aaf99`. La comprobación de esquema exige las tablas de roles, historial de exportaciones y MFA, además de las tablas base.\n- PR #25 — reconciliación de documentación: integrado en `main` mediante `0787e14fee834bca5bbac8c6b7968f6d71f8683e`.\n- PR #26 — sesiones activas y revocación individual: integrado en `main` mediante `add58abe8b0000f6833abbf3b7fd113444d22e34`. Incluye registro con hash SHA-256, listado de sesiones, revocación individual, control de inactividad, rotación de identificadores y revocación de sesiones ante cambios de seguridad relevantes.
 
 ### Evidencia automatizada
 
 - PR #22: los workflows de Laravel, JB Expert QA y GitHub Pages finalizaron correctamente en el commit integrado.
 - PR #23: JB Expert QA y CI de Laravel pasaron. La suite reportó 123 pruebas y 3,000 aserciones en SQLite y PostgreSQL 16.
-- PR #24: JB Expert QA y CI de Laravel pasaron. La suite reportó 127 pruebas y 3,004 aserciones en SQLite y PostgreSQL 16.
+- PR #24: JB Expert QA y CI de Laravel pasaron. La suite reportó 127 pruebas y 3,004 aserciones en SQLite y PostgreSQL 16.\n- PR #26: Pint, JB Expert QA y CI de Laravel pasaron; la suite reportó 134 pruebas y 3,052 aserciones en cada matriz SQLite y PostgreSQL 16. Tras la fusión, JB Expert QA, Laravel CI y GitHub Pages también pasaron sobre `add58abe8b0000f6833abbf3b7fd113444d22e34`.
 - Estas pruebas validan el código y los contratos automatizados; no sustituyen una instalación aislada, una revisión visual/manual ni una auditoría externa.
 
-### Estado pendiente antes de declarar producción certificada
+### Estado pendiente antes de declarar producción certificada\n\nLa gestión de sesiones activas y revocación individual ya no forma parte de este pendiente: quedó integrada mediante PR #26. La matriz anterior de cambios de noviembre se conserva como registro histórico; los hashes y pruebas posteriores descritos arriba son la fuente del estado actual.
 
 - Ejecutar una instalación limpia y desechable del paquete en un VPS compatible, incluyendo configuración de entorno, permisos, migraciones y creación del propietario.
 - Realizar revisión visual/manual de Setup, login, MFA, panel y catálogo público en móvil y escritorio.
 - Probar DNS, TXT, TLS, dominio canónico y redirecciones con un dominio y servidor reales. Las pruebas automatizadas usan resolutores simulados.
 - Definir si MFA será obligatorio para propietarios o cuentas administrativas de privilegio elevado y documentar la recuperación segura de cuenta.
-- Implementar gestión de sesiones activas y revocación individual.
+
 - Implementar auditoría de actividad con integridad y política de retención.
 - Definir y ensayar backups y restauración de base de datos y archivos.
 - Seleccionar e implementar PDF y XLSX; actualmente están disponibles CSV, JSON, XML y ZIP condicional.
