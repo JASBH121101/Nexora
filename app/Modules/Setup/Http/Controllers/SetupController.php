@@ -4,6 +4,7 @@ namespace App\Modules\Setup\Http\Controllers;
 
 use App\Core\Installation\DatabaseInstaller;
 use App\Core\Installation\InstallationState;
+use App\Core\Security\UserSessionRegistry;
 use App\Core\Installation\ServerRequirements;
 use App\Core\Library\Contact\PhoneNumberNormalizer;
 use App\Core\Library\Localization\LanguageCatalog as CoreLanguageCatalog;
@@ -377,6 +378,7 @@ final class SetupController
 
         Auth::login($owner);
         $request->session()->regenerate();
+        app(UserSessionRegistry::class)->register($request, $owner);
 
         $mediaMessage = $this->ensurePublicStorageLink();
 
