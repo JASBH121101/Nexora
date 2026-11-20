@@ -68,7 +68,11 @@ final class UserSessionRegistry
                 'updated_at' => now(),
             ]);
 
-        return $updated === 1;
+        return $updated === 1 || UserSession::query()
+            ->where('session_hash', $this->hash($request))
+            ->where('user_id', $user->id)
+            ->where('last_activity', '>=', $expiredBefore)
+            ->exists();
     }
 
     public function revokeCurrent(Request $request, User $user): void
