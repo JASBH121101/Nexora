@@ -156,7 +156,7 @@ class UserSessionManagementTest extends TestCase
         $request->setUserResolver(static fn (): User => $user);
 
         if ($request->session()->getId() !== $sessionId) {
-            throw new \\RuntimeException('The test session ID was not preserved.');
+            throw new \RuntimeException('The test session ID was not preserved.');
         }
 
         return $request;
