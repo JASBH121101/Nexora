@@ -34,6 +34,7 @@ class UserSessionManagementTest extends TestCase
             'session.encrypt' => false,
         ]);
         app('session')->forgetDrivers();
+        app()->forgetInstance('session.store');
     }
 
     protected function tearDown(): void
