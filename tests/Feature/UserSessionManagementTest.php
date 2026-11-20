@@ -1,17 +1,47 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\\Feature;
 
-use App\Models\User;
-use App\Models\UserSession;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Tests\TestCase;
+use App\\Models\\User;
+use App\\Models\\UserSession;
+use Illuminate\\Foundation\\Testing\\RefreshDatabase;
+use Illuminate\\Support\\Facades\\Auth;
+use Illuminate\\Support\\Facades\\File;
+use Illuminate\\Support\\Facades\\Hash;
+use Tests\\TestCase;
 
 class UserSessionManagementTest extends TestCase
 {
     use RefreshDatabase;
+
+    private string $sessionDirectory;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // The global test environment uses Laravel's non-persistent array
+        // session driver. Session revocation must be exercised across requests,
+        // so this feature suite uses an isolated persistent file store.
+        $this->sessionDirectory = storage_path(
+            'framework/testing-sessions/'.getmypid().'-'.bin2hex(random_bytes(6)),
+        );
+        File::ensureDirectoryExists($this->sessionDirectory);
+
+        config([
+            'session.driver' => 'file',
+            'session.files' => $this->sessionDirectory,
+            'session.encrypt' => false,
+        ]);
+        app('session')->forgetDrivers();
+    }
+
+    protected function tearDown(): void
+    {
+        File::deleteDirectory($this->sessionDirectory);
+
+        parent::tearDown();
+    }
 
     public function test_owner_can_view_and_revoke_another_active_session(): void
     {
@@ -42,7 +72,12 @@ class UserSessionManagementTest extends TestCase
     {
         $this->installOwner();
         $this->get(route('admin.home'))->assertOk();
-        $activeSession = UserSession::query()->where('user_id', auth()->id())->whereNull('revoked_at')->firstOrFail();
+
+        $activeSession = UserSession::query()
+            ->where('user_id', auth()->id())
+            ->where('session_hash', hash('sha256', session()->getId()))
+            ->whereNull('revoked_at')
+            ->firstOrFail();
 
         $this->delete(route('admin.security.sessions.destroy', $activeSession->id))
             ->assertRedirect(route('admin.login'))
@@ -70,6 +105,7 @@ class UserSessionManagementTest extends TestCase
 
         $activeSession = UserSession::query()
             ->where('user_id', auth()->id())
+            ->where('session_hash', hash('sha256', session()->getId()))
             ->whereNull('revoked_at')
             ->firstOrFail();
         $activeSession->forceFill(['revoked_at' => now()])->save();
@@ -82,7 +118,9 @@ class UserSessionManagementTest extends TestCase
     {
         $this->installOwner();
         $activeSession = UserSession::query()
+            ->where('user_id', auth()->id())
             ->where('session_hash', hash('sha256', session()->getId()))
+            ->whereNull('revoked_at')
             ->firstOrFail();
         $activeSession->forceFill(['last_activity' => now()->subMinutes(121)->timestamp])->save();
 
