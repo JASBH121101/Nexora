@@ -50,17 +50,16 @@
 - Ambas integraciones permanecen en ramas de trabajo dedicadas. `main` y producción no recibieron estos cambios.
 - Revisión visual/manual del Setup y del panel, y una instalación desechable del paquete, siguen pendientes antes de producción.
 
+## Estado de MFA/TOTP
+
+MFA/TOTP está implementado en el código y cubierto por pruebas automatizadas de enrolamiento, desafío, anti-replay, códigos de recuperación y desactivación. La decisión de obligatoriedad, la política definitiva de recuperación y el despliegue operativo deben definirse antes de producción.
+
 ## Backlog funcional fuera del alcance de esta certificación
 
 - PDF/XLSX y selección de bibliotecas compatibles con el VPS.
 - Libro de movimientos, almacenes, transferencias, costeo y valoración de inventario.
-- MFA/TOTP está implementado en el código y cubierto por pruebas automatizadas de enrolamiento, desafío, anti-replay, códigos de recuperación y desactivación. La decisión de obligatoriedad y el despliegue operativo se mantienen configurables/pedientes de política.
 - Gestión de sesiones activas, revocación individual y política de expiración/revocación reforzada.
 - Auditoría de actividad con política de retención e integridad.
-- Backups, cifrado, destino, retención y ensayo de restauración.
-- Firma y distribución del actualizador, claves del publicador y política de rollback.
-- Gestión de sesiones activas y revocación individual.
-- Auditoría de actividad con política de retención/inmutabilidad.
 - Backups, cifrado, destino, retención y ensayo de restauración.
 - Firma y distribución del actualizador, claves del publicador y política de rollback.
 
