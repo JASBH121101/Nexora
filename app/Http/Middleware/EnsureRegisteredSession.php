@@ -4,14 +4,18 @@ namespace App\Http\Middleware;
 
 use App\Core\Security\UserSessionRegistry;
 use Closure;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 final class EnsureRegisteredSession
 {
-    public function handle(Request $request, Closure $next, UserSessionRegistry $sessions): Response|RedirectResponse
+    public function __construct(
+        private readonly UserSessionRegistry $sessions,
+    ) {
+    }
+
+    public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
 
@@ -19,8 +23,8 @@ final class EnsureRegisteredSession
             return $next($request);
         }
 
-        if (! $sessions->touch($request, $user)) {
-            $sessions->revokeCurrent($request, $user);
+        if (! $this->sessions->touch($request, $user)) {
+            $this->sessions->revokeCurrent($request, $user);
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
