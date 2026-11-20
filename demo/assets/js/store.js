@@ -19,9 +19,16 @@
   const escapeHTML = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   })[char]);
-  const money = (amount) => new Intl.NumberFormat("en-US", {
-    style: "currency", currency: "USD", maximumFractionDigits: 2
-  }).format(Number(amount) || 0);
+  const money = (amount, currency = "USD") => {
+    const code = /^[A-Z]{3}$/.test(String(currency || "")) ? currency : "USD";
+    try {
+      return new Intl.NumberFormat("es-NI", {
+        style: "currency", currency: code, maximumFractionDigits: 2
+      }).format(Number(amount) || 0);
+    } catch {
+      return code + " " + (Number(amount) || 0).toFixed(2);
+    }
+  };
   const digitsOnly = (value) => String(value ?? "").replace(/\D/g, "");
   const whatsappURL = (number, message) => {
     const digits = digitsOnly(number);

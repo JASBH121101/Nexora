@@ -1,5 +1,13 @@
 (() => {
   const demos = window.NEXORA_DEMOS || [];
+  const readStudioConfig = () => {
+    try {
+      const value = JSON.parse(localStorage.getItem("nexora-studio:v1") || "null");
+      return value && value.schemaVersion === 1 && value.catalog ? value : null;
+    } catch { return null; }
+  };
+  const studioConfig = readStudioConfig();
+  const photosEnabled = studioConfig ? Boolean(studioConfig.catalog.photosEnabled) : true;
   const $ = (selector) => document.querySelector(selector);
   const make = (tag, text) => {
     const element = document.createElement(tag);
@@ -22,9 +30,42 @@
   const emptyState = $("#empty-state");
   const toast = $("#toast");
   const dialog = $("#product-dialog");
-  let business = demos.find((item) => item.id === businessSelect?.value) || demos[0];
+  const studioMode = Boolean(studioConfig);
+  const studioTypeLabels = {
+    perfumery: "PERFUMERÍA",
+    fashion: "ROPA Y CALZADO",
+    technology: "TECNOLOGÍA",
+    gym: "GIMNASIO Y FITNESS",
+    automotive: "REPUESTOS Y VEHÍCULOS",
+    grocery: "ALIMENTOS Y ABARROTES",
+    other: "CATÁLOGO PERSONALIZADO"
+  };
+  const visiblePhones = (studioConfig?.business?.phones || []).filter((phone) => phone.showPublic && /^\d{8,15}$/.test(String(phone.number || "")));
+  const primaryPhone = visiblePhones.find((phone) => phone.isMain) || visiblePhones[0];
+  const studioBusiness = studioMode ? {
+    id: "studio-config",
+    name: studioConfig.business.name || "Mi negocio",
+    tagline: studioTypeLabels[studioConfig.business.type] || studioTypeLabels.other,
+    headline: ["Descubre", "nuestro catálogo."],
+    description: studioConfig.identity?.description || "Consulta los productos y comunícate directamente con el negocio.",
+    heroImage: studioConfig.identity?.coverUrl || "assets/img/product-placeholder.svg",
+    featureLabel: "Catálogo del negocio",
+    whatsapp: primaryPhone?.number || "",
+    contact: "Consulta directamente con el negocio por WhatsApp.",
+    categories: [],
+    products: []
+  } : null;
+  let business = studioBusiness || demos.find((item) => item.id === businessSelect?.value) || demos[0];
+  if (studioMode && businessSelect) businessSelect.closest("label")?.setAttribute("hidden", "");
   let settings = business ? NexoraStore.getSettings(business) : {};
   let products = business ? NexoraStore.getProducts(business) : [];
+  const primaryCurrency = () => studioConfig?.pricing?.primaryCurrency || "USD";
+  const productPrice = (product) => {
+    if (product?.prices && Object.prototype.hasOwnProperty.call(product.prices, primaryCurrency())) {
+      return product.prices[primaryCurrency()];
+    }
+    return primaryCurrency() === "USD" ? product?.price : null;
+  };
   let activeCategory = "all";
   let searchTerm = "";
   let toastTimer;
@@ -49,7 +90,9 @@
   };
 
   const renderCategories = () => {
-    const labels = ["Todos", ...business.categories];
+    const dynamicCategories = products.map((product) => product.category).filter(Boolean);
+    const availableCategories = [...new Set([...(business.categories || []), ...dynamicCategories])];
+    const labels = ["Todos", ...availableCategories];
     const buttons = labels.map((label, index) => {
       const value = index === 0 ? "all" : label;
       const button = make("button", label);
@@ -67,12 +110,17 @@
     article.classList.add("product-card");
     const imageWrap = make("div");
     imageWrap.classList.add("product-image");
-    const image = make("img");
-    image.src = safeImageSource(product.image);
-    image.alt = product.name || "Producto del catálogo";
-    image.loading = "lazy";
-    image.addEventListener("error", () => { image.src = "assets/img/product-placeholder.svg"; }, { once: true });
-    imageWrap.append(image);
+    if (photosEnabled && product.image) {
+      const image = make("img");
+      image.src = safeImageSource(product.image);
+      image.alt = product.name || "Producto del catálogo";
+      image.loading = "lazy";
+      image.addEventListener("error", () => { image.src = "assets/img/product-placeholder.svg"; }, { once: true });
+      imageWrap.append(image);
+    } else {
+      imageWrap.classList.add("is-no-photo");
+      imageWrap.append(make("span", "Sin fotografía"));
+    }
 
     if (product.tag) {
       const tag = make("span", product.tag);
@@ -97,11 +145,12 @@
     info.append(detail);
     const priceRow = make("div");
     priceRow.classList.add("price-row");
-    const price = make("span", NexoraStore.money(product.price));
+    const amount = productPrice(product);
+    const price = make("span", amount === null || amount === undefined || amount === "" ? "Consultar precio" : NexoraStore.money(amount, primaryCurrency()));
     price.classList.add("product-price");
     priceRow.append(price);
-    if (Number(product.oldPrice) > Number(product.price)) {
-      const oldPrice = make("del", NexoraStore.money(product.oldPrice));
+    if (amount !== null && amount !== undefined && Number(product.oldPrice) > Number(amount)) {
+      const oldPrice = make("del", NexoraStore.money(product.oldPrice, primaryCurrency()));
       oldPrice.classList.add("old-price");
       priceRow.append(oldPrice);
     }
@@ -121,11 +170,12 @@
     productGrid.replaceChildren(...matches.map(productCard));
     emptyState.hidden = matches.length > 0;
     $("#results-count").textContent = matches.length + (matches.length === 1 ? " producto" : " productos");
+    $("#results-currency").textContent = (studioMode ? "Precios en " : "Precios de muestra · ") + primaryCurrency();
   };
 
   const renderBusiness = () => {
     settings = NexoraStore.getSettings(business);
-    products = NexoraStore.getProducts(business);
+    products = NexoraStore.getProducts(business).filter((product) => product.published !== false);
     activeCategory = "all";
     searchTerm = "";
     searchInput.value = "";
@@ -133,49 +183,126 @@
     const headline = $("#hero-title");
     const secondLine = make("span", business.headline[1]);
     headline.replaceChildren(document.createTextNode(business.headline[0]), document.createElement("br"), secondLine);
-    $("#hero-description").textContent = business.description;
-    $("#hero-image").src = safeImageSource(business.heroImage);
+    $("#hero-description").textContent = studioMode
+      ? (studioConfig.identity?.description || business.description)
+      : business.description;
+    const coverUrl = studioMode ? (studioConfig.identity?.coverUrl || business.heroImage) : business.heroImage;
+    $("#hero-image").src = safeImageSource(coverUrl);
     $("#hero-image").alt = "Imagen ilustrativa de " + settings.name;
     $("#hero-feature-label").textContent = business.featureLabel;
     $("#hero-total").textContent = String(products.length).padStart(2, "0");
     $("#business-contact-copy").textContent = settings.contact;
-    setWhatsAppLink($("#header-whatsapp"), "Hola, me gustaría recibir más información de " + settings.name + ".");
-    setWhatsAppLink($("#main-whatsapp"), "Hola, me gustaría recibir más información del catálogo de " + settings.name + ".");
+    const primaryColor = studioConfig?.identity?.primaryColor;
+    if (studioMode && /^#[0-9a-f]{6}$/i.test(String(primaryColor || ""))) {
+      document.documentElement.style.setProperty("--lime", primaryColor);
+      document.documentElement.style.setProperty("--lime-dark", primaryColor);
+    }
+    const logo = studioConfig?.identity?.logoUrl;
+    const brandMark = document.querySelector(".site-header .brand-mark");
+    if (studioMode && brandMark) {
+      if (logo && /^https?:\/\//i.test(logo)) {
+        const image = make("img");
+        image.src = safeImageSource(logo);
+        image.alt = "Logotipo de " + settings.name;
+        brandMark.replaceChildren(image);
+        brandMark.classList.add("has-logo");
+      } else {
+        brandMark.textContent = "N";
+      }
+    }
+    renderContactTargets();
     renderCategories();
     renderProducts();
+  };
+
+  const renderContactTargets = () => {
+    const picker = $("#contact-phone-select");
+    const wrapper = $("#contact-phone-switch");
+    if (!picker || !wrapper) return;
+    if (!studioMode) {
+      wrapper.hidden = true;
+      return;
+    }
+    picker.replaceChildren(...visiblePhones.map((phone, index) => {
+      const option = make("option", phone.number);
+      option.value = phone.number;
+      option.selected = phone.number === settings.whatsapp || (!settings.whatsapp && index === 0);
+      return option;
+    }));
+    wrapper.hidden = visiblePhones.length < 2;
+    if (visiblePhones.length) settings.whatsapp = picker.value || primaryPhone?.number || "";
+    else settings.whatsapp = "";
+    setWhatsAppLink($("#header-whatsapp"), "Hola, me gustaría recibir más información de " + settings.name + ".");
+    setWhatsAppLink($("#main-whatsapp"), "Hola, me gustaría recibir más información del catálogo de " + settings.name + ".");
   };
 
   const openProduct = (id) => {
     const product = products.find((item) => item.id === id);
     if (!product) return;
     const image = $("#dialog-image");
-    image.src = safeImageSource(product.image);
-    image.alt = product.name;
-    image.onerror = () => { image.src = "assets/img/product-placeholder.svg"; };
+    const media = image.closest(".dialog-media");
+    media.hidden = !(photosEnabled && product.image);
+    if (photosEnabled && product.image) {
+      image.src = safeImageSource(product.image);
+      image.alt = product.name;
+      image.onerror = () => { image.src = "assets/img/product-placeholder.svg"; };
+    }
     $("#dialog-category").textContent = product.category;
     $("#dialog-title").textContent = product.name;
     $("#dialog-description").textContent = product.description || "Consulta con el negocio para conocer más detalles.";
     const attributeList = $("#dialog-attributes");
     attributeList.replaceChildren();
-    if (product.detail) {
+    const definitions = (studioConfig?.catalog?.groups || []);
+    definitions.forEach((group) => {
+      const entries = (group.fields || []).filter((field) => field.showPublic && Object.prototype.hasOwnProperty.call(product.attributes || {}, field.id));
+      if (!entries.length) return;
+      const block = make("section");
+      block.className = "attribute-group";
+      block.append(make("h4", group.name));
+      entries.forEach((field) => {
+        const value = product.attributes[field.id];
+        if (value === "" || value === null || value === undefined || value === false || (Array.isArray(value) && !value.length)) return;
+        const line = make("div");
+        line.className = "attribute-line";
+        const label = make("span", field.label);
+        const rendered = Array.isArray(value) ? value.join(", ") : String(value);
+        const valueNode = make("strong", field.type === "number" && field.unit ? rendered + " " + field.unit : rendered);
+        line.append(label, valueNode);
+        block.append(line);
+      });
+      if (block.querySelector(".attribute-line")) attributeList.append(block);
+    });
+    if (!attributeList.childElementCount && product.detail) {
       const attribute = make("span", product.detail);
       attribute.classList.add("attribute-pill");
       attributeList.append(attribute);
     }
 
     const price = $("#dialog-price");
-    price.replaceChildren(document.createTextNode(NexoraStore.money(product.price)));
-    if (Number(product.oldPrice) > Number(product.price)) {
-      const oldPrice = make("del", NexoraStore.money(product.oldPrice));
+    const amount = productPrice(product);
+    const priceText = amount === null || amount === undefined || amount === ""
+      ? "Consultar precio"
+      : NexoraStore.money(amount, primaryCurrency());
+    price.replaceChildren(document.createTextNode(priceText));
+    if (amount !== null && amount !== undefined && Number(product.oldPrice) > Number(amount)) {
+      const oldPrice = make("del", NexoraStore.money(product.oldPrice, primaryCurrency()));
       price.append(oldPrice);
     }
-    setWhatsAppLink($("#dialog-whatsapp"), "Hola, me interesa " + product.name + " (" + NexoraStore.money(product.price) + "). ¿Me pueden brindar más información?");
+    const inquiry = "Hola, me interesa " + product.name + (amount === null || amount === undefined || amount === "" ? "" : " (" + priceText + ")") + ". ¿Me pueden brindar más información?";
+    setWhatsAppLink($("#dialog-whatsapp"), inquiry);
     dialog.showModal();
   };
 
-  businessSelect.addEventListener("change", () => {
-    business = demos.find((item) => item.id === businessSelect.value) || demos[0];
-    renderBusiness();
+  if (!studioMode) {
+    businessSelect.addEventListener("change", () => {
+      business = demos.find((item) => item.id === businessSelect.value) || demos[0];
+      renderBusiness();
+    });
+  }
+  $("#contact-phone-select")?.addEventListener("change", (event) => {
+    settings.whatsapp = event.target.value;
+    setWhatsAppLink($("#header-whatsapp"), "Hola, me gustaría recibir más información de " + settings.name + ".");
+    setWhatsAppLink($("#main-whatsapp"), "Hola, me gustaría recibir más información del catálogo de " + settings.name + ".");
   });
   categoryList.addEventListener("click", (event) => {
     const button = event.target.closest("[data-category]");

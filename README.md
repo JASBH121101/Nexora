@@ -1,60 +1,85 @@
 # NEXORA
 
-**Catálogo digital administrable para negocios.**
+**Catálogo digital configurable para negocios.**
 
-NEXORA permite que un negocio publique sus productos en una página web y los administre desde un panel privado. El mismo código fuente se reutiliza para distintos clientes, pero cada negocio recibe su propia instalación independiente.
+NEXORA es un producto web reutilizable para que distintos tipos de negocio publiquen y administren sus productos desde una página pública y un panel privado. Cada cliente recibe una instalación independiente con su propia base de datos, archivos y configuración.
 
-**NEXORA no es un ERP, una tienda en línea ni un SaaS centralizado.**
+NEXORA **no es un ERP ni un SaaS centralizado multiempresa**. No comparte datos entre negocios y no necesita una cuenta central.
 
-## Primera versión
+## Visión del producto
 
-### Página web pública
-- Diseño adaptable a celulares, tabletas y computadoras.
-- Página de presentación del negocio.
-- Catálogo de productos con fotografías, nombre, categoría y descripción.
-- Precio opcional y detalle adicional.
-- Búsqueda y filtros por categoría.
-- Ficha individual de producto.
-- Botón de contacto por WhatsApp, general y desde cada producto.
-- Personalización sencilla de nombre, logotipo y colores.
+La configuración inicial identifica el tipo de negocio y carga una plantilla editable. El propietario puede personalizar grupos y campos de sus fichas de producto sin crear tablas SQL ni modificar código.
 
-### Panel administrativo privado
-- Inicio de sesión del propietario.
-- Resumen sencillo: productos, categorías y productos publicados.
-- Crear, editar, publicar, ocultar y eliminar productos.
-- Crear, editar y ordenar categorías.
-- Subir, reemplazar y eliminar fotografías.
-- Configurar identidad del negocio y datos de WhatsApp.
+Plantillas previstas: perfumería, ropa y calzado, tecnología, gimnasio y fitness, repuestos/vehículos, alimentos/abarrotes y una plantilla libre.
 
-## Fuera de alcance
-No incluye carrito, pagos, pedidos, inventario, compras, proveedores, facturación, contabilidad, nómina, POS, CRM, módulos activables ni funciones ERP.
+## Funciones previstas para el producto
 
-## Modelo de entrega
-- Un único código fuente reutilizable.
-- Una instalación independiente por negocio, normalmente en el VPS del cliente.
-- Base de datos, fotografías y configuración separadas por instalación.
-- El propietario crea su cuenta y registra el negocio durante la instalación.
-- Entrega prevista: ZIP instalable, documentación y guía de configuración.
-- El VPS, dominio y alojamiento son responsabilidad del cliente.
+### Asistente de configuración
+- Nombre comercial, propietario, correo y tipo de negocio.
+- Verificación del correo y creación segura de la cuenta en producción.
+- Hasta cinco números de WhatsApp, selección de número principal y control de cuáles se muestran públicamente.
+- Logotipo, portada, descripción, color principal, ubicación y horario opcionales.
+- Moneda principal y activación de monedas adicionales.
 
-## Tecnología prevista
+### Catálogo configurable
+- Plantillas sectoriales editables.
+- Constructor de grupos y campos personalizados.
+- Tipos de campo: texto, número, lista, selección múltiple, sí/no, fecha y texto largo.
+- Orden, ancho visual, obligatoriedad, visibilidad pública y filtros configurables.
+- Biblioteca de unidades por magnitud: masa, volumen, longitud, cantidad, capacidad digital y área.
+- Posibilidad de agregar unidades personalizadas.
+- Fotografías opcionales por instalación.
+- Campos fundamentales protegidos: nombre, descripción, categoría, precio y estado.
+
+### Página pública y panel
+- Página de presentación y catálogo responsive, con búsqueda, filtros, detalle de producto y metadatos SEO.
+- Búsqueda y filtros.
+- Ficha de producto organizada por grupos.
+- Contacto directo con enlaces de WhatsApp generales y por producto.
+- Metadatos canonical/Open Graph, robots.txt y sitemap XML con productos publicados.
+- Panel privado con resumen, productos, categorías, configuración y editor de fichas.
+
+## Arquitectura y entrega
+
+- Código fuente común, instalación independiente por negocio.
 - Laravel / PHP.
-- MariaDB Community o MySQL Community.
+- PostgreSQL 16 como motor principal de base de datos.
 - Blade, HTML, CSS y JavaScript.
-- Almacenamiento local del servidor para las fotografías.
-- Pruebas automatizadas y JB Expert QA durante el desarrollo.
+- Fotografías almacenadas en el disco configurado; la base de datos conserva rutas y metadatos.
+- PostgreSQL es el motor oficial. Los atributos configurables se guardan en columnas JSONB.
+- En EthioDeploy, DATABASE_URL se inyecta automáticamente; NEXORA la utiliza mediante el fallback DB_URL de Laravel.
+- Migraciones reproducibles, validación de servidor y pruebas automatizadas.
+- Entrega objetivo: ZIP instalable, `.env.example`, migraciones y documentación.
+- VPS, dominio y alojamiento contratados por cada cliente.
 
-Las funciones básicas no requieren licencias comerciales ni servicios externos obligatorios. El VPS, dominio y servicios que el cliente contrate pueden generar costos propios.
+No se requiere la API oficial de WhatsApp para enlaces de contacto `wa.me`. Automatización de conversaciones, OTP por SMS/WhatsApp, conversión cambiaria automática y servicios externos son alcances separados que deben evaluarse por costo.
 
-## Estado actual
-El repositorio contiene una demo frontend HTML/CSS/JS para validar el catálogo, la vista de producto, WhatsApp y un panel de prueba. La demo usa `localStorage`; no tiene autenticación real, backend, base de datos ni carga de archivos en servidor.
+## Estado del repositorio
 
-La demostración incluye tres rubros ficticios para enseñar la flexibilidad del producto. En producción cada instalación mostrará un solo negocio y utilizará su propia base de datos.
+La rama de trabajo revisada contiene una base de aplicación Laravel, además de la demo frontend:
+- `app/`, `routes/`, `database/` y `resources/`: estructura de backend, rutas, modelos, controladores, migraciones y vistas administrativas/públicas.
+- La base incluye configuración inicial, catálogo configurable, cuenta del propietario y Permission Engine v1 con roles, permisos por módulo/acción, excepciones individuales y restricciones por campo.
+- Library Engine 0.2.0: catálogos compartidos de país, moneda, códigos de llamada, idiomas y unidades; normalización telefónica y validación monetaria con precisión decimal.
+- Inventario básico: cantidad disponible persistida, control de valores negativos y permisos separados para consultar y ajustar cantidades. No es un libro de movimientos ni un ERP de inventario.
+- Export Engine: CSV, JSON y XML; ZIP opcional cuando PHP ZipArchive está disponible, con filtros y permisos por campo. PDF y XLSX siguen pendientes de elegir bibliotecas y validar compatibilidad con el VPS.
+- `demo/`: prototipo frontend HTML/CSS/JS para validar flujos y presentación. Sus cambios se guardan en `localStorage` y no representan persistencia ni seguridad de producción.
+- La presencia de código backend no equivale a certificación de producción: deben aprobarse pruebas funcionales, seguridad, revisión visual/manual y despliegue aislado antes de utilizar datos reales. Las pruebas automatizadas actuales pasan; la revisión visual y operativa final sigue pendiente.
+- La implementación de Permission Engine v1 y Phase 2 se encuentra integrada en la rama de trabajo de NEXORA y documentada en [Permission Engine v1](docs/PERMISSION-ENGINE-V1-IMPLEMENTATION.md), [Inventory Basic](docs/INVENTORY-BASIC.md), [Export Engine](docs/EXPORT-ENGINE.md) y [Phase 2 status](docs/PHASE-2-IMPLEMENTATION-STATUS.md).
+- MFA, gestión de sesiones activas, auditoría de actividad y respaldos/restauración siguen pendientes de implementación y de decisiones operativas.
+
+No introducir contraseñas reales, tokens ni datos personales en la demo.
 
 ## Documentación
+
 - [Alcance funcional](docs/PRODUCT-SCOPE.md)
 - [Arquitectura técnica](docs/ARCHITECTURE.md)
+- [Motor de catálogo configurable](docs/DYNAMIC-CATALOG-ENGINE.md)
+- [Especificación aprobada de mejoras](docs/APPROVED-UPGRADES-2026-11.md)
+- [Implementación Permission Engine v1](docs/PERMISSION-ENGINE-V1-IMPLEMENTATION.md)
+- [Guía del Site Engine](docs/SITE-ENGINE.md)
+- [NEXORA Site Engine — dominios, DNS y HTTPS](docs/SITE-DOMAIN-DNS-TLS.md)
 - [Guía de la demo](demo/README.md)
 
 ## Seguridad
-Este repositorio es público. No subir archivos `.env`, contraseñas, tokens, claves privadas, copias de bases de datos ni datos personales de clientes. La demo debe utilizar información ficticia.
+
+Este repositorio es público. No subir archivos `.env`, contraseñas, tokens, claves privadas, copias de bases de datos ni datos personales. Toda autenticación y autorización real debe ocurrir en el backend; ocultar controles en el navegador no es una medida de seguridad.
