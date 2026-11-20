@@ -20,7 +20,7 @@ final class UserSessionRegistry
             throw new RuntimeException('The authenticated session identifier is already registered to another user.');
         }
 
-        $session ??= new UserSession();
+        $session ??= new UserSession;
 
         $session->fill([
             'user_id' => $user->id,
