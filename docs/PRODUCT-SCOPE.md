@@ -1,78 +1,199 @@
-# NEXORA — Alcance funcional de la primera versión
+# NEXORA — Alcance del producto configurable
 
-## Producto
+## 1. Propósito
 
-Sitio web de catálogo para que un negocio presente sus productos y reciba consultas por WhatsApp. El negocio administra el contenido desde un panel privado. El software se instala por separado para cada cliente.
+NEXORA permite a un negocio publicar un catálogo web y administrar productos desde un panel privado. El propietario elige el tipo de negocio y recibe una plantilla sectorial que puede editar. El mismo código fuente se reutiliza, pero cada negocio tiene una instalación, base de datos, archivos y configuración independientes.
 
-## Usuarios
+NEXORA no es ERP, POS, comercio electrónico transaccional ni SaaS centralizado multiempresa.
 
-- **Propietario:** primera cuenta creada durante la instalación. Administra los datos del negocio y el catálogo.
-- **Visitante:** navega por el catálogo, busca productos, filtra categorías y contacta al negocio por WhatsApp.
+## 2. Modelo de usuarios
 
-No se incluye registro público de negocios ni gestión de varios usuarios con permisos avanzados en esta primera versión.
+- **Propietario:** primera cuenta de la instalación. Administra identidad, contactos, plantilla, catálogo, empleados y permisos.
+- **Empleado:** cuenta creada por el propietario, asignada a un rol y con permisos limitados por módulo, acción y campo.
+- **Visitante:** consulta productos publicados y contacta al negocio por WhatsApp.
 
-## Página pública
+No existe registro central abierto de empresas. El registro inicial se ejecuta una sola vez durante la instalación y se bloquea al crear el propietario. La instalación conserva sus propios usuarios, datos y configuración.
 
-- Portada con nombre comercial, logotipo, descripción y contacto.
-- Catálogo de productos.
-- Búsqueda y filtros por categoría.
-- Ficha individual de producto.
-- Fotografías, nombre, descripción, categoría, precio opcional y detalle adicional.
-- Botón de WhatsApp general y contextual por producto.
-- Diseño responsive.
+## 3. Asistente de configuración inicial
 
-## Panel administrativo
+### Paso 1 — Negocio y propietario
+- Nombre comercial.
+- Nombre completo del propietario.
+- Correo electrónico con verificación.
+- Tipo de negocio: perfumería, ropa/calzado, tecnología, gimnasio/fitness, repuestos/vehículos, alimentos/abarrotes u otro.
+- Alta de hasta cinco teléfonos de WhatsApp.
+- Un número principal y selección individual de los números visibles en la web.
 
-- Inicio y cierre de sesión.
-- Resumen visual básico: cantidad de productos, categorías y productos publicados.
-- Crear, editar, publicar, ocultar y eliminar productos.
-- Crear, editar y ordenar categorías.
-- Cargar, reemplazar, ordenar y eliminar fotografías.
-- Configurar nombre comercial, logotipo, colores básicos, moneda, número y mensaje de WhatsApp.
+La verificación del correo se gestiona desde el servidor y el enlace se envía cuando la instalación tiene SMTP configurado. Sin SMTP, el asistente informa que falta esa configuración; no se bloquea la creación del propietario. Verificación por SMS o WhatsApp OTP es opcional y requiere proveedor/costo aprobado; registrar un número no equivale a verificar su titularidad.
 
-## Campos sugeridos de producto
+### Paso 2 — Identidad y monedas
+- Logotipo y portada opcionales.
+- Descripción comercial.
+- Color principal.
+- Moneda principal.
+- Activación de monedas adicionales desde una biblioteca.
+- Ubicación y horario opcionales.
 
+La versión inicial permite precios por moneda registrados manualmente. Conversión automática con tasas externas queda fuera de alcance hasta definir proveedor y presupuesto.
+
+### Paso 3 — Plantilla y datos de producto
+- Cargar una plantilla según el tipo de negocio.
+- Plantillas editables: agregar, renombrar, ordenar o eliminar grupos y campos.
+- La plantilla puede cambiarse sin perder silenciosamente personalizaciones: el cambio debe ofrecer combinación de campos nuevos o reinicio explícitamente confirmado.
+- Fotografías opcionales a nivel de configuración de la instalación. Si se deshabilitan, el formulario de producto no muestra el campo de imágenes y el backend rechaza cargas.
+- Biblioteca de unidades por dimensión: masa, volumen, desplazamiento del motor, longitud, cantidad, capacidad digital y área.
+- Permitir agregar unidades personalizadas dentro de una dimensión.
+- No mostrar unidades incompatibles con la dimensión elegida.
+
+### Paso 4 — Revisión
+- Resumen de identidad, contactos, monedas, fotos y estructura.
+- Guardar configuración y pasar al panel del propietario.
+
+## 4. Ficha de producto
+
+Los campos base pertenecen al sistema y no se pueden eliminar:
 - Nombre (obligatorio).
-- Categoría (obligatoria).
 - Descripción (obligatoria).
-- Precio (opcional).
-- Una o varias fotografías.
-- Detalle adicional libre (opcional), por ejemplo talla, color, kilometraje o almacenamiento.
-- Estado: publicado u oculto.
-- Destacado (opcional).
+- Categoría (obligatoria).
+- Estado (borrador/publicado u oculto).
+- Precio opcional y precios para monedas habilitadas.
 
-El campo de detalle adicional evita construir un sistema complejo de atributos dinámicos en la primera versión.
+Los campos sectoriales son configurables:
+- Texto, número, lista, selección múltiple, booleano, fecha y texto largo.
+- Grupo de información y posición.
+- Ancho de presentación (media columna o ancho completo).
+- Obligatorio/opcional.
+- Visible/no visible en la ficha pública.
+- Habilitado/no habilitado como criterio de búsqueda o filtro, sujeto al tipo de dato.
+- Magnitud y unidad opcionales para campos numéricos.
 
-## Fuera de alcance
+Las imágenes son opcionales por instalación. Cuando están habilitadas, un producto puede tener cero o varias imágenes según la configuración de producto; el límite operativo se define en backend.
 
-- Carrito, checkout y pasarela de pagos.
-- Pedidos, reservas o seguimiento de ventas.
-- Inventario, existencias, almacenes y movimientos.
-- Compras, proveedores o facturación.
-- Contabilidad, finanzas, POS o nómina.
-- CRM, campañas o mensajería masiva.
-- Activación de módulos ERP.
-- Plataforma SaaS centralizada multiempresa.
-- Aplicación móvil nativa.
+## 5. Organización visual y prevención de solapamientos
 
-## Modelo de instalación
+- Los campos se muestran dentro de grupos ordenados.
+- Cada campo tiene una posición numérica estable y un ancho semántico.
+- La presentación utiliza CSS Grid/Flexbox; no usa posicionamiento absoluto para disponer campos.
+- Los campos de texto largo y los definidos como ancho completo abarcan la fila.
+- En móvil se apilan en una columna.
+- La vista previa usa el mismo componente de presentación que la ficha pública.
+- Los campos privados no se publican ni se incluyen en los filtros públicos.
+- Los campos base del sistema se presentan en secciones reservadas.
 
-- Un único código fuente reutilizable.
-- Una instalación independiente por negocio.
-- Base de datos, fotografías y configuración separadas por instalación.
-- El propietario crea su cuenta inicial durante la instalación.
-- VPS, dominio y alojamiento contratados por el cliente.
-- Sin servicios externos obligatorios para el funcionamiento básico.
+## 6. Página pública
 
-## Criterios de aceptación
+- Portada con identidad y datos opcionales del negocio.
+- Catálogo responsive.
+- Búsqueda y categorías.
+- Ficha de producto con grupos y campos visibles.
+- Fotografías solo si están habilitadas.
+- Precio en una moneda disponible o consulta sin precio.
+- Enlace general de WhatsApp y enlaces contextuales por producto.
+- Si hay varios teléfonos visibles, el visitante puede seleccionar el destino; el número principal se usa por defecto.
 
-1. El visitante puede abrir el sitio en celular sin desbordamiento horizontal de la página.
-2. Puede buscar y filtrar productos por categoría.
-3. Puede abrir el detalle de un producto y contactar por WhatsApp.
-4. El propietario puede iniciar sesión y cerrar sesión.
-5. Un visitante no autenticado no puede acceder al panel ni a operaciones administrativas.
-6. El propietario puede crear, editar, publicar, ocultar y eliminar productos.
-7. El propietario puede crear, editar y ordenar categorías.
-8. El propietario puede subir, reemplazar y eliminar fotografías.
-9. Los cambios quedan guardados en MariaDB/MySQL y persisten al cerrar sesión o cambiar de dispositivo.
-10. Las configuraciones de cada instalación permanecen separadas.
+NEXORA abre enlaces `https://wa.me/` con mensajes preparados. No procesa pedidos, pagos ni conversaciones dentro de la aplicación.
+
+## 7. Panel administrativo
+
+- Resumen de productos, categorías, publicación y cantidades básicas disponibles.
+- CRUD de productos y categorías.
+- Configuración de contactos, identidad, moneda y fotografías.
+- Editor de plantillas y grupos/campos.
+- Vista previa de fichas.
+- Administración de empleados, roles y permisos.
+- Exportación de datos en los formatos soportados por la instalación.
+- Cuenta y seguridad del propietario, incluida MFA/TOTP opcional.
+
+## 8. Fuera de alcance inicial
+
+- Carrito, checkout, pasarelas de pago y pedidos.
+- Libro de movimientos, entradas/salidas, almacenes, transferencias, compras, proveedores y valoración contable de inventario.
+- Facturación, contabilidad, nómina, POS o CRM.
+- Plataforma SaaS centralizada o bases de datos compartidas entre instalaciones.
+- App móvil nativa.
+- Automatización de WhatsApp Business API.
+- OTP externo por SMS/WhatsApp sin aprobación.
+- Conversión automática de divisas con tasas externas.
+- Sincronización ERP o integraciones de terceros no acordadas.
+
+La primera versión sí incluye cantidad disponible por producto como inventario básico e informativo; no equivale a un sistema de gestión de almacenes.
+
+## 9. Modelo de datos conceptual
+
+- `users`: propietario.
+- `business_settings`: identidad, opciones del catálogo y configuración de fotos.
+- `business_contacts`: hasta cinco teléfonos, número principal y visibilidad.
+- `business_currencies`: monedas habilitadas y moneda principal.
+- `categories`: categorías.
+- `products`: datos base del producto y estado.
+- `product_prices`: precio por moneda habilitada.
+- `product_images`: rutas y metadatos de imágenes (solo cuando fotos estén habilitadas).
+- `product_field_groups`: secciones ordenadas de la ficha.
+- `product_field_definitions`: definición, tipo, opciones, unidad, validación, visibilidad y orden.
+- `product_field_values`: valor por producto y definición.
+
+Los campos dinámicos se modelan como metadatos/valores; nunca crean tablas SQL arbitrarias solicitadas desde el navegador.
+
+## 10. Criterios de aceptación
+
+1. El asistente valida datos básicos y limita los contactos a cinco.
+2. Se puede seleccionar el número principal y la visibilidad de cada contacto.
+3. La configuración de fotografías controla la presencia del campo de carga y la validación de servidor.
+4. La moneda principal siempre está dentro de las monedas habilitadas.
+5. Las plantillas sectoriales precargan grupos y campos coherentes.
+6. Se pueden agregar, editar, ordenar y eliminar campos/grupos sin colisiones de nombres dentro de un grupo.
+7. Los campos numéricos solo ofrecen unidades de la dimensión elegida; el cilindraje del motor usa cc en una dimensión separada del volumen de líquidos.
+8. La vista previa y la ficha pública respetan el mismo orden, grupos, anchuras y visibilidad.
+9. En móvil los campos se apilan sin desbordamiento horizontal ni superposición.
+10. La autenticación, autorización, persistencia y carga de archivos reales ocurren en Laravel, no en JavaScript del navegador.
+11. Una instalación no puede leer los datos de otra instalación.
+12. Los cambios permanecen al cambiar de dispositivo, porque se guardan en PostgreSQL.
+
+## 11. Estado de implementación
+
+La carpeta `demo/` conserva un prototipo autónomo HTML/CSS/JS cuyos datos permanecen en `localStorage`; no debe confundirse con una instalación real ni utilizarse como sistema de producción.
+
+El repositorio también contiene el backend Laravel 13 / PHP 8.3 para instalaciones independientes, con PostgreSQL, asistente de instalación, autenticación de propietario y empleados, permisos, catálogo configurable, inventario básico, exportaciones CSV/JSON/XML y ZIP condicionado a extensiones disponibles, MFA/TOTP opcional, almacenamiento privado y procesamiento seguro de imágenes, y administración/publicación de dominios con validaciones DNS/TLS.
+
+La rama integrada pasó CI automatizado con PHP 8.3, Pint y pruebas feature en SQLite y PostgreSQL 16. Esto acredita la validación automatizada del código, no una instalación operativa en un VPS, el envío real de correo, ni la comprobación de un dominio/DNS/TLS del cliente. PDF/XLSX, gestión de sesiones activas, auditoría de actividad, backups/restauración y distribución firmada de actualizaciones siguen fuera del cierre técnico actual y requieren sus respectivas implementaciones y pruebas.
+
+
+## 12. Personalización y publicación de la página web
+
+La página pública se genera automáticamente desde NEXORA Site Engine. No requiere que el propietario edite código ni que el desarrollador intervenga para publicar productos o realizar cambios visuales admitidos.
+
+### Nivel 1 — Personalización guiada (incluido en la primera versión)
+- Elegir plantilla y variantes visuales disponibles.
+- Configurar logotipo, colores, tipografías predefinidas y presentación comercial.
+- Mostrar u ocultar secciones predeterminadas.
+- Ajustar encabezado, distribución del catálogo, tarjetas y contactos.
+- Previsualizar la página en tamaños de escritorio y móvil.
+- Guardar como borrador y publicar explícitamente.
+
+### Nivel 2 — Constructor visual avanzado (alcance progresivo)
+- Agregar, quitar y reordenar secciones desde una biblioteca de componentes aprobados.
+- Elegir variantes y ajustar opciones controladas de contenido, alineación y espaciado.
+- Previsualizar antes de publicar.
+- No permite insertar código HTML, JavaScript o CSS arbitrario ni crear diseños sin límites. Se utilizarán componentes permitidos y configuraciones validadas para mantener seguridad, accesibilidad y compatibilidad responsive.
+
+### Publicación y dominio
+- La página pública utiliza los productos publicados y los campos autorizados para exposición pública.
+- Los cambios visuales pueden permanecer en borrador hasta que el propietario los publique.
+- Cada instalación admite dos opciones: dominio propio contratado por el cliente o subdominio gratuito de un proveedor externo (por ejemplo, DuckDNS) siempre que el cliente controle ese nombre y pueda configurar sus registros DNS para apuntar al VPS.
+- NEXORA no registra dominios, no garantiza disponibilidad ni permanencia de subdominios gratuitos de terceros y no ofrece en v1 subdominios centrales como `cliente.nexora.tld`.
+- El instalador debe mostrar los registros DNS requeridos y comprobar la resolución del nombre y el acceso al servidor. La automatización de HTTPS dependerá de DNS, puertos, servidor web, permisos y método ACME disponible; se documentará el procedimiento manual cuando no pueda automatizarse.
+- HTTPS requiere DNS correcto, conectividad y un certificado TLS válido. La aplicación solo declara HTTPS activo después de comprobar el certificado, su dominio y su vigencia; escribir un dominio en el asistente no activa por sí solo la protección.
+
+### Separación y privacidad
+El panel administrativo es privado y requiere autenticación. El sitio público solo expone datos publicados y expresamente marcados como visibles. Exportaciones PDF y reportes administrativos se descargan desde el panel y no se publican automáticamente.
+
+## 13. Criterios de aceptación del Site Engine
+1. Una instalación genera su página pública a partir de su propia configuración, sin intervención del desarrollador.
+2. La personalización guiada permite cambiar identidad visual y secciones predeterminadas.
+3. El constructor avanzado permite reordenar y configurar únicamente componentes permitidos.
+4. Los cambios pueden previsualizarse y guardarse como borrador antes de publicarse.
+5. Productos no publicados y campos privados nunca aparecen en rutas públicas.
+6. El diseño se adapta a móvil, tableta y escritorio.
+7. No se ejecuta código arbitrario proporcionado desde el editor.
+8. La página puede asociarse a un dominio propio o a un subdominio gratuito externo controlado por el cliente, cuando el VPS y DNS estén configurados.
+9. La configuración de HTTPS se valida y documenta; no se declara activo sin comprobar un certificado válido.

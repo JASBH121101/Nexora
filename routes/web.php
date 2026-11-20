@@ -1,0 +1,210 @@
+<?php
+
+use App\Http\Middleware\AdminAccess;
+use App\Http\Middleware\EnforcePublishedSiteDomain;
+use App\Http\Middleware\OwnerOnly;
+use App\Http\Middleware\RequirePasswordChange;
+use App\Modules\Admin\Http\Controllers\AccessRequestController;
+use App\Modules\Admin\Http\Controllers\CategoryController;
+use App\Modules\Admin\Http\Controllers\DashboardController;
+use App\Modules\Admin\Http\Controllers\EmployeeController;
+use App\Modules\Admin\Http\Controllers\ExportController;
+use App\Modules\Admin\Http\Controllers\FieldDefinitionController;
+use App\Modules\Admin\Http\Controllers\LoginController;
+use App\Modules\Admin\Http\Controllers\LoginHelpController;
+use App\Modules\Admin\Http\Controllers\MfaController;
+use App\Modules\Admin\Http\Controllers\PasswordController;
+use App\Modules\Admin\Http\Controllers\ProductController;
+use App\Modules\Admin\Http\Controllers\RoleController;
+use App\Modules\Admin\Http\Controllers\SiteDomainController;
+use App\Modules\Admin\Http\Controllers\VerifyEmailController;
+use App\Modules\Setup\Http\Controllers\SetupController;
+use App\Modules\Site\Http\Controllers\ProductImageController;
+use App\Modules\Site\Http\Controllers\PublicSiteController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/setup', SetupController::class)->name('setup.show');
+Route::post('/setup/cancel', [SetupController::class, 'cancel'])
+    ->middleware('throttle:10,1')
+    ->name('setup.cancel');
+Route::post('/setup', [SetupController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('setup.store');
+
+Route::post('/setup/prepare-database', [SetupController::class, 'prepareDatabase'])
+    ->middleware('throttle:3,1')
+    ->name('setup.prepare-database');
+
+Route::get('/email/verify/{id}/{hash}', VerifyEmailController::class)
+    ->middleware(['auth', 'signed', 'throttle:6,1'])
+    ->name('verification.verify');
+
+Route::post('/email/verification-notification', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+
+    return back()->with('status', 'Se envió un nuevo enlace de verificación.');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
+Route::get('/admin/login', [LoginController::class, 'create'])->name('admin.login');
+Route::post('/admin/login', [LoginController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('admin.login.store');
+Route::post('/admin/login/help', [LoginHelpController::class, 'store'])
+    ->middleware('throttle:3,10')
+    ->name('admin.login.help');
+
+Route::middleware(['auth', AdminAccess::class])
+    ->prefix('admin')
+    ->group(function (): void {
+        Route::get('/mfa/challenge', [MfaController::class, 'challenge'])
+            ->name('admin.mfa.challenge');
+        Route::post('/mfa/challenge', [MfaController::class, 'verifyChallenge'])
+            ->middleware('throttle:5,1')
+            ->name('admin.mfa.challenge.verify');
+        Route::post('/mfa/cancel', [MfaController::class, 'cancelChallenge'])
+            ->name('admin.mfa.challenge.cancel');
+    });
+
+Route::middleware(['auth', AdminAccess::class, 'mfa.verified', RequirePasswordChange::class])
+    ->prefix('admin')
+    ->group(function (): void {
+        Route::post('/logout', [LoginController::class, 'destroy'])->name('admin.logout');
+        Route::get('/password/change', [PasswordController::class, 'edit'])->name('admin.password.change');
+        Route::post('/password/change', [PasswordController::class, 'update'])->name('admin.password.update');
+
+        Route::get('/security/mfa', [MfaController::class, 'index'])->name('admin.security.mfa');
+        Route::post('/security/mfa/enrollment', [MfaController::class, 'startEnrollment'])
+            ->middleware('throttle:5,1')
+            ->name('admin.security.mfa.enrollment');
+        Route::post('/security/mfa/confirm', [MfaController::class, 'confirmEnrollment'])
+            ->middleware('throttle:5,1')
+            ->name('admin.security.mfa.confirm');
+        Route::post('/security/mfa/disable', [MfaController::class, 'disable'])
+            ->middleware('throttle:5,1')
+            ->name('admin.security.mfa.disable');
+        Route::get('/', DashboardController::class)->name('admin.home');
+
+        Route::get('/products', [ProductController::class, 'index'])
+            ->middleware('permission:products.view')
+            ->name('admin.products.index');
+        Route::get('/products/{product}/image', [ProductImageController::class, 'admin'])
+            ->middleware('permission:products.view')
+            ->name('admin.products.image');
+        Route::get('/products/create', [ProductController::class, 'create'])
+            ->middleware(['permission:products.view', 'permission:products.create'])
+            ->name('admin.products.create');
+        Route::post('/products', [ProductController::class, 'store'])
+            ->middleware(['permission:products.view', 'permission:products.create'])
+            ->name('admin.products.store');
+        Route::patch('/products/{product}/inventory', [ProductController::class, 'updateInventoryQuantity'])
+            ->middleware('permission:inventory.edit_quantity')
+            ->name('admin.products.inventory.update');
+        Route::get('/products/{product}/edit', [ProductController::class, 'edit'])
+            ->middleware(['permission:products.view', 'permission:products.edit'])
+            ->name('admin.products.edit');
+        Route::put('/products/{product}', [ProductController::class, 'update'])
+            ->middleware(['permission:products.view', 'permission:products.edit'])
+            ->name('admin.products.update');
+        Route::delete('/products/{product}', [ProductController::class, 'destroy'])
+            ->middleware('permission:products.delete')
+            ->name('admin.products.destroy');
+
+        Route::get('/categories', [CategoryController::class, 'index'])
+            ->middleware('permission:categories.view')
+            ->name('admin.categories.index');
+        Route::post('/categories', [CategoryController::class, 'store'])
+            ->middleware('permission:categories.create')
+            ->name('admin.categories.store');
+        Route::put('/categories/{category}', [CategoryController::class, 'update'])
+            ->middleware('permission:categories.edit')
+            ->name('admin.categories.update');
+        Route::post('/categories/{category}/status', [CategoryController::class, 'updateStatus'])
+            ->middleware('permission:categories.edit')
+            ->name('admin.categories.status');
+
+        Route::get('/fields', [FieldDefinitionController::class, 'index'])
+            ->middleware('permission:fields.view')
+            ->name('admin.fields.index');
+        Route::post('/fields/groups', [FieldDefinitionController::class, 'storeGroup'])
+            ->middleware('permission:fields.create')
+            ->name('admin.fields.groups.store');
+        Route::put('/fields/groups/{group}', [FieldDefinitionController::class, 'updateGroup'])
+            ->middleware('permission:fields.edit')
+            ->name('admin.fields.groups.update');
+        Route::delete('/fields/groups/{group}', [FieldDefinitionController::class, 'destroyGroup'])
+            ->middleware('permission:fields.delete')
+            ->name('admin.fields.groups.destroy');
+        Route::post('/fields', [FieldDefinitionController::class, 'store'])
+            ->middleware('permission:fields.create')
+            ->name('admin.fields.store');
+        Route::put('/fields/{field}', [FieldDefinitionController::class, 'update'])
+            ->middleware('permission:fields.edit')
+            ->name('admin.fields.update');
+        Route::delete('/fields/{field}', [FieldDefinitionController::class, 'destroy'])
+            ->middleware('permission:fields.delete')
+            ->name('admin.fields.destroy');
+
+        Route::get('/exports', [ExportController::class, 'index'])
+            ->name('admin.exports.index');
+        Route::post('/exports', [ExportController::class, 'store'])
+            ->middleware(['permission:exports.create', 'permission:exports.download'])
+            ->name('admin.exports.store');
+
+        Route::middleware(OwnerOnly::class)->group(function (): void {
+            Route::get('/site/domains', [SiteDomainController::class, 'index'])
+                ->name('admin.site-domains.index');
+            Route::post('/site/domains', [SiteDomainController::class, 'store'])
+                ->middleware('throttle:5,1')
+                ->name('admin.site-domains.store');
+            Route::post('/site/domains/{domainId}/diagnose', [SiteDomainController::class, 'diagnose'])
+                ->whereUuid('domainId')
+                ->middleware('throttle:2,1')
+                ->name('admin.site-domains.diagnose');
+            Route::post('/site/domains/{domainId}/primary', [SiteDomainController::class, 'makePrimary'])
+                ->whereUuid('domainId')
+                ->name('admin.site-domains.primary');
+            Route::delete('/site/domains/{domainId}', [SiteDomainController::class, 'destroy'])
+                ->whereUuid('domainId')
+                ->name('admin.site-domains.destroy');
+
+            Route::get('/employees', [EmployeeController::class, 'index'])->name('admin.employees.index');
+            Route::post('/employees', [EmployeeController::class, 'store'])->name('admin.employees.store');
+            Route::post('/employees/{employee}/role', [EmployeeController::class, 'updateRole'])
+                ->name('admin.employees.role');
+            Route::post('/employees/{employee}/status', [EmployeeController::class, 'updateStatus'])
+                ->name('admin.employees.status');
+            Route::post('/employees/{employee}/permissions', [EmployeeController::class, 'updatePermissions'])
+                ->name('admin.employees.permissions');
+
+            Route::get('/roles', [RoleController::class, 'index'])->name('admin.roles.index');
+            Route::post('/roles', [RoleController::class, 'store'])->name('admin.roles.store');
+            Route::put('/roles/{role}', [RoleController::class, 'update'])->name('admin.roles.update');
+
+            Route::get('/access-requests', [AccessRequestController::class, 'index'])
+                ->name('admin.access-requests.index');
+            Route::post('/access-requests/{accessRequest}/{status}', [AccessRequestController::class, 'update'])
+                ->whereIn('status', ['resolved', 'rejected'])
+                ->name('admin.access-requests.update');
+            Route::post('/access-requests/{accessRequest}/temporary-password', [
+                AccessRequestController::class,
+                'issueTemporaryPassword',
+            ])->name('admin.access-requests.temporary-password');
+        });
+    });
+
+Route::get('/sitemap.xml', [PublicSiteController::class, 'sitemap'])
+    ->middleware(EnforcePublishedSiteDomain::class)
+    ->name('site.sitemap');
+Route::get('/robots.txt', [PublicSiteController::class, 'robots'])
+    ->middleware(EnforcePublishedSiteDomain::class)
+    ->name('site.robots');
+Route::get('/producto/{slug}/imagen', [ProductImageController::class, 'showPublic'])
+    ->middleware(EnforcePublishedSiteDomain::class)
+    ->name('site.product.image');
+Route::get('/producto/{slug}', [PublicSiteController::class, 'show'])
+    ->middleware(EnforcePublishedSiteDomain::class)
+    ->name('site.product');
+Route::get('/', PublicSiteController::class)
+    ->middleware(EnforcePublishedSiteDomain::class)
+    ->name('site.home');

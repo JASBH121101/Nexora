@@ -25,6 +25,7 @@
       <a href="#catalogo">Catálogo</a>
       <a href="#nosotros">Acerca del negocio</a>
       <a class="admin-link" href="admin.html">Panel demo <span aria-hidden="true">↗</span></a>
+      <a class="admin-link" href="setup.html">Configurar negocio <span aria-hidden="true">↗</span></a>
     </nav>
 
     <div class="header-actions">
@@ -35,6 +36,10 @@
           <option value="autos">Vehículos</option>
           <option value="technology">Tecnología</option>
         </select>
+      </label>
+      <label id="contact-phone-switch" class="business-switch" hidden>
+        <span class="sr-only">Elegir número de contacto</span>
+        <select id="contact-phone-select" aria-label="Elegir número de contacto"></select>
       </label>
       <a id="header-whatsapp" class="button button-dark button-small" href="#" target="_blank" rel="noopener noreferrer">
         <span class="wa-icon" aria-hidden="true">◉</span> WhatsApp
@@ -94,7 +99,7 @@
 
       <div class="results-meta">
         <p id="results-count" aria-live="polite">Productos destacados</p>
-        <span>Precios de muestra · USD</span>
+        <span id="results-currency">Precios de muestra · USD</span>
       </div>
       <div id="product-grid" class="product-grid" aria-live="polite"></div>
       <div id="empty-state" class="empty-state" hidden>
