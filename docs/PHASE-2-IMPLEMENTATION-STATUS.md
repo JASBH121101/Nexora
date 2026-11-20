@@ -71,3 +71,38 @@ Para activar un dominio real, el dueño de la instalación y el proveedor de alo
 ## Límites operativos
 
 Todo permanece en ramas de trabajo. No se introducen secretos, servicios externos de pago, ni dependencias para PDF/XLSX. La rama `main` y producción permanecen sin cambios.
+
+---
+
+## Actualización de integración y estado — 2026-11-20
+
+Esta sección actualiza el estado de integración posterior al registro histórico del 14 de noviembre. Los apartados anteriores describen correctamente la situación que existía en esa fecha; no deben interpretarse como el estado actual de `main`.
+
+### Integración en `main`
+
+- PR #22 — catálogo configurable y backend Laravel: integrado en `main` mediante `3ff1f367e31164ef78235b8765ae796ebf8ddf05`. Incluye aplicación Laravel 13/PHP 8.3, Setup Engine, catálogo configurable, Permission Engine, MFA/TOTP, manejo privado de imágenes, exportaciones y herramientas de diagnóstico de dominios.
+- PR #23 — control de acceso de propietario inactivo: integrado mediante `946044be39d8678fdb4de889e4773905f5450ae7`. El middleware administrativo valida el estado activo también para el propietario en cada petición.
+- PR #24 — salud del esquema del instalador: integrado mediante `52ab7ba9c362631b9c4f365caec7b237c87aaf99`. La comprobación de esquema exige las tablas de roles, historial de exportaciones y MFA, además de las tablas base.
+
+### Evidencia automatizada
+
+- PR #22: los workflows de Laravel, JB Expert QA y GitHub Pages finalizaron correctamente en el commit integrado.
+- PR #23: JB Expert QA y CI de Laravel pasaron. La suite reportó 123 pruebas y 3,000 aserciones en SQLite y PostgreSQL 16.
+- PR #24: JB Expert QA y CI de Laravel pasaron. La suite reportó 127 pruebas y 3,004 aserciones en SQLite y PostgreSQL 16.
+- Estas pruebas validan el código y los contratos automatizados; no sustituyen una instalación aislada, una revisión visual/manual ni una auditoría externa.
+
+### Estado pendiente antes de declarar producción certificada
+
+- Ejecutar una instalación limpia y desechable del paquete en un VPS compatible, incluyendo configuración de entorno, permisos, migraciones y creación del propietario.
+- Realizar revisión visual/manual de Setup, login, MFA, panel y catálogo público en móvil y escritorio.
+- Probar DNS, TXT, TLS, dominio canónico y redirecciones con un dominio y servidor reales. Las pruebas automatizadas usan resolutores simulados.
+- Definir si MFA será obligatorio para propietarios o cuentas administrativas de privilegio elevado y documentar la recuperación segura de cuenta.
+- Implementar gestión de sesiones activas y revocación individual.
+- Implementar auditoría de actividad con integridad y política de retención.
+- Definir y ensayar backups y restauración de base de datos y archivos.
+- Seleccionar e implementar PDF y XLSX; actualmente están disponibles CSV, JSON, XML y ZIP condicional.
+- Definir distribución firmada, claves del publicador y política de rollback del actualizador.
+
+### Límite de despliegue
+
+La ejecución correcta de GitHub Pages acredita solamente el flujo de publicación de la superficie estática. No acredita que el backend Laravel esté instalado en un VPS, conectado a una base de datos de producción ni configurado con SMTP, almacenamiento y dominio reales. La puesta en producción de una instalación Laravel continúa requiriendo infraestructura y validación operativa independientes.
