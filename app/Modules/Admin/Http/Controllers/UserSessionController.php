@@ -18,6 +18,7 @@ final class UserSessionController
         return view('admin.security.sessions', [
             'sessions' => UserSession::query()
                 ->with('user:id,name,username,role')
+                ->whereNull('revoked_at')
                 ->orderByDesc('last_activity')
                 ->paginate(20),
             'currentSessionHash' => $sessions->hash($request),
