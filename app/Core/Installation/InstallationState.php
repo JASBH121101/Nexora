@@ -23,6 +23,10 @@ final class InstallationState
         'product_field_values',
         'product_prices',
         'login_help_requests',
+        'roles',
+        'export_histories',
+        'user_mfa_settings',
+        'user_mfa_recovery_codes',
     ];
 
     public function hasSchema(): bool
