@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Core\Security\UserSessionRegistry;
+use App\Http\Middleware\EnsureRegisteredSession;
 use App\Models\User;
 use App\Models\UserSession;
+use App\Modules\Admin\Http\Controllers\UserSessionController;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -14,40 +17,9 @@ class UserSessionManagementTest extends TestCase
 {
     use RefreshDatabase;
 
-    private string $sessionDirectory;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        // The global test environment uses Laravel's non-persistent array
-        // session driver. Session revocation must be exercised across requests,
-        // so this feature suite uses an isolated persistent file store.
-        $this->sessionDirectory = storage_path(
-            'framework/testing-sessions/'.getmypid().'-'.bin2hex(random_bytes(6)),
-        );
-        File::ensureDirectoryExists($this->sessionDirectory);
-
-        config([
-            'session.driver' => 'file',
-            'session.files' => $this->sessionDirectory,
-            'session.encrypt' => false,
-        ]);
-        app('session')->forgetDrivers();
-        app()->forgetInstance('session.store');
-    }
-
-    protected function tearDown(): void
-    {
-        File::deleteDirectory($this->sessionDirectory);
-
-        parent::tearDown();
-    }
-
     public function test_owner_can_view_and_revoke_another_active_session(): void
     {
         $owner = $this->installOwner();
-        Auth::forgetGuards();
         $remoteSession = UserSession::query()->create([
             'user_id' => $owner->id,
             'session_hash' => hash('sha256', 'remote-session-secret'),
@@ -62,83 +34,92 @@ class UserSessionManagementTest extends TestCase
             ->assertSee('NEXORA QA remote browser')
             ->assertSee(__('security.current_session'));
 
-        Auth::forgetGuards();
         $this->delete(route('admin.security.sessions.destroy', $remoteSession->id))
             ->assertRedirect()
             ->assertSessionHas('status', __('security.session_revoked_successfully'));
 
         $this->assertNotNull($remoteSession->fresh()->revoked_at);
-        Auth::forgetGuards();
         $this->get(route('admin.home'))->assertOk();
     }
 
     public function test_revoking_the_current_session_ends_its_authenticated_access(): void
     {
-        $this->installOwner();
-        Auth::forgetGuards();
-        $this->get(route('admin.home'))->assertOk();
+        $owner = $this->installOwner();
+        $sessionId = bin2hex(random_bytes(32));
+        $request = $this->authenticatedSessionRequest($sessionId, $owner);
+        $activeSession = UserSession::query()->create([
+            'user_id' => $owner->id,
+            'session_hash' => hash('sha256', $sessionId),
+            'ip_address' => '192.0.2.10',
+            'user_agent' => 'NEXORA QA current browser',
+            'last_activity' => now()->timestamp,
+        ]);
 
-        $activeSession = UserSession::query()
-            ->where('user_id', auth()->id())
-            ->where('session_hash', hash('sha256', session()->getId()))
-            ->whereNull('revoked_at')
-            ->firstOrFail();
+        $response = app(UserSessionController::class)->destroy(
+            $request,
+            $activeSession->id,
+            app(UserSessionRegistry::class),
+        );
 
-        Auth::forgetGuards();
-        $this->delete(route('admin.security.sessions.destroy', $activeSession->id))
-            ->assertRedirect(route('admin.login'))
-            ->assertSessionHas('status', __('security.current_session_ended'));
+        $this->assertSame(route('admin.login'), $response->getTargetUrl());
+        $this->assertNotNull($activeSession->fresh()->revoked_at);
 
-        Auth::forgetGuards();
-        $this->get(route('admin.home'))->assertRedirect(route('admin.login'));
+        $replayedRequest = $this->authenticatedSessionRequest($sessionId, $owner);
+        $this->assertFalse(app(UserSessionRegistry::class)->touch($replayedRequest, $owner));
     }
 
-    public function test_existing_authenticated_session_is_registered_on_first_access(): void
+    public function test_setup_registers_the_initial_owner_session(): void
     {
-        $this->installOwner();
-        Auth::forgetGuards();
-        $this->get(route('admin.home'))->assertOk();
+        $owner = $this->installOwner();
 
         $this->assertDatabaseHas('user_sessions', [
-            'user_id' => auth()->id(),
-            'session_hash' => hash('sha256', session()->getId()),
+            'user_id' => $owner->id,
             'revoked_at' => null,
         ]);
     }
 
     public function test_revoked_session_tombstone_cannot_be_reactivated(): void
     {
-        $this->installOwner();
-        Auth::forgetGuards();
-        $this->get(route('admin.home'))->assertOk();
+        $owner = $this->installOwner();
+        $sessionId = bin2hex(random_bytes(32));
+        $request = $this->authenticatedSessionRequest($sessionId, $owner);
+        $activeSession = UserSession::query()->create([
+            'user_id' => $owner->id,
+            'session_hash' => hash('sha256', $sessionId),
+            'last_activity' => now()->timestamp,
+            'revoked_at' => now(),
+        ]);
 
-        $activeSession = UserSession::query()
-            ->where('user_id', auth()->id())
-            ->where('session_hash', hash('sha256', session()->getId()))
-            ->whereNull('revoked_at')
-            ->firstOrFail();
-        $activeSession->forceFill(['revoked_at' => now()])->save();
+        $response = app(EnsureRegisteredSession::class)->handle(
+            $request,
+            static fn () => response('session unexpectedly accepted'),
+        );
 
-        Auth::forgetGuards();
-        $this->get(route('admin.home'))->assertRedirect(route('admin.login'));
+        $this->assertSame(route('admin.login'), $response->getTargetUrl());
         $this->assertNotNull($activeSession->fresh()->revoked_at);
+        $this->assertFalse(app(UserSessionRegistry::class)->touch(
+            $this->authenticatedSessionRequest($sessionId, $owner),
+            $owner,
+        ));
     }
 
-    public function test_expired_session_is_rejected_and_removed(): void
+    public function test_expired_session_is_rejected_and_marked_revoked(): void
     {
-        $this->installOwner();
-        Auth::forgetGuards();
-        $activeSession = UserSession::query()
-            ->where('user_id', auth()->id())
-            ->where('session_hash', hash('sha256', session()->getId()))
-            ->whereNull('revoked_at')
-            ->firstOrFail();
-        $activeSession->forceFill(['last_activity' => now()->subMinutes(121)->timestamp])->save();
+        $owner = $this->installOwner();
+        $sessionId = bin2hex(random_bytes(32));
+        $request = $this->authenticatedSessionRequest($sessionId, $owner);
+        $activeSession = UserSession::query()->create([
+            'user_id' => $owner->id,
+            'session_hash' => hash('sha256', $sessionId),
+            'last_activity' => now()->subMinutes(121)->timestamp,
+        ]);
 
-        Auth::forgetGuards();
-        $this->get(route('admin.home'))
-            ->assertRedirect(route('admin.login'))
-            ->assertDatabaseHas('user_sessions', ['id' => $activeSession->id]);
+        $response = app(EnsureRegisteredSession::class)->handle(
+            $request,
+            static fn () => response('expired session unexpectedly accepted'),
+        );
+
+        $this->assertSame(route('admin.login'), $response->getTargetUrl());
         $this->assertNotNull($activeSession->fresh()->revoked_at);
     }
 
@@ -161,8 +142,20 @@ class UserSessionManagementTest extends TestCase
             'password' => 'Employee-Password-2026!',
         ])->assertRedirect(route('admin.home'));
 
-        Auth::forgetGuards();
         $this->get(route('admin.security.sessions'))->assertForbidden();
+    }
+
+    private function authenticatedSessionRequest(string $sessionId, User $user): Request
+    {
+        $session = app('session')->driver();
+        $session->setId($sessionId);
+        $session->start();
+
+        $request = Request::create('/admin');
+        $request->setLaravelSession($session);
+        $request->setUserResolver(static fn (): User => $user);
+
+        return $request;
     }
 
     private function installOwner(): User
