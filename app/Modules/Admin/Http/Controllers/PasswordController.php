@@ -2,6 +2,7 @@
 
 namespace App\Modules\Admin\Http\Controllers;
 
+use App\Core\Security\UserSessionRegistry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -13,7 +14,7 @@ final class PasswordController
         return view('admin.auth.change-password');
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, UserSessionRegistry $sessions): RedirectResponse
     {
         $data = $request->validate([
             'current_password' => ['required', 'current_password'],
@@ -31,7 +32,10 @@ final class PasswordController
             'must_change_password' => false,
         ])->save();
 
+        $previousSessionId = $request->session()->getId();
         $request->session()->regenerate();
+        $sessions->rotate($request, $request->user(), $previousSessionId);
+        $sessions->revokeOthers($request, $request->user());
 
         return redirect()->route('admin.home')->with(
             'status',
