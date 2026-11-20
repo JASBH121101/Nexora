@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Http\Controllers;
 
 use App\Core\Security\TotpService;
+use App\Core\Security\UserSessionRegistry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -70,7 +71,7 @@ final class MfaController
             ->with('status', __('security.enrollment_started'));
     }
 
-    public function confirmEnrollment(Request $request, TotpService $totp): RedirectResponse
+    public function confirmEnrollment(Request $request, TotpService $totp, UserSessionRegistry $sessions): RedirectResponse
     {
         $data = $request->validate([
             'code' => ['required', 'string', 'regex:/^[0-9]{6}$/D'],
@@ -119,10 +120,12 @@ final class MfaController
             }
         });
 
+        $previousSessionId = $request->session()->getId();
         $request->session()->forget('nexora_mfa_pending_user_id');
         $request->session()->put('nexora_mfa_verified_user_id', $user->id);
         $request->session()->put('nexora_mfa_verified_at', now()->timestamp);
         $request->session()->regenerate();
+        $sessions->rotate($request, $user, $previousSessionId);
         $request->session()->flash('mfa_recovery_codes', $recoveryCodes);
 
         return redirect()
@@ -130,7 +133,7 @@ final class MfaController
             ->with('status', __('security.enabled'));
     }
 
-    public function disable(Request $request, TotpService $totp): RedirectResponse
+    public function disable(Request $request, TotpService $totp, UserSessionRegistry $sessions): RedirectResponse
     {
         $data = $request->validate([
             'password' => ['required', 'string', 'max:255'],
@@ -170,12 +173,14 @@ final class MfaController
             $settings->save();
         });
 
+        $previousSessionId = $request->session()->getId();
         $request->session()->forget([
             'nexora_mfa_pending_user_id',
             'nexora_mfa_verified_user_id',
             'nexora_mfa_verified_at',
         ]);
         $request->session()->regenerate();
+        $sessions->rotate($request, $user, $previousSessionId);
 
         return redirect()
             ->route('admin.security.mfa')
@@ -208,7 +213,7 @@ final class MfaController
             ->header('Pragma', 'no-cache');
     }
 
-    public function verifyChallenge(Request $request, TotpService $totp): RedirectResponse
+    public function verifyChallenge(Request $request, TotpService $totp, UserSessionRegistry $sessions): RedirectResponse
     {
         $data = $request->validate([
             'code' => ['required', 'string', 'min:6', 'max:32', 'regex:/^[A-Za-z0-9 -]+$/D'],
@@ -260,16 +265,22 @@ final class MfaController
             ]);
         });
 
+        $previousSessionId = $request->session()->getId();
         $request->session()->forget('nexora_mfa_pending_user_id');
         $request->session()->put('nexora_mfa_verified_user_id', $user->id);
         $request->session()->put('nexora_mfa_verified_at', now()->timestamp);
         $request->session()->regenerate();
+        $sessions->rotate($request, $user, $previousSessionId);
 
         return redirect()->intended(route('admin.home'));
     }
 
-    public function cancelChallenge(Request $request): RedirectResponse
+    public function cancelChallenge(Request $request, UserSessionRegistry $sessions): RedirectResponse
     {
+        if ($request->user()) {
+            $sessions->revokeCurrent($request, $request->user());
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
