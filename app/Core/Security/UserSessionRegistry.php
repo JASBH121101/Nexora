@@ -13,20 +13,23 @@ final class UserSessionRegistry
     public function register(Request $request, User $user): void
     {
         $sessionHash = $this->hash($request);
-
         $session = UserSession::query()->where('session_hash', $sessionHash)->first();
 
-        if ($session !== null && (int) $session->user_id !== (int) $user->id) {
-            throw new RuntimeException('The authenticated session identifier is already registered to another user.');
+        if ($session !== null) {
+            if ((int) $session->user_id !== (int) $user->id || $session->revoked_at !== null) {
+                throw new RuntimeException('The session identifier is already registered or revoked.');
+            }
+
+            $session->fill($this->metadata($request))->save();
+
+            return;
         }
 
-        $session ??= new UserSession;
-
-        $session->fill([
+        UserSession::query()->create([
             'user_id' => $user->id,
             'session_hash' => $sessionHash,
             ...$this->metadata($request),
-        ])->save();
+        ]);
     }
 
     public function rotate(Request $request, User $user, string $previousSessionId): void
@@ -38,6 +41,7 @@ final class UserSessionRegistry
             $session = UserSession::query()
                 ->where('session_hash', $previousHash)
                 ->where('user_id', $user->id)
+                ->whereNull('revoked_at')
                 ->lockForUpdate()
                 ->first();
 
@@ -54,25 +58,43 @@ final class UserSessionRegistry
 
     public function touch(Request $request, User $user): bool
     {
+        $sessionHash = $this->hash($request);
         $expiredBefore = now()
             ->subMinutes(max(1, (int) config('session.lifetime', 120)))
             ->timestamp;
 
-        $updated = UserSession::query()
-            ->where('session_hash', $this->hash($request))
+        $session = UserSession::query()
+            ->where('session_hash', $sessionHash)
             ->where('user_id', $user->id)
-            ->where('last_activity', '>=', $expiredBefore)
-            ->update([
-                ...$this->metadata($request),
-                'last_activity' => now()->timestamp,
-                'updated_at' => now(),
-            ]);
+            ->first();
 
-        return $updated === 1 || UserSession::query()
-            ->where('session_hash', $this->hash($request))
-            ->where('user_id', $user->id)
-            ->where('last_activity', '>=', $expiredBefore)
-            ->exists();
+        if ($session === null) {
+            // Register pre-existing sessions on first use; this also supports the
+            // configured session driver and Laravel's authenticated test guard.
+            try {
+                $this->register($request, $user);
+            } catch (RuntimeException) {
+                return false;
+            }
+
+            return true;
+        }
+
+        if ($session->revoked_at !== null) {
+            return false;
+        }
+
+        if ($session->last_activity < $expiredBefore) {
+            $session->forceFill(['revoked_at' => now()])->save();
+
+            return false;
+        }
+
+        $session->forceFill([
+            ...$this->metadata($request),
+        ])->save();
+
+        return true;
     }
 
     public function revokeCurrent(Request $request, User $user): void
@@ -80,12 +102,16 @@ final class UserSessionRegistry
         UserSession::query()
             ->where('session_hash', $this->hash($request))
             ->where('user_id', $user->id)
-            ->delete();
+            ->whereNull('revoked_at')
+            ->update(['revoked_at' => now(), 'updated_at' => now()]);
     }
 
     public function revokePublicId(string $publicId): bool
     {
-        return UserSession::query()->whereKey($publicId)->delete() === 1;
+        return UserSession::query()
+            ->whereKey($publicId)
+            ->whereNull('revoked_at')
+            ->update(['revoked_at' => now(), 'updated_at' => now()]) === 1;
     }
 
     public function revokeOthers(Request $request, User $user): void
@@ -93,12 +119,16 @@ final class UserSessionRegistry
         UserSession::query()
             ->where('user_id', $user->id)
             ->where('session_hash', '!=', $this->hash($request))
-            ->delete();
+            ->whereNull('revoked_at')
+            ->update(['revoked_at' => now(), 'updated_at' => now()]);
     }
 
     public function revokeUser(int $userId): int
     {
-        return UserSession::query()->where('user_id', $userId)->delete();
+        return UserSession::query()
+            ->where('user_id', $userId)
+            ->whereNull('revoked_at')
+            ->update(['revoked_at' => now(), 'updated_at' => now()]);
     }
 
     public function pruneExpired(): int
@@ -108,8 +138,9 @@ final class UserSessionRegistry
             ->timestamp;
 
         return UserSession::query()
+            ->whereNull('revoked_at')
             ->where('last_activity', '<', $expiredBefore)
-            ->delete();
+            ->update(['revoked_at' => now(), 'updated_at' => now()]);
     }
 
     public function hash(Request $request): string
