@@ -117,7 +117,6 @@
     return true;
   };
   const render = () => {
-    const categories = new Set(products.map((item) => item.category).filter(Boolean));
     const publishedProducts = products.filter((item) => item.published !== false);
     $("#stat-products").textContent = String(publishedProducts.length);
     $("#stat-categories").textContent = String(new Set(publishedProducts.map((item) => item.category).filter(Boolean)).size);

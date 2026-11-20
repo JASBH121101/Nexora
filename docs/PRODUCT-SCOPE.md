@@ -8,10 +8,11 @@ NEXORA no es ERP, POS, comercio electrónico transaccional ni SaaS centralizado 
 
 ## 2. Modelo de usuarios
 
-- **Propietario:** primera cuenta de la instalación. Administra identidad, contactos, plantilla y catálogo.
-- **Visitante:** consulta productos y contacta al negocio por WhatsApp.
+- **Propietario:** primera cuenta de la instalación. Administra identidad, contactos, plantilla, catálogo, empleados y permisos.
+- **Empleado:** cuenta creada por el propietario, asignada a un rol y con permisos limitados por módulo, acción y campo.
+- **Visitante:** consulta productos publicados y contacta al negocio por WhatsApp.
 
-No existe registro central abierto de empresas. El registro inicial se ejecuta una sola vez durante la instalación y se bloquea al crear el propietario. Los roles avanzados quedan fuera de la primera versión.
+No existe registro central abierto de empresas. El registro inicial se ejecuta una sola vez durante la instalación y se bloquea al crear el propietario. La instalación conserva sus propios usuarios, datos y configuración.
 
 ## 3. Asistente de configuración inicial
 
@@ -23,7 +24,7 @@ No existe registro central abierto de empresas. El registro inicial se ejecuta u
 - Alta de hasta cinco teléfonos de WhatsApp.
 - Un número principal y selección individual de los números visibles en la web.
 
-La verificación del correo se realizará desde el servidor. Verificación por SMS o WhatsApp OTP es opcional y requiere proveedor/costo aprobado; registrar un número no equivale a verificar su titularidad.
+La verificación del correo se gestiona desde el servidor y el enlace se envía cuando la instalación tiene SMTP configurado. Sin SMTP, el asistente informa que falta esa configuración; no se bloquea la creación del propietario. Verificación por SMS o WhatsApp OTP es opcional y requiere proveedor/costo aprobado; registrar un número no equivale a verificar su titularidad.
 
 ### Paso 2 — Identidad y monedas
 - Logotipo y portada opcionales.
@@ -94,24 +95,28 @@ NEXORA abre enlaces `https://wa.me/` con mensajes preparados. No procesa pedidos
 
 ## 7. Panel administrativo
 
-- Resumen de productos, categorías y estado de publicación.
+- Resumen de productos, categorías, publicación y cantidades básicas disponibles.
 - CRUD de productos y categorías.
 - Configuración de contactos, identidad, moneda y fotografías.
 - Editor de plantillas y grupos/campos.
 - Vista previa de fichas.
-- Cuenta y seguridad del propietario.
+- Administración de empleados, roles y permisos.
+- Exportación de datos en los formatos soportados por la instalación.
+- Cuenta y seguridad del propietario, incluida MFA/TOTP opcional.
 
 ## 8. Fuera de alcance inicial
 
 - Carrito, checkout, pasarelas de pago y pedidos.
-- Inventario, existencias, almacenes, compras y proveedores.
+- Libro de movimientos, entradas/salidas, almacenes, transferencias, compras, proveedores y valoración contable de inventario.
 - Facturación, contabilidad, nómina, POS o CRM.
-- Plataforma SaaS centralizada, tenants compartidos o activación de módulos.
+- Plataforma SaaS centralizada o bases de datos compartidas entre instalaciones.
 - App móvil nativa.
 - Automatización de WhatsApp Business API.
 - OTP externo por SMS/WhatsApp sin aprobación.
-- Conversión automática de divisas.
+- Conversión automática de divisas con tasas externas.
 - Sincronización ERP o integraciones de terceros no acordadas.
+
+La primera versión sí incluye cantidad disponible por producto como inventario básico e informativo; no equivale a un sistema de gestión de almacenes.
 
 ## 9. Modelo de datos conceptual
 
@@ -146,7 +151,11 @@ Los campos dinámicos se modelan como metadatos/valores; nunca crean tablas SQL 
 
 ## 11. Estado de implementación
 
-La carpeta `demo/` contiene un prototipo interactivo HTML/CSS/JS. El asistente y el constructor de fichas guardan datos únicamente en `localStorage`. No implementa autenticación, autorización, verificación de correo, persistencia SQL ni almacenamiento seguro de imágenes. El backend Laravel de producción está pendiente.
+La carpeta `demo/` conserva un prototipo autónomo HTML/CSS/JS cuyos datos permanecen en `localStorage`; no debe confundirse con una instalación real ni utilizarse como sistema de producción.
+
+El repositorio también contiene el backend Laravel 13 / PHP 8.3 para instalaciones independientes, con PostgreSQL, asistente de instalación, autenticación de propietario y empleados, permisos, catálogo configurable, inventario básico, exportaciones CSV/JSON/XML y ZIP condicionado a extensiones disponibles, MFA/TOTP opcional, almacenamiento privado y procesamiento seguro de imágenes, y administración/publicación de dominios con validaciones DNS/TLS.
+
+La rama integrada pasó CI automatizado con PHP 8.3, Pint y pruebas feature en SQLite y PostgreSQL 16. Esto acredita la validación automatizada del código, no una instalación operativa en un VPS, el envío real de correo, ni la comprobación de un dominio/DNS/TLS del cliente. PDF/XLSX, gestión de sesiones activas, auditoría de actividad, backups/restauración y distribución firmada de actualizaciones siguen fuera del cierre técnico actual y requieren sus respectivas implementaciones y pruebas.
 
 
 ## 12. Personalización y publicación de la página web
