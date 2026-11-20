@@ -34,15 +34,15 @@ class UserSessionManagementTest extends TestCase
             ->assertRedirect()
             ->assertSessionHas('status', __('security.session_revoked_successfully'));
 
-        $this->assertDatabaseMissing('user_sessions', ['id' => $remoteSession->id]);
+        $this->assertNotNull($remoteSession->fresh()->revoked_at);
         $this->get(route('admin.home'))->assertOk();
     }
 
     public function test_revoking_the_current_session_ends_its_authenticated_access(): void
     {
         $this->installOwner();
-        $sessionHash = hash('sha256', session()->getId());
-        $activeSession = UserSession::query()->where('session_hash', $sessionHash)->firstOrFail();
+        $this->get(route('admin.home'))->assertOk();
+        $activeSession = UserSession::query()->where('user_id', auth()->id())->whereNull('revoked_at')->firstOrFail();
 
         $this->delete(route('admin.security.sessions.destroy', $activeSession->id))
             ->assertRedirect(route('admin.login'))
@@ -51,14 +51,31 @@ class UserSessionManagementTest extends TestCase
         $this->get(route('admin.home'))->assertRedirect(route('admin.login'));
     }
 
-    public function test_revoked_or_missing_session_registry_entry_is_rejected(): void
+    public function test_existing_authenticated_session_is_registered_on_first_access(): void
     {
         $this->installOwner();
-        UserSession::query()->where('session_hash', hash('sha256', session()->getId()))->delete();
+        $this->get(route('admin.home'))->assertOk();
 
-        $this->get(route('admin.home'))
-            ->assertRedirect(route('admin.login'))
-            ->assertSessionHasErrors('session');
+        $this->assertDatabaseHas('user_sessions', [
+            'user_id' => auth()->id(),
+            'session_hash' => hash('sha256', session()->getId()),
+            'revoked_at' => null,
+        ]);
+    }
+
+    public function test_revoked_session_tombstone_cannot_be_reactivated(): void
+    {
+        $this->installOwner();
+        $this->get(route('admin.home'))->assertOk();
+
+        $activeSession = UserSession::query()
+            ->where('user_id', auth()->id())
+            ->whereNull('revoked_at')
+            ->firstOrFail();
+        $activeSession->forceFill(['revoked_at' => now()])->save();
+
+        $this->get(route('admin.home'))->assertRedirect(route('admin.login'));
+        $this->assertNotNull($activeSession->fresh()->revoked_at);
     }
 
     public function test_expired_session_is_rejected_and_removed(): void
@@ -71,7 +88,8 @@ class UserSessionManagementTest extends TestCase
 
         $this->get(route('admin.home'))
             ->assertRedirect(route('admin.login'))
-            ->assertDatabaseMissing('user_sessions', ['id' => $activeSession->id]);
+            ->assertDatabaseHas('user_sessions', ['id' => $activeSession->id]);
+        $this->assertNotNull($activeSession->fresh()->revoked_at);
     }
 
     public function test_employee_cannot_open_owner_session_management(): void
