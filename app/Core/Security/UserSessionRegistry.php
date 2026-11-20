@@ -13,8 +13,13 @@ final class UserSessionRegistry
     {
         $sessionHash = $this->hash($request);
 
-        $session = UserSession::query()->where('session_hash', $sessionHash)->first()
-            ?? new UserSession();
+        $session = UserSession::query()->where('session_hash', $sessionHash)->first();
+
+        if ($session !== null && (int) $session->user_id !== (int) $user->id) {
+            throw new \\RuntimeException('The authenticated session identifier is already registered to another user.');
+        }
+
+        $session ??= new UserSession();
 
         $session->fill([
             'user_id' => $user->id,
@@ -36,8 +41,6 @@ final class UserSessionRegistry
                 ->first();
 
             if ($session === null) {
-                $this->register($request, $user);
-
                 return;
             }
 
