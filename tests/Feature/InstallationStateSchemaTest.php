@@ -43,4 +43,11 @@ class InstallationStateSchemaTest extends TestCase
 
         $this->assertFalse(app(InstallationState::class)->hasSchema());
     }
+
+    public function test_schema_health_requires_the_active_user_sessions_table(): void
+    {
+        Schema::drop('user_sessions');
+
+        $this->assertFalse(app(InstallationState::class)->hasSchema());
+    }
 }
