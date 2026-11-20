@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Http\Controllers;
 
 use App\Core\Authorization\PermissionCatalog;
+use App\Core\Security\UserSessionRegistry;
 use App\Core\Authorization\RoleCatalog;
 use App\Models\ProductFieldDefinition;
 use App\Models\User;
@@ -75,7 +76,7 @@ final class EmployeeController
         ]);
     }
 
-    public function updateRole(Request $request, User $employee): RedirectResponse
+    public function updateRole(Request $request, User $employee, UserSessionRegistry $sessions): RedirectResponse
     {
         abort_unless($employee->isEmployee(), 404);
 
@@ -86,11 +87,12 @@ final class EmployeeController
         $employee->forceFill([
             'role_id' => $data['role_id'] ?? null,
         ])->save();
+        $sessions->revokeUser((int) $employee->id);
 
         return back()->with('status', 'Rol actualizado para '.$employee->username.'.');
     }
 
-    public function updatePermissions(Request $request, User $employee): RedirectResponse
+    public function updatePermissions(Request $request, User $employee, UserSessionRegistry $sessions): RedirectResponse
     {
         abort_unless($employee->isEmployee(), 404);
 
@@ -163,12 +165,13 @@ final class EmployeeController
 
         if ($changes !== []) {
             $employee->forceFill($changes)->save();
+            $sessions->revokeUser((int) $employee->id);
         }
 
         return back()->with('status', 'Permisos actualizados para '.$employee->username.'.');
     }
 
-    public function updateStatus(Request $request, User $employee): RedirectResponse
+    public function updateStatus(Request $request, User $employee, UserSessionRegistry $sessions): RedirectResponse
     {
         abort_unless($employee->isEmployee(), 404);
 
@@ -179,6 +182,7 @@ final class EmployeeController
         $employee->forceFill([
             'is_active' => (bool) $data['is_active'],
         ])->save();
+        $sessions->revokeUser((int) $employee->id);
 
         return back()->with(
             'status',
