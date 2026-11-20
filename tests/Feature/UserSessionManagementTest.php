@@ -7,10 +7,12 @@ use App\Http\Middleware\EnsureRegisteredSession;
 use App\Models\User;
 use App\Models\UserSession;
 use App\Modules\Admin\Http\Controllers\UserSessionController;
+use Illuminate\Contracts\Session\Session as SessionContract;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Mockery;
 use Tests\TestCase;
 
 class UserSessionManagementTest extends TestCase
@@ -45,7 +47,7 @@ class UserSessionManagementTest extends TestCase
     public function test_revoking_the_current_session_ends_its_authenticated_access(): void
     {
         $owner = $this->installOwner();
-        $sessionId = bin2hex(random_bytes(32));
+        $sessionId = 'nexora-current-session-'.bin2hex(random_bytes(16));
         $request = $this->authenticatedSessionRequest($sessionId, $owner);
         $activeSession = UserSession::query()->create([
             'user_id' => $owner->id,
@@ -61,7 +63,7 @@ class UserSessionManagementTest extends TestCase
             app(UserSessionRegistry::class),
         );
 
-        $this->assertSame(route('admin.login'), $response->getTargetUrl());
+        $this->assertSame(route('admin.login'), $response->headers->get('Location'));
         $this->assertNotNull($activeSession->fresh()->revoked_at);
 
         $replayedRequest = $this->authenticatedSessionRequest($sessionId, $owner);
@@ -81,7 +83,7 @@ class UserSessionManagementTest extends TestCase
     public function test_revoked_session_tombstone_cannot_be_reactivated(): void
     {
         $owner = $this->installOwner();
-        $sessionId = bin2hex(random_bytes(32));
+        $sessionId = 'nexora-revoked-session-'.bin2hex(random_bytes(16));
         $request = $this->authenticatedSessionRequest($sessionId, $owner);
         $activeSession = UserSession::query()->create([
             'user_id' => $owner->id,
@@ -95,7 +97,7 @@ class UserSessionManagementTest extends TestCase
             static fn () => response('session unexpectedly accepted'),
         );
 
-        $this->assertSame(route('admin.login'), $response->getTargetUrl());
+        $this->assertSame(route('admin.login'), $response->headers->get('Location'));
         $this->assertNotNull($activeSession->fresh()->revoked_at);
         $this->assertFalse(app(UserSessionRegistry::class)->touch(
             $this->authenticatedSessionRequest($sessionId, $owner),
@@ -106,7 +108,7 @@ class UserSessionManagementTest extends TestCase
     public function test_expired_session_is_rejected_and_marked_revoked(): void
     {
         $owner = $this->installOwner();
-        $sessionId = bin2hex(random_bytes(32));
+        $sessionId = 'nexora-expired-session-'.bin2hex(random_bytes(16));
         $request = $this->authenticatedSessionRequest($sessionId, $owner);
         $activeSession = UserSession::query()->create([
             'user_id' => $owner->id,
@@ -119,7 +121,7 @@ class UserSessionManagementTest extends TestCase
             static fn () => response('expired session unexpectedly accepted'),
         );
 
-        $this->assertSame(route('admin.login'), $response->getTargetUrl());
+        $this->assertSame(route('admin.login'), $response->headers->get('Location'));
         $this->assertNotNull($activeSession->fresh()->revoked_at);
     }
 
@@ -147,17 +149,14 @@ class UserSessionManagementTest extends TestCase
 
     private function authenticatedSessionRequest(string $sessionId, User $user): Request
     {
-        $session = app('session')->driver();
-        $session->start();
-        $session->setId($sessionId);
+        $session = Mockery::mock(SessionContract::class);
+        $session->shouldReceive('getId')->zeroOrMoreTimes()->andReturn($sessionId);
+        $session->shouldReceive('invalidate')->zeroOrMoreTimes()->andReturn(true);
+        $session->shouldReceive('regenerateToken')->zeroOrMoreTimes()->andReturnNull();
 
         $request = Request::create('/admin');
         $request->setLaravelSession($session);
         $request->setUserResolver(static fn (): User => $user);
-
-        if ($request->session()->getId() !== $sessionId) {
-            throw new \RuntimeException('The test session ID was not preserved.');
-        }
 
         return $request;
     }
