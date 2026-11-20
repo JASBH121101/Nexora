@@ -2,6 +2,7 @@
 
 namespace App\Modules\Admin\Http\Controllers;
 
+use App\Core\Security\UserSessionRegistry;
 use App\Models\LoginHelpRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -40,7 +41,7 @@ final class AccessRequestController
         );
     }
 
-    public function issueTemporaryPassword(LoginHelpRequest $accessRequest): RedirectResponse
+    public function issueTemporaryPassword(LoginHelpRequest $accessRequest, UserSessionRegistry $sessions): RedirectResponse
     {
         $result = DB::transaction(function () use ($accessRequest): array {
             $lockedRequest = LoginHelpRequest::query()
@@ -77,6 +78,7 @@ final class AccessRequestController
             ])->save();
 
             return [
+                'employee_id' => $employee->id,
                 'username' => $employee->username,
                 'password' => $password,
             ];
@@ -85,6 +87,9 @@ final class AccessRequestController
         if (isset($result['error'])) {
             return back()->withErrors(['request' => $result['error']]);
         }
+
+        $sessions->revokeUser((int) $result['employee_id']);
+        unset($result['employee_id']);
 
         return back()->with('temporary_password_once', $result);
     }
