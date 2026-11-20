@@ -16,6 +16,7 @@ final class AdminAccess
 
         $isOwner = $user
             && $user->isOwner()
+            && $user->is_active
             && $ownerId
             && (int) $user->id === (int) $ownerId;
 
