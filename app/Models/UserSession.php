@@ -34,7 +34,7 @@ final class UserSession extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (self $session): void {
+        self::creating(function (self $session): void {
             $session->id ??= (string) Str::uuid();
         });
     }
