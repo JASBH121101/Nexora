@@ -12,8 +12,7 @@ final class EnsureRegisteredSession
 {
     public function __construct(
         private readonly UserSessionRegistry $sessions,
-    ) {
-    }
+    ) {}
 
     public function handle(Request $request, Closure $next): Response
     {
