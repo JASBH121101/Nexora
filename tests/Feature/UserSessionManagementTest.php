@@ -148,12 +148,16 @@ class UserSessionManagementTest extends TestCase
     private function authenticatedSessionRequest(string $sessionId, User $user): Request
     {
         $session = app('session')->driver();
-        $session->setId($sessionId);
         $session->start();
+        $session->setId($sessionId);
 
         $request = Request::create('/admin');
         $request->setLaravelSession($session);
         $request->setUserResolver(static fn (): User => $user);
+
+        if ($request->session()->getId() !== $sessionId) {
+            throw new \\RuntimeException('The test session ID was not preserved.');
+        }
 
         return $request;
     }
