@@ -3,8 +3,8 @@
 namespace App\Modules\Admin\Http\Controllers;
 
 use App\Core\Authorization\PermissionCatalog;
-use App\Core\Security\UserSessionRegistry;
 use App\Core\Authorization\RoleCatalog;
+use App\Core\Security\UserSessionRegistry;
 use App\Models\ProductFieldDefinition;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
