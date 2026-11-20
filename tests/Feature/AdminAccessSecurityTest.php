@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
 class AdminAccessSecurityTest extends TestCase
@@ -35,6 +36,7 @@ class AdminAccessSecurityTest extends TestCase
 
         $owner = User::query()->where('username', 'ownerinactive')->firstOrFail();
         $owner->forceFill(['is_active' => false])->save();
+        Auth::forgetGuards();
 
         $this->get(route('admin.home'))->assertForbidden();
     }
